@@ -55,20 +55,20 @@ const store = {
   _pendingWrites: [], // Write queue for calls before Firebase is ready
 
   save(userId, lectureId, pct) {
-    // Always mirror to localStorage as a fast cache (not primary store)
+    // Mirror to localStorage as fast read-cache
     try {
       localStorage.setItem('streak_store_v2', JSON.stringify({
         version: 2, progress: this.state.progress
       }));
     } catch(e) {}
 
-    // Skip Firebase for non-lecture saves (filter/search/login state changes)
     if (userId === null || userId === undefined) return;
 
     if (!window._fbReady || !window._fbDb) {
-      // Firebase not ready yet — queue the write
+      // Queue the write + persist to localStorage so it survives page close/crash
       this._pendingWrites.push({ userId, lectureId, pct });
-      console.log(`[Firebase: Queued] user:${userId} lecture:${lectureId}`);
+      try { localStorage.setItem('_pw', JSON.stringify(this._pendingWrites)); } catch(e) {}
+      this._updateSyncBadge();
       return;
     }
     this._writeToCloud(userId, lectureId, pct);
@@ -80,6 +80,7 @@ const store = {
       const payload = {};
       payload[lectureId] = pct;
       update(ref(window._fbDb, `progress/${userId}`), payload);
+      this._updateSyncBadge(); // show ✅ after successful cloud write
     } catch(e) { console.error('[Firebase: Write Error]', e); }
   },
 
@@ -93,15 +94,44 @@ const store = {
   _flushPendingWrites() {
     const queue = [...this._pendingWrites];
     this._pendingWrites = [];
+    try { localStorage.removeItem('_pw'); } catch(e) {} // clear persisted queue
     queue.forEach(w => this._writeToCloud(w.userId, w.lectureId, w.pct));
     if (queue.length) console.log(`[Firebase: Flushed ${queue.length} pending writes]`);
+    this._updateSyncBadge();
+  },
+
+  // Persistent sync status badge — FM-5 fix: user can see unsaved changes
+  _updateSyncBadge() {
+    let badge = document.getElementById('_syncBadge');
+    if (!badge) {
+      badge = document.createElement('div');
+      badge.id = '_syncBadge';
+      Object.assign(badge.style, {
+        position: 'fixed', top: '8px', left: '8px', zIndex: '9999',
+        padding: '3px 10px', borderRadius: '12px', fontSize: '11px',
+        fontFamily: 'Cairo,sans-serif', direction: 'rtl', transition: 'all .3s'
+      });
+      document.body && document.body.appendChild(badge);
+    }
+    const n = this._pendingWrites.length;
+    badge.textContent  = n > 0 ? `⏳ ${n} لم يُحفظ` : '✅ محفوظ';
+    badge.style.background = n > 0 ? 'rgba(255,165,0,.85)' : 'rgba(16,185,129,.75)';
+    badge.style.color = '#fff';
+    if (n === 0) setTimeout(() => { if(badge) badge.style.opacity='0'; }, 2500);
+    else badge.style.opacity = '1';
   },
 
 
   load() {
-    // First load from localStorage as immediate data (no flicker)
+    // Restore any pending writes that survived a page close/crash
+    try {
+      const pw = localStorage.getItem('_pw');
+      if (pw) {
+        this._pendingWrites = JSON.parse(pw);
+        console.log(`[Recovery] Restored ${this._pendingWrites.length} pending writes from crash`);
+      }
+    } catch(e) {}
     this.loadFromLocal();
-    // Then try Firebase for authoritative cloud data
     this.initFirebase();
   },
 
@@ -494,7 +524,17 @@ async function checkPin() {
 
 
 
+// FM-3 Fix: double-click debounce — prevents race condition if user
+// taps the same lecture twice quickly (e.g. unstable touchscreen)
+let _lastToggleKey = null;
+let _lastToggleTime = 0;
+
 function toggleLecture(lecId) {
+  const now = Date.now();
+  if (_lastToggleKey === lecId && now - _lastToggleTime < 400) return; // 400ms debounce
+  _lastToggleKey = lecId;
+  _lastToggleTime = now;
+
   const s = store.get();
   const userProgress = s.progress[s.currentUser] || {};
   const uid = s.currentUser;
