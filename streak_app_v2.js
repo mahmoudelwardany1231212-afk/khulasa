@@ -102,28 +102,39 @@ const store = {
 
     const boot = () => {
       try {
-        const { initializeApp } = window.firebase_app || {};
+        const { initializeApp, getApps } = window.firebase_app || {};
         const { getDatabase, ref, onValue, set, update } = window.firebase_database || {};
-        if (!initializeApp || !update) {
-          console.warn('[Firebase] SDK not fully loaded yet.');
-          return;
-        }
-        const app = initializeApp(FIREBASE_CONFIG);
+        if (!initializeApp || !update) { console.warn('[Firebase] SDK not loaded.'); return; }
+
+        // Fix #1: Guard against double-init (which throws an error and kills the listener)
+        const app = getApps().length > 0 ? getApps()[0] : initializeApp(FIREBASE_CONFIG);
         const db = getDatabase(app);
         window._fbDb  = db;
         window._fbSDK = { ref, set, update };
         window._fbReady = true;
 
-        // Bug Fix #3: Deep-merge cloud data instead of replacing the whole state.
-        // This preserves local-only data until the next cloud cycle.
+        // Show loading indicator while waiting for first cloud sync
+        this._showSyncBanner();
+
         onValue(ref(db, 'progress'), (snapshot) => {
-          const cloudProgress = snapshot.val();
-          if (cloudProgress) {
-            if (DEBUG_MODE) console.log('[Firebase: onValue] Live cloud data received.', cloudProgress);
+          const raw = snapshot.val();
+          this._hideSyncBanner();
+
+          if (raw) {
+            // Fix #2: Firebase returns ALL keys as strings ("0", "5").
+            // Normalize them back to integers so the rest of the app reads them correctly.
+            const cloudProgress = this._normalizeKeys(raw);
+            if (DEBUG_MODE) console.log('[Firebase: onValue] Normalized data:', cloudProgress);
+
             // Deep merge: cloud wins per-user, per-lecture
-            const merged = { ...this.state.progress };
+            const merged = {};
+            // Start with cloud as the source of truth
             for (const uid in cloudProgress) {
-              merged[uid] = { ...(merged[uid] || {}), ...cloudProgress[uid] };
+              merged[uid] = { ...(this.state.progress[uid] || {}), ...cloudProgress[uid] };
+            }
+            // Add any local users not in the cloud yet
+            for (const uid in this.state.progress) {
+              if (!merged[uid]) merged[uid] = this.state.progress[uid];
             }
             this.state.progress = merged;
             try {
@@ -135,17 +146,47 @@ const store = {
         if (DEBUG_MODE) console.log('[Firebase] Real-time listener attached.');
       } catch(e) {
         console.error('[Firebase: Init Error]', e);
+        this._hideSyncBanner();
       }
     };
 
-    // Bug Fix #1: firebase-ready event means the ES module has loaded.
-    // This avoids the race condition where initFirebase runs before window.firebase_app is set.
     if (window.firebase_app) {
-      boot(); // Already loaded
+      boot();
     } else {
       window.addEventListener('firebase-ready', boot, { once: true });
     }
   },
+
+  // Fix #2 helper: converts all nested String keys to Integer keys
+  _normalizeKeys(obj) {
+    const out = {};
+    for (const k in obj) {
+      const val = obj[k];
+      const normKey = isNaN(k) ? k : parseInt(k, 10);
+      out[normKey] = (val && typeof val === 'object') ? this._normalizeKeys(val) : val;
+    }
+    return out;
+  },
+
+  // Fix #3: Loading banner while Firebase syncs on a new device
+  _showSyncBanner() {
+    if (document.getElementById('_fbBanner')) return;
+    const b = document.createElement('div');
+    b.id = '_fbBanner';
+    b.innerHTML = '🔄 جاري الاتصال بالسحابة...';
+    Object.assign(b.style, {
+      position: 'fixed', bottom: '70px', left: '50%', transform: 'translateX(-50%)',
+      background: 'rgba(0,0,0,0.75)', color: '#fff', padding: '8px 18px',
+      borderRadius: '20px', fontSize: '13px', zIndex: '9999',
+      fontFamily: 'Cairo, sans-serif', direction: 'rtl'
+    });
+    document.body.appendChild(b);
+  },
+  _hideSyncBanner() {
+    const b = document.getElementById('_fbBanner');
+    if (b) b.remove();
+  },
+
 
   migrateLegacyData() {
     if (DEBUG_MODE) console.log('[Store: Migration] Beginning V1 to V2 Migration...');
