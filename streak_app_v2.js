@@ -48,28 +48,55 @@ const store = {
     this.listeners.forEach(fn => fn(this.state));
   },
 
-  // ── DATA PERSISTENCE (Firebase — Atomic per-user + localStorage fallback) ──
+  // ── DATA PERSISTENCE — Cloud-First Architecture ─────────────────
+  // Firebase is the SINGLE source of truth. localStorage is a read-cache only.
+  // Writes go ONLY to Firebase. onValue() is the only thing that updates the store.
+
+  _pendingWrites: [], // Write queue for calls before Firebase is ready
+
   save(userId, lectureId, pct) {
-    // Always keep a full local backup first
+    // Always mirror to localStorage as a fast cache (not primary store)
     try {
       localStorage.setItem('streak_store_v2', JSON.stringify({
-        version: 2,
-        progress: this.state.progress
+        version: 2, progress: this.state.progress
       }));
     } catch(e) {}
 
-    // Bug Fix #2: Use update() on a single user path, not set() on the root.
-    // This is an atomic write that CANNOT overwrite another user's data.
-    if (window._fbReady && window._fbDb && userId !== undefined && userId !== null) {
-      try {
-        const { ref, update } = window._fbSDK;
-        const updatePayload = {};
-        updatePayload[lectureId] = pct;
-        update(ref(window._fbDb, `progress/${userId}`), updatePayload);
-        if (DEBUG_MODE) console.log(`[Firebase: Atomic Save] user:${userId} lecture:${lectureId} pct:${pct}`);
-      } catch(e) { console.warn('[Firebase: Save Error]', e); }
+    // Skip Firebase for non-lecture saves (filter/search/login state changes)
+    if (userId === null || userId === undefined) return;
+
+    if (!window._fbReady || !window._fbDb) {
+      // Firebase not ready yet — queue the write
+      this._pendingWrites.push({ userId, lectureId, pct });
+      console.log(`[Firebase: Queued] user:${userId} lecture:${lectureId}`);
+      return;
     }
+    this._writeToCloud(userId, lectureId, pct);
   },
+
+  _writeToCloud(userId, lectureId, pct) {
+    try {
+      const { ref, update } = window._fbSDK;
+      const payload = {};
+      payload[lectureId] = pct;
+      update(ref(window._fbDb, `progress/${userId}`), payload);
+    } catch(e) { console.error('[Firebase: Write Error]', e); }
+  },
+
+  _removeFromCloud(userId, lectureId) {
+    try {
+      const { ref, remove } = window._fbSDK;
+      if (remove) remove(ref(window._fbDb, `progress/${userId}/${lectureId}`));
+    } catch(e) { console.error('[Firebase: Remove Error]', e); }
+  },
+
+  _flushPendingWrites() {
+    const queue = [...this._pendingWrites];
+    this._pendingWrites = [];
+    queue.forEach(w => this._writeToCloud(w.userId, w.lectureId, w.pct));
+    if (queue.length) console.log(`[Firebase: Flushed ${queue.length} pending writes]`);
+  },
+
 
   load() {
     // First load from localStorage as immediate data (no flicker)
@@ -100,53 +127,47 @@ const store = {
       return;
     }
 
-    const boot = () => {
+      const boot = () => {
       try {
         const { initializeApp, getApps } = window.firebase_app || {};
-        const { getDatabase, ref, onValue, set, update } = window.firebase_database || {};
+        const { getDatabase, ref, onValue, set, update, remove } = window.firebase_database || {};
         if (!initializeApp || !update) { console.warn('[Firebase] SDK not loaded.'); return; }
 
-        // Fix #1: Guard against double-init (which throws an error and kills the listener)
+        // Guard against double-init
         const app = getApps().length > 0 ? getApps()[0] : initializeApp(FIREBASE_CONFIG);
-        const db = getDatabase(app);
+
+        // CRITICAL FIX: Pass databaseURL explicitly to guarantee correct server.
+        // Without this, Firebase may connect to the wrong (default US) database.
+        const db = getDatabase(app, FIREBASE_CONFIG.databaseURL);
         window._fbDb  = db;
-        window._fbSDK = { ref, set, update, remove: window.firebase_database.remove };
+        window._fbSDK = { ref, set, update, remove };
         window._fbReady = true;
 
-        // Store unsubscribe function for cleanup on logout
-        window._fbUnsubscribe = null;
-
-        // Show loading indicator while waiting for first cloud sync
         this._showSyncBanner();
 
         window._fbUnsubscribe = onValue(ref(db, 'progress'), (snapshot) => {
           const raw = snapshot.val();
           this._hideSyncBanner();
 
-          if (raw) {
-            // Fix #2: Firebase returns ALL keys as strings ("0", "5").
-            // Normalize them back to integers so the rest of the app reads them correctly.
-            const cloudProgress = this._normalizeKeys(raw);
-            if (DEBUG_MODE) console.log('[Firebase: onValue] Normalized data:', cloudProgress);
+          // CLOUD-FIRST: Firebase IS the source of truth.
+          // We REPLACE local state entirely — no merge with localStorage.
+          // Each device gets the same identical state from the cloud.
+          const cloudProgress = raw ? this._normalizeKeys(raw) : {};
 
-            // Deep merge: cloud wins per-user, per-lecture
-            const merged = {};
-            // Start with cloud as the source of truth
-            for (const uid in cloudProgress) {
-              merged[uid] = { ...(this.state.progress[uid] || {}), ...cloudProgress[uid] };
-            }
-            // Add any local users not in the cloud yet
-            for (const uid in this.state.progress) {
-              if (!merged[uid]) merged[uid] = this.state.progress[uid];
-            }
-            this.state.progress = merged;
-            try {
-              localStorage.setItem('streak_store_v2', JSON.stringify({ version: 2, progress: merged }));
-            } catch(e) {}
-            this.notify();
-          }
+          this.state.progress = cloudProgress;
+
+          // Mirror to localStorage as read-cache (for instant first paint on next visit)
+          try {
+            localStorage.setItem('streak_store_v2', JSON.stringify({ version: 2, progress: cloudProgress }));
+          } catch(e) {}
+
+          // Flush any writes that were queued before Firebase connected
+          this._flushPendingWrites();
+
+          this.notify();
         });
-        if (DEBUG_MODE) console.log('[Firebase] Real-time listener attached.');
+
+        console.log('[Firebase] Cloud-first listener attached to:', FIREBASE_CONFIG.databaseURL);
       } catch(e) {
         console.error('[Firebase: Init Error]', e);
         this._hideSyncBanner();
@@ -387,22 +408,14 @@ function toggleLecture(lecId) {
   const uid = s.currentUser;
   
   if (userProgress[lecId] !== undefined) {
-    // Remove from local state
+    // Optimistic local update (instant UI)
     store.set(st => {
       const cloned = { ...st.progress[st.currentUser] };
       delete cloned[lecId];
       return { ...st, progress: { ...st.progress, [st.currentUser]: cloned } };
     });
-    // Fix: sync the deletion to Firebase using remove()
-    if (window._fbReady && window._fbDb) {
-      try {
-        const { ref, remove } = window._fbSDK;
-        if (remove) {
-          remove(ref(window._fbDb, `progress/${uid}/${lecId}`));
-          if (DEBUG_MODE) console.log(`[Firebase: Remove] user:${uid} lecture:${lecId}`);
-        }
-      } catch(e) { console.warn('[Firebase: Remove Error]', e); }
-    }
+    // Cloud write — onValue will broadcast to every device
+    store._removeFromCloud(uid, lecId);
   } else {
     pendingLecId = lecId;
     document.getElementById('pctModal').classList.add('show');
@@ -420,12 +433,12 @@ function selectPct(pctVal) {
   closePctModal();
   
   const currentUser = store.get().currentUser;
+  // Optimistic local update (instant UI feedback)
   store.set(st => {
     const userProg = { ...st.progress[st.currentUser], [lecId]: pctVal };
     return { ...st, progress: { ...st.progress, [st.currentUser]: userProg } };
   });
-
-  // Explicit atomic Firebase save — only writes this specific (user, lecture) pair
+  // Cloud write — onValue will confirm and broadcast to all devices
   store.save(currentUser, lecId, pctVal);
 
   const p = store.get().progress[store.get().currentUser];
