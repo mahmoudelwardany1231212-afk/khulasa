@@ -32,7 +32,9 @@ const store = {
     } else {
       this.state = { ...this.state, ...updater };
     }
-    this.save();
+    // NOTE: save() is now called EXPLICITLY with (userId, lectureId, pct)
+    // for atomic Firebase writes. Generic auto-save still writes localStorage.
+    this.save(null, null, null);
     this.notify();
     if (DEBUG_MODE) console.log('[Store: Set]', this.state);
   },
@@ -46,20 +48,25 @@ const store = {
     this.listeners.forEach(fn => fn(this.state));
   },
 
-  // ── DATA PERSISTENCE (Firebase + localStorage fallback) ──────────────────
-  save() {
-    const payload = {
-      version: this.state.version,
-      progress: this.state.progress
-    };
-    // Always keep a local backup
-    try { localStorage.setItem('streak_store_v2', JSON.stringify(payload)); } catch(e){}
-    // Sync to Firebase if available
-    if (window._fbReady && window._fbDb) {
+  // ── DATA PERSISTENCE (Firebase — Atomic per-user + localStorage fallback) ──
+  save(userId, lectureId, pct) {
+    // Always keep a full local backup first
+    try {
+      localStorage.setItem('streak_store_v2', JSON.stringify({
+        version: 2,
+        progress: this.state.progress
+      }));
+    } catch(e) {}
+
+    // Bug Fix #2: Use update() on a single user path, not set() on the root.
+    // This is an atomic write that CANNOT overwrite another user's data.
+    if (window._fbReady && window._fbDb && userId !== undefined && userId !== null) {
       try {
-        const { ref, set } = window._fbSDK;
-        set(ref(window._fbDb, 'progress'), this.state.progress);
-        if (DEBUG_MODE) console.log('[Firebase: Save] Synced progress to cloud.');
+        const { ref, update } = window._fbSDK;
+        const updatePayload = {};
+        updatePayload[lectureId] = pct;
+        update(ref(window._fbDb, `progress/${userId}`), updatePayload);
+        if (DEBUG_MODE) console.log(`[Firebase: Atomic Save] user:${userId} lecture:${lectureId} pct:${pct}`);
       } catch(e) { console.warn('[Firebase: Save Error]', e); }
     }
   },
@@ -89,37 +96,54 @@ const store = {
 
   initFirebase() {
     if (typeof FIREBASE_CONFIG === 'undefined' || FIREBASE_CONFIG.apiKey.includes('PASTE_YOUR')) {
-      console.warn('[Firebase] Config not set. Running in offline mode (localStorage only).');
+      console.warn('[Firebase] Config not set. Running in offline mode.');
       return;
     }
-    try {
-      const { initializeApp } = window.firebase_app || {};
-      const { getDatabase, ref, onValue, set } = window.firebase_database || {};
-      if (!initializeApp) {
-        console.warn('[Firebase] SDK not loaded.');
-        return;
-      }
-      const app = initializeApp(FIREBASE_CONFIG);
-      const db = getDatabase(app);
-      window._fbDb  = db;
-      window._fbSDK = { ref, set };
-      window._fbReady = true;
 
-      // Real-time listener — any change by other users updates the store
-      onValue(ref(db, 'progress'), (snapshot) => {
-        const cloudProgress = snapshot.val();
-        if (cloudProgress) {
-          if (DEBUG_MODE) console.log('[Firebase: onValue] Cloud data received.', cloudProgress);
-          // Merge cloud ≻ local (cloud wins)
-          this.state.progress = cloudProgress;
-          // Persist locally as backup
-          try { localStorage.setItem('streak_store_v2', JSON.stringify({ version: 2, progress: cloudProgress })); } catch(e){}
-          this.notify(); // Trigger instant re-render
+    const boot = () => {
+      try {
+        const { initializeApp } = window.firebase_app || {};
+        const { getDatabase, ref, onValue, set, update } = window.firebase_database || {};
+        if (!initializeApp || !update) {
+          console.warn('[Firebase] SDK not fully loaded yet.');
+          return;
         }
-      });
-      if (DEBUG_MODE) console.log('[Firebase] Real-time listener attached.');
-    } catch(e) {
-      console.error('[Firebase: Init Error]', e);
+        const app = initializeApp(FIREBASE_CONFIG);
+        const db = getDatabase(app);
+        window._fbDb  = db;
+        window._fbSDK = { ref, set, update };
+        window._fbReady = true;
+
+        // Bug Fix #3: Deep-merge cloud data instead of replacing the whole state.
+        // This preserves local-only data until the next cloud cycle.
+        onValue(ref(db, 'progress'), (snapshot) => {
+          const cloudProgress = snapshot.val();
+          if (cloudProgress) {
+            if (DEBUG_MODE) console.log('[Firebase: onValue] Live cloud data received.', cloudProgress);
+            // Deep merge: cloud wins per-user, per-lecture
+            const merged = { ...this.state.progress };
+            for (const uid in cloudProgress) {
+              merged[uid] = { ...(merged[uid] || {}), ...cloudProgress[uid] };
+            }
+            this.state.progress = merged;
+            try {
+              localStorage.setItem('streak_store_v2', JSON.stringify({ version: 2, progress: merged }));
+            } catch(e) {}
+            this.notify();
+          }
+        });
+        if (DEBUG_MODE) console.log('[Firebase] Real-time listener attached.');
+      } catch(e) {
+        console.error('[Firebase: Init Error]', e);
+      }
+    };
+
+    // Bug Fix #1: firebase-ready event means the ES module has loaded.
+    // This avoids the race condition where initFirebase runs before window.firebase_app is set.
+    if (window.firebase_app) {
+      boot(); // Already loaded
+    } else {
+      window.addEventListener('firebase-ready', boot, { once: true });
     }
   },
 
@@ -304,10 +328,14 @@ function selectPct(pctVal) {
   const lecId = pendingLecId;
   closePctModal();
   
+  const currentUser = store.get().currentUser;
   store.set(st => {
     const userProg = { ...st.progress[st.currentUser], [lecId]: pctVal };
     return { ...st, progress: { ...st.progress, [st.currentUser]: userProg } };
   });
+
+  // Explicit atomic Firebase save — only writes this specific (user, lecture) pair
+  store.save(currentUser, lecId, pctVal);
 
   const p = store.get().progress[store.get().currentUser];
   const done = Object.keys(p).length;

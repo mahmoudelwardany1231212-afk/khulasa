@@ -301,13 +301,14 @@ body{background:var(--bg);min-height:100dvh;font-family:'Cairo',sans-serif;color
 .meme-close-btn:hover { background: rgba(255,255,255,0.12); }
 </style>
 
-<!-- Firebase SDK (v9 compat mode — works with our store integration) -->
+<!-- Firebase SDK (v9 modular) — fires 'firebase-ready' event when loaded -->
 <script type="module">
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
-  import { getDatabase, ref, onValue, set } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js';
-  // Expose to window so streak_app_v2.js can use them
+  import { getDatabase, ref, onValue, set, update } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js';
   window.firebase_app = { initializeApp };
-  window.firebase_database = { getDatabase, ref, onValue, set };
+  window.firebase_database = { getDatabase, ref, onValue, set, update };
+  // Signal the app that Firebase SDK is ready (fixes async module timing bug)
+  window.dispatchEvent(new Event('firebase-ready'));
 </script>
 
 <!-- App Scripts -->
