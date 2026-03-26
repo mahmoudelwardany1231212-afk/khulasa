@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>الخلاصة في المصاصاة 🦷 — Lecture Streak</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#0D1B3E;--navy2:#162455;--teal:#00C9D4;--teal2:#007A85;--gold:#F5C842;--gold2:#C49A10;--rose:#FF4D8D;--rose2:#B5005E;--green:#00D68F;--bg:#090e1c;--card:rgba(255,255,255,0.06);--border:rgba(255,255,255,0.08);--txt:rgba(255,255,255,0.88);--txt2:rgba(255,255,255,0.5);--txt3:rgba(255,255,255,0.3)}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);min-height:100dvh;font-family:'Cairo',sans-serif;color:var(--txt);overflow-x:hidden;padding-bottom:72px}
+.hide{display:none!important}
+
+/* USER SELECT SCREEN */
+.user-select{min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;gap:20px}
+.us-title{font-size:28px;font-weight:900;text-align:center;background:linear-gradient(90deg,var(--gold),#FFF59D,var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.us-sub{color:var(--txt2);font-size:13px;text-align:center}
+.us-cards{display:flex;flex-direction:column;gap:12px;width:100%;max-width:360px}
+.us-card{background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:18px 20px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all .25s}
+.us-card:hover,.us-card:active{transform:scale(1.03);border-color:rgba(255,255,255,0.2)}
+.us-av{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.us-card .nm{font-size:16px;font-weight:700}.us-card .rl{font-size:11px;color:var(--txt2);font-family:'Inter',sans-serif}
+
+/* HEADER */
+.app-header{position:sticky;top:0;z-index:100;background:linear-gradient(180deg,var(--bg) 0%,rgba(9,14,28,0.95) 100%);backdrop-filter:blur(12px);padding:14px 16px 10px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border)}
+.ah-back{width:36px;height:36px;border-radius:10px;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;color:var(--txt2)}
+.ah-info{flex:1}.ah-name{font-size:15px;font-weight:700}.ah-stat{font-size:11px;color:var(--txt2);font-family:'Inter',sans-serif}
+.ah-pct{font-size:22px;font-weight:900;font-family:'Inter',sans-serif;color:var(--teal)}
+
+/* TABS */
+.tabs{display:flex;gap:4px;padding:8px 16px;position:sticky;top:62px;z-index:99;background:var(--bg)}
+.tab{flex:1;padding:9px 6px;border-radius:10px;text-align:center;font-size:12px;font-weight:700;cursor:pointer;background:var(--card);border:1px solid var(--border);color:var(--txt2);transition:all .2s}
+.tab.on{background:linear-gradient(135deg,var(--teal2),var(--teal));color:white;border-color:var(--teal)}
+
+/* FILTERS */
+.filters{padding:8px 16px;display:flex;flex-direction:column;gap:8px}
+.filter-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;-ms-overflow-style:none;scrollbar-width:none}
+.filter-row::-webkit-scrollbar{display:none}
+.chip{padding:6px 12px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap;cursor:pointer;background:var(--card);border:1px solid var(--border);color:var(--txt2);transition:all .2s;flex-shrink:0}
+.chip.on{background:rgba(0,201,212,0.15);border-color:var(--teal);color:var(--teal)}
+.chip-q.on{background:rgba(245,200,66,0.15);border-color:var(--gold);color:var(--gold)}
+
+/* SUBJECT PROGRESS */
+.subj-progress{padding:0 16px 8px;display:flex;flex-direction:column;gap:6px}
+.sp-row{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:600}
+.sp-nm{flex:1;color:var(--txt2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sp-bar{flex:2;height:6px;border-radius:3px;background:rgba(255,255,255,0.06);overflow:hidden}
+.sp-fill{height:100%;border-radius:3px;transition:width .4s}
+.sp-pct{width:36px;text-align:left;font-family:'Inter',sans-serif;color:var(--txt2);font-size:10px}
+
+/* LECTURE GRID */
+.lec-list{padding:0 16px 16px;display:flex;flex-direction:column;gap:8px}
+.lec{background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:12px 14px;display:flex;align-items:flex-start;gap:12px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.lec:active{transform:scale(0.98)}
+.lec.done{border-color:rgba(0,214,143,0.3)}
+.lec.done::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--green)}
+.lec-check{width:28px;height:28px;border-radius:8px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px;transition:all .2s;margin-top:2px}
+.lec.done .lec-check{background:var(--green);border-color:var(--green);color:white}
+.lec-info{flex:1;min-width:0}
+.lec-title{font-size:13px;font-weight:700;line-height:1.4}
+.lec-meta{display:flex;gap:8px;margin-top:4px;flex-wrap:wrap}
+.lec-tag{font-size:9px;padding:2px 8px;border-radius:10px;font-weight:600;font-family:'Inter',sans-serif}
+.lt-subj{background:rgba(0,201,212,0.1);color:var(--teal)}
+.lt-quiz{background:rgba(245,200,66,0.1);color:var(--gold)}
+.lt-week{background:rgba(255,255,255,0.06);color:var(--txt3)}
+
+/* LEADERBOARD */
+.lb-page{padding:16px}
+.lb-title{font-size:11px;font-weight:700;letter-spacing:2px;color:var(--txt3);text-align:center;margin-bottom:12px;font-family:'Inter',sans-serif}
+.lb-cards{display:flex;flex-direction:column;gap:10px}
+.lb-card{background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:16px;position:relative;overflow:hidden}
+.lb-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.lb-card.r1::before{background:linear-gradient(90deg,var(--gold2),var(--gold),#FFF59D,var(--gold))}
+.lb-card.r2::before{background:linear-gradient(90deg,#888,#ccc,#888)}
+.lb-card.r3::before{background:linear-gradient(90deg,#8B4513,#CD853F,#8B4513)}
+.lb-top{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.lb-rank{font-size:28px;line-height:1}
+.lb-av{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px}
+.lb-nm{font-size:15px;font-weight:700;flex:1}
+.lb-total{text-align:left;font-family:'Inter',sans-serif}
+.lb-total .n{font-size:22px;font-weight:900;color:var(--teal)}.lb-total .d{font-size:10px;color:var(--txt3)}
+.lb-bar-wrap{height:8px;border-radius:4px;background:rgba(255,255,255,0.06);overflow:hidden;margin-bottom:8px}
+.lb-bar-fill{height:100%;border-radius:4px;transition:width .5s}
+.lb-subjects{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.lb-subj{font-size:10px;color:var(--txt2);display:flex;justify-content:space-between;padding:2px 6px;border-radius:4px;background:rgba(255,255,255,0.03)}
+.lb-subj span:last-child{font-family:'Inter',sans-serif;font-weight:600}
+
+/* BOTTOM NAV */
+.bnav{position:fixed;bottom:0;left:0;right:0;height:64px;background:rgba(9,14,28,0.95);backdrop-filter:blur(14px);border-top:1px solid var(--border);display:flex;z-index:200}
+.bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;color:var(--txt3);transition:color .2s;font-size:20px}
+.bnav-btn span{font-size:9px;font-weight:700;font-family:'Inter',sans-serif}
+.bnav-btn.on{color:var(--teal)}
+
+/* SUBJECT COLORS */
+.sc0{--sc:var(--teal)}.sc1{--sc:var(--gold)}.sc2{--sc:var(--rose)}.sc3{--sc:#8B5CF6}.sc4{--sc:#F97316}.sc5{--sc:#06B6D4}.sc6{--sc:#10B981}
+
+/* SEARCH */
+.search-wrap{padding:0 16px 4px}
+.search-input{width:100%;padding:10px 14px 10px 38px;border-radius:12px;border:1px solid var(--border);background:var(--card);color:var(--txt);font-family:'Cairo',sans-serif;font-size:13px;font-weight:600;outline:none;transition:border-color .2s}
+.search-input:focus{border-color:var(--teal)}
+.search-input::placeholder{color:var(--txt3)}
+.search-wrap{position:relative}
+.search-icon{position:absolute;right:28px;top:50%;transform:translateY(-50%);font-size:15px;color:var(--txt3);pointer-events:none}
+
+/* TOAST */
+.toast{position:fixed;top:-100px;left:50%;transform:translateX(-50%);z-index:999;padding:12px 20px;border-radius:14px;font-size:13px;font-weight:700;text-align:center;max-width:92%;transition:top .4s cubic-bezier(0.34,1.56,0.64,1);pointer-events:none}
+.toast.show{top:16px}
+.toast-success{background:linear-gradient(135deg,#0a3d2a,#0d4a33);border:1px solid rgba(0,214,143,0.3);color:var(--green)}
+.toast-warn{background:linear-gradient(135deg,#3d2a0a,#4a330d);border:1px solid rgba(245,200,66,0.3);color:var(--gold)}
+.toast-fire{background:linear-gradient(135deg,#3d0a0a,#4a0d0d);border:1px solid rgba(255,77,141,0.3);color:var(--rose)}
+.toast-epic{background:linear-gradient(135deg,#1a0040,#2d0070);border:1px solid rgba(139,92,246,0.4);color:#c4b5fd}
+
+/* LEVEL BANNER */
+.level-banner{margin:0 16px 8px;padding:14px 16px;border-radius:14px;display:flex;align-items:center;gap:12px;position:relative;overflow:hidden}
+.level-banner .lb-emoji{font-size:28px;line-height:1}
+.level-banner .lb-text{flex:1}
+.level-banner .lb-phrase{font-size:14px;font-weight:900}
+.level-banner .lb-level{font-size:10px;font-weight:600;font-family:'Inter',sans-serif;opacity:0.7}
+.lb-lv1{background:linear-gradient(135deg,rgba(0,201,212,0.1),rgba(0,201,212,0.05));border:1px solid rgba(0,201,212,0.15);color:var(--teal)}
+.lb-lv2{background:linear-gradient(135deg,rgba(0,214,143,0.1),rgba(0,214,143,0.05));border:1px solid rgba(0,214,143,0.15);color:var(--green)}
+.lb-lv3{background:linear-gradient(135deg,rgba(245,200,66,0.1),rgba(245,200,66,0.05));border:1px solid rgba(245,200,66,0.15);color:var(--gold)}
+.lb-lv4{background:linear-gradient(135deg,rgba(0,122,133,0.15),rgba(13,27,62,0.15));border:1px solid rgba(0,201,212,0.2);color:var(--teal)}
+.lb-lv5{background:linear-gradient(135deg,rgba(139,92,246,0.12),rgba(23,0,64,0.15));border:1px solid rgba(139,92,246,0.25);color:#c4b5fd}
+.lb-lv6{background:linear-gradient(135deg,rgba(245,200,66,0.15),rgba(196,154,16,0.1));border:1px solid rgba(245,200,66,0.3);color:var(--gold)}
+
+/* ANIMATIONS */
+@keyframes pop{0%{transform:scale(0.8);opacity:0}100%{transform:scale(1);opacity:1}}
+.lec{animation:pop .3s ease both}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+</style>
+</head>
+<body>
+
+<!-- USER SELECT -->
+<div id="userSelect" class="user-select">
+  <div style="font-size:48px">🦷</div>
+  <div class="us-title">الخلاصة في المصاصاة</div>
+  <div class="us-sub">اختار اسمك عشان تبدأ تتبع المحاضرات</div>
+  <div class="us-cards" id="usCards"></div>
+</div>
+
+<!-- MAIN APP -->
+<div id="mainApp" class="hide">
+  <div class="app-header">
+    <div class="ah-back" onclick="logout()">👤</div>
+    <div class="ah-info"><div class="ah-name" id="ahName"></div><div class="ah-stat" id="ahStat"></div></div>
+    <div class="ah-pct" id="ahPct"></div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab on" data-tab="lectures" onclick="switchTab('lectures')">📚 المحاضرات</div>
+    <div class="tab" data-tab="leaderboard" onclick="switchTab('leaderboard')">🏆 المنافسة</div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
+
+  <!-- LECTURES PAGE -->
+  <div id="pageLectures">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input class="search-input" id="searchInput" type="text" placeholder="ابحث عن محاضرة..." oninput="onSearch()">
+    </div>
+    <div class="filters">
+      <div class="filter-row" id="subjFilters"></div>
+      <div class="filter-row" id="quizFilters"></div>
+    </div>
+    <div id="levelBanner"></div>
+    <div class="subj-progress" id="subjProgress"></div>
+    <div class="lec-list" id="lecList"></div>
+  </div>
+
+  <!-- LEADERBOARD PAGE -->
+  <div id="pageLeaderboard" class="hide">
+    <div class="lb-page">
+      <div class="lb-title">🔥 LEADERBOARD — ترتيب الأعضاء</div>
+      <div class="lb-cards" id="lbCards"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const LECTURES = [{"id": 0, "s": "طب الفم وأمراض اللثة (Perio)", "t": "Classification of Diseases and Conditions Affecting the Periodontium & Clinical Features of Gingivitis", "w": "1 (الفصل الأول)", "q": "Quiz 1"}, {"id": 1, "s": "طب الفم وأمراض اللثة (Perio)", "t": "Microbiology of Periodontal Diseases", "w": "2 (الفصل الأول)", "q": "Quiz 1"}, {"id": 2, "s": "طب الفم وأمراض اللثة (Perio)", "t": "Microbial Interactions with the Host in Periodontal Diseases", "w": "3 (الفصل الأول)", "q": "Quiz 1"}, {"id": 3, "s": "طب الفم وأمراض اللثة (Perio)", "t": "The relation between periodontal and systemic health", "w": "4 (الفصل الأول)", "q": "Quiz 1"}, {"id": 4, "s": "طب الفم وأمراض اللثة (Perio)", "t": "Calculus & other local factors", "w": "5 (الفصل الأول)", "q": "Quiz 1"}, {"id": 5, "s": "طب الفم وأمراض اللثة (Perio)", "t": "Gingival inflammation & clinical features & Supportive periodontal therapy", "w": "6 (الفصل الأول)", "q": "Quiz 1"}, {"id": 6, "s": "طب الفم وأمراض اللثة (Perio)", "t": "Gingival Enlargement", "w": "7 (الفصل الأول)", "q": "Quiz 1"}, {"id": 7, "s": "طب الفم وأمراض اللثة (Perio)", "t": "Acute Gingival Infections and periodontal abscess", "w": "8 (الفصل الأول)", "q": "Quiz 1"}, {"id": 8, "s": "طب الفم وأمراض اللثة (Perio)", "t": "The Periodontal Pocket", "w": "9 (الفصل الأول)", "q": "Quiz 1"}, {"id": 9, "s": "طب الفم وأمراض اللثة (Perio)", "t": "Chronic and Aggressive Periodontitis", "w": "10 (الفصل الأول)", "q": "Quiz 1"}, {"id": 10, "s": "طب الفم وأمراض اللثة (Perio)", "t": "Determination of Prognosis", "w": "11 (الفصل الأول)", "q": "Quiz 1"}, {"id": 11, "s": "طب الفم وأمراض اللثة (Perio)", "t": "Risk Factors in Periodontal Disease", "w": "12 (الفصل الأول)", "q": "Quiz 1"}, {"id": 12, "s": "طب الفم وأمراض اللثة (Perio)", "t": "Periodontal Response to External Forces", "w": "13 (الفصل الأول)", "q": "Quiz 1"}, {"id": 13, "s": "طب الفم وأمراض اللثة (Perio)", "t": "General Principles of Periodontal surgery -Gingival Surgical Techniques", "w": "14 (الفصل الأول)", "q": "Quiz 1"}, {"id": 14, "s": "طب الفم وأمراض اللثة (Perio)", "t": "Anti – infective- Agents - Host Modulation Agents", "w": "16 (الفصل الأول)", "q": "Quiz 1"}, {"id": 15, "s": "طب الفم وأمراض اللثة (Perio)", "t": "The Periodontal Flap – The Flap Technique for Pocket Therapy", "w": "1 (الفصل الثاني)", "q": "Quiz 2"}, {"id": 16, "s": "طب الفم وأمراض اللثة (Perio)", "t": "Resective Osseous Surgery – Bone Loss and Patterns of Bone Destruction 1( on line )", "w": "2 (الفصل الثاني)", "q": "Quiz 2"}, {"id": 17, "s": "طب الفم وأمراض اللثة (Perio)", "t": "Resective Osseous Surgery – Bone Loss and Patterns of Bone Destruction2 ( on line )", "w": "3 (الفصل الثاني)", "q": "Quiz 2"}, {"id": 18, "s": "طب الفم وأمراض اللثة (Perio)", "t": "Reconstructive Periodontal Surgery ( on line )", "w": "4 (الفصل الثاني)", "q": "Quiz 2"}, {"id": 19, "s": "طب الفم وأمراض اللثة (Perio)", "t": "Furcation: Involvement and Treatment", "w": "8 (الفصل الثاني)", "q": "بعد Quiz 2"}, {"id": 20, "s": "طب الفم وأمراض اللثة (Perio)", "t": "Periodontal Plastic and Aesthetic Surgery", "w": "10 (الفصل الثاني)", "q": "بعد Quiz 2"}, {"id": 21, "s": "طب الفم وأمراض اللثة (Perio)", "t": "Perio- Restorative–Interrelationship and esthetic crown lengthening", "w": "11 (الفصل الثاني)", "q": "بعد Quiz 2"}, {"id": 22, "s": "طب الفم وأمراض اللثة (Perio)", "t": "Minimally invasive surgery & use of PRF", "w": "12 (الفصل الثاني)", "q": "بعد Quiz 2"}, {"id": 23, "s": "طب الفم (Medicine)", "t": "Vesicular Bullous& Ulcerative Lesions of the Oral Mucosa (Part 1)", "w": "1 (الفصل الأول)", "q": "Quiz 1"}, {"id": 24, "s": "طب الفم (Medicine)", "t": "Vesicular Bullous& Ulcerative Lesions of the Oral Mucosa (Part 2)", "w": "2 (الفصل الأول)", "q": "Quiz 1"}, {"id": 25, "s": "طب الفم (Medicine)", "t": "Immunologic Diseases (Part 1)", "w": "3 (الفصل الأول)", "q": "Quiz 1"}, {"id": 26, "s": "طب الفم (Medicine)", "t": "Immunologic Diseases (Part 2)", "w": "4 (الفصل الأول)", "q": "Quiz 1"}, {"id": 27, "s": "طب الفم (Medicine)", "t": "Red & White Lesions of the Oral Mucosa (Part 1)", "w": "5 (الفصل الأول)", "q": "Quiz 1"}, {"id": 28, "s": "طب الفم (Medicine)", "t": "Red & White Lesions of the Oral Mucosa (Part 2)", "w": "6 (الفصل الأول)", "q": "Quiz 1"}, {"id": 29, "s": "طب الفم (Medicine)", "t": "Hypersensitivity reactions", "w": "7 (الفصل الأول)", "q": "Quiz 1"}, {"id": 30, "s": "طب الفم (Medicine)", "t": "Endocrine Diseases (Part 1)", "w": "8 (الفصل الأول)", "q": "Quiz 1"}, {"id": 31, "s": "طب الفم (Medicine)", "t": "Endocrine Diseases (Part 2)", "w": "9 (الفصل الأول)", "q": "Quiz 1"}, {"id": 32, "s": "طب الفم (Medicine)", "t": "Diabetes", "w": "10 (الفصل الأول)", "q": "Quiz 1"}, {"id": 33, "s": "طب الفم (Medicine)", "t": "Bleeding and Clotting Disorders (Part 1)", "w": "11 (الفصل الأول)", "q": "Quiz 1"}, {"id": 34, "s": "طب الفم (Medicine)", "t": "Bleeding and Clotting Disorders (Part 2)", "w": "12 (الفصل الأول)", "q": "Quiz 1"}, {"id": 35, "s": "طب الفم (Medicine)", "t": "Pigmented lesions of the oral Mucosa", "w": "13 (الفصل الأول)", "q": "Quiz 1"}, {"id": 36, "s": "طب الفم (Medicine)", "t": "Salivary Gland Diseases (Part 1)", "w": "14 (الفصل الأول)", "q": "Quiz 1"}, {"id": 37, "s": "طب الفم (Medicine)", "t": "Salivary Gland Diseases (Part 2)", "w": "15 (الفصل الأول)", "q": "Quiz 1"}, {"id": 38, "s": "طب الفم (Medicine)", "t": "Hematologic Diseases (Part 1)", "w": "1 (الفصل الثاني)", "q": "Quiz 2"}, {"id": 39, "s": "طب الفم (Medicine)", "t": "Hematologic Diseases (Part 2)", "w": "2 (الفصل الثاني)", "q": "Quiz 2"}, {"id": 40, "s": "طب الفم (Medicine)", "t": "Oral cancer (on line )", "w": "3 (الفصل الثاني)", "q": "Quiz 2"}, {"id": 41, "s": "طب الفم (Medicine)", "t": "Diseases of the Tongue (on line )", "w": "4 (الفصل الثاني)", "q": "Quiz 2"}, {"id": 42, "s": "طب الفم (Medicine)", "t": "Orofacial pain& Headache", "w": "8 (الفصل الثاني)", "q": "بعد Quiz 2"}, {"id": 43, "s": "طب الفم (Medicine)", "t": "Infectious Diseases (Part 1)", "w": "10 (الفصل الثاني)", "q": "بعد Quiz 2"}, {"id": 44, "s": "طب الفم (Medicine)", "t": "Infectious Diseases (Part 2)", "w": "11 (الفصل الثاني)", "q": "بعد Quiz 2"}, {"id": 45, "s": "طب الفم (Medicine)", "t": "Medically compromised patients", "w": "12 (الفصل الثاني)", "q": "بعد Quiz 2"}, {"id": 46, "s": "جراحة الفم والوجه والفك والتجميل (Surgery)", "t": "Pre-prosthetic surgery (3 hrs.)", "w": "1 (الفصل الأول)", "q": "Quiz 1"}, {"id": 47, "s": "جراحة الفم والوجه والفك والتجميل (Surgery)", "t": "Dental implantology (3 hrs.)", "w": "2 (الفصل الأول)", "q": "Quiz 1"}, {"id": 48, "s": "جراحة الفم والوجه والفك والتجميل (Surgery)", "t": "Management of oral-maxillofacial cystic lesions (3 hrs.)", "w": "3 (الفصل الأول)", "q": "Quiz 1"}, {"id": 49, "s": "جراحة الفم والوجه والفك والتجميل (Surgery)", "t": "Management of OMF tumors (4 hrs.)", "w": "4 (الفصل الأول)", "q": "Quiz 1"}, {"id": 50, "s": "جراحة الفم والوجه والفك والتجميل (Surgery)", "t": "Management of Oral cancer (2 hrs.)", "w": "5 (الفصل الأول)", "q": "Quiz 1"}, {"id": 51, "s": "جراحة الفم والوجه والفك والتجميل (Surgery)", "t": "Diagnosis and management of Salivary gland diseases (6 hrs.)", "w": "6 و 7 (الفصل الأول)", "q": "Quiz 1"}, {"id": 52, "s": "جراحة الفم والوجه والفك والتجميل (Surgery)", "t": "Maxillary sinus (sinusitis, lesions, oroantral fistula and sinus lifting) (3 hrs.)", "w": "8 (الفصل الأول)", "q": "Quiz 1"}, {"id": 53, "s": "جراحة الفم والوجه والفك والتجميل (Surgery)", "t": "Differential diagnosis of OMF lesions (4 hrs.)", "w": "9 (الفصل الأول)", "q": "Quiz 1"}, {"id": 54, "s": "جراحة الفم والوجه والفك والتجميل (Surgery)", "t": "Management of orofacial infections (5 hrs.)", "w": "10 و 11 (الفصل الأول)", "q": "Quiz 1"}, {"id": 55, "s": "جراحة الفم والوجه والفك والتجميل (Surgery)", "t": "Osteomyelitis, osteoradionecrosis, and MRONJ (3 hrs.)", "w": "12 (الفصل الأول)", "q": "Quiz 1"}, {"id": 56, "s": "جراحة الفم والوجه والفك والتجميل (Surgery)", "t": "Diagnosis and management of TMJ disorders (4 hrs.)", "w": "13 (الفصل الأول)", "q": "Quiz 1"}, {"id": 57, "s": "جراحة الفم والوجه والفك والتجميل (Surgery)", "t": "TMJ pathology and reconstruction (2 hrs.)", "w": "14 (الفصل الأول)", "q": "Quiz 1"}, {"id": 58, "s": "جراحة الفم والوجه والفك والتجميل (Surgery)", "t": "Management of cleft lip, palate, alveolar cleft (3 hrs.)", "w": "15 (الفصل الأول)", "q": "Quiz 1"}, {"id": 59, "s": "جراحة الفم والوجه والفك والتجميل (Surgery)", "t": "Basic principles for management of maxillofacial injuries (3 hrs.)", "w": "16 (الفصل الأول)", "q": "Quiz 1"}, {"id": 60, "s": "جراحة الفم والوجه والفك والتجميل (Surgery)", "t": "Management of mandibular fractures (4 hrs.)", "w": "1 (الفصل الثاني)", "q": "Quiz 2"}, {"id": 61, "s": "جراحة الفم والوجه والفك والتجميل (Surgery)", "t": "Management of condylar fractures (2 hrs.)", "w": "2 (الفصل الثاني)", "q": "Quiz 2"}, {"id": 62, "s": "جراحة الفم والوجه والفك والتجميل (Surgery)", "t": "Management of Lefort, Orbital and NOE fractures (3 hrs.) “online-Ramadan”", "w": "3 (الفصل الثاني)", "q": "Quiz 2"}, {"id": 63, "s": "جراحة الفم والوجه والفك والتجميل (Surgery)", "t": "Management of Zygomatic complex fractures (3 hrs.) “online-Ramadan”", "w": "4 (الفصل الثاني)", "q": "Quiz 2"}, {"id": 64, "s": "جراحة الفم والوجه والفك والتجميل (Surgery)", "t": "Pediatric Maxillofacial trauma (3 hrs.)", "w": "8 (الفصل الثاني)", "q": "بعد Quiz 2"}, {"id": 65, "s": "جراحة الفم والوجه والفك والتجميل (Surgery)", "t": "Orthognathic surgery, management of dentofacial deformities & distraction osteogenesis (4 hrs.)", "w": "10 (الفصل الثاني)", "q": "بعد Quiz 2"}, {"id": 66, "s": "جراحة الفم والوجه والفك والتجميل (Surgery)", "t": "Diagnosis and management of Orofacial pain (3 hrs.)", "w": "11 (الفصل الثاني)", "q": "بعد Quiz 2"}, {"id": 67, "s": "استعاضة صناعية (Prosthesis)", "t": "Orientation", "w": "1 (الفصل الأول)", "q": "Quiz 1"}, {"id": 68, "s": "استعاضة صناعية (Prosthesis)", "t": "Diagnosis, and treatment planning for partial denture", "w": "2 (الفصل الأول)", "q": "Quiz 1"}, {"id": 69, "s": "استعاضة صناعية (Prosthesis)", "t": "Mouth preparation", "w": "3 (الفصل الأول)", "q": "Quiz 1"}, {"id": 70, "s": "استعاضة صناعية (Prosthesis)", "t": "Principle of partial denture design", "w": "4 (الفصل الأول)", "q": "Quiz 1"}, {"id": 71, "s": "استعاضة صناعية (Prosthesis)", "t": "Impression techniques for R.P.D.", "w": "5 (الفصل الأول)", "q": "Quiz 1"}, {"id": 72, "s": "استعاضة صناعية (Prosthesis)", "t": "Occlusal relationships for R.P.D.", "w": "6 (الفصل الأول)", "q": "Quiz 1"}, {"id": 73, "s": "استعاضة صناعية (Prosthesis)", "t": "Class I", "w": "7 (الفصل الأول)", "q": "Quiz 1"}, {"id": 74, "s": "استعاضة صناعية (Prosthesis)", "t": "Class II, Class III", "w": "8 (الفصل الأول)", "q": "Quiz 1"}, {"id": 75, "s": "استعاضة صناعية (Prosthesis)", "t": "Class IV", "w": "9 (الفصل الأول)", "q": "Quiz 1"}, {"id": 76, "s": "استعاضة صناعية (Prosthesis)", "t": "Try-in & insertion for R.P.D.", "w": "10 (الفصل الأول)", "q": "Quiz 1"}, {"id": 77, "s": "استعاضة صناعية (Prosthesis)", "t": "Support &Tissue damage for R.P.D.", "w": "11 (الفصل الأول)", "q": "Quiz 1"}, {"id": 78, "s": "استعاضة صناعية (Prosthesis)", "t": "Occlusion for complete denture", "w": "12 و 13 (الفصل الأول)", "q": "Quiz 1"}, {"id": 79, "s": "استعاضة صناعية (Prosthesis)", "t": "Complaints of R.P.D.", "w": "14 (الفصل الأول)", "q": "Quiz 1"}, {"id": 80, "s": "استعاضة صناعية (Prosthesis)", "t": "Repair& relining", "w": "15 (الفصل الأول)", "q": "Quiz 1"}, {"id": 81, "s": "استعاضة صناعية (Prosthesis)", "t": "Neutral zone", "w": "16 (الفصل الأول)", "q": "Quiz 1"}, {"id": 82, "s": "استعاضة صناعية (Prosthesis)", "t": "Aesthetic partial denture", "w": "1 (الفصل الثاني)", "q": "Quiz 2"}, {"id": 83, "s": "استعاضة صناعية (Prosthesis)", "t": "Geriatric patients", "w": "2 (الفصل الثاني)", "q": "Quiz 2"}, {"id": 84, "s": "استعاضة صناعية (Prosthesis)", "t": "Immediate denture Online Ramadan", "w": "3 (الفصل الثاني)", "q": "Quiz 2"}, {"id": 85, "s": "استعاضة صناعية (Prosthesis)", "t": "Single Denture Online Ramadan", "w": "4 (الفصل الثاني)", "q": "Quiz 2"}, {"id": 86, "s": "استعاضة صناعية (Prosthesis)", "t": "Over denture & Submerged root", "w": "8 (الفصل الثاني)", "q": "بعد Quiz 2"}, {"id": 87, "s": "استعاضة صناعية (Prosthesis)", "t": "Implant prosthesis", "w": "10 (الفصل الثاني)", "q": "بعد Quiz 2"}, {"id": 88, "s": "استعاضة صناعية (Prosthesis)", "t": "Digital workflow for R.P.D., Advanced denture bases used for R.P.D . (part 1)", "w": "11 (الفصل الثاني)", "q": "بعد Quiz 2"}, {"id": 89, "s": "استعاضة صناعية (Prosthesis)", "t": "Digital workflow for R.P.D. and Advanced denture bases used for R.P.D (part 2)", "w": "12 (الفصل الثاني)", "q": "بعد Quiz 2"}, {"id": 90, "s": "العلاج التحفظي", "t": "Adhesion and Adhesive Materials (Part 1)", "w": "1 (الفصل الأول)", "q": "Quiz 1"}, {"id": 91, "s": "العلاج التحفظي", "t": "Adhesion and Adhesive Materials (Part 2)", "w": "2 (الفصل الأول)", "q": "Quiz 1"}, {"id": 92, "s": "العلاج التحفظي", "t": "Adhesion and Adhesive Materials (Part 3)", "w": "3 (الفصل الأول)", "q": "Quiz 1"}, {"id": 93, "s": "العلاج التحفظي", "t": "Cariology and caries management (Part 1)", "w": "4 (الفصل الأول)", "q": "Quiz 1"}, {"id": 94, "s": "العلاج التحفظي", "t": "Cariology and caries management (Part 2)", "w": "6 (الفصل الأول)", "q": "Quiz 1"}, {"id": 95, "s": "العلاج التحفظي", "t": "Esthetic consideration (Part 1)", "w": "7 (الفصل الأول)", "q": "Quiz 1"}, {"id": 96, "s": "العلاج التحفظي", "t": "Esthetic consideration (Part 2)", "w": "8 (الفصل الأول)", "q": "Quiz 1"}, {"id": 97, "s": "العلاج التحفظي", "t": "Shade selection for direct restorations (Part 1)", "w": "9 (الفصل الأول)", "q": "Quiz 1"}, {"id": 98, "s": "العلاج التحفظي", "t": "Shade selection for direct restorations (Part 2)", "w": "10 (الفصل الأول)", "q": "Quiz 1"}, {"id": 99, "s": "العلاج التحفظي", "t": "Laser in restorative dentistry (Part 1)", "w": "11 (الفصل الأول)", "q": "Quiz 1"}, {"id": 100, "s": "العلاج التحفظي", "t": "Laser in restorative dentistry (Part 2)", "w": "12 (الفصل الأول)", "q": "Quiz 1"}, {"id": 101, "s": "العلاج التحفظي", "t": "Management of discolored teeth (Part 1)", "w": "13 (الفصل الأول)", "q": "Quiz 1"}, {"id": 102, "s": "العلاج التحفظي", "t": "Management of discolored teeth (Part 2)", "w": "14 (الفصل الأول)", "q": "Quiz 1"}, {"id": 103, "s": "العلاج التحفظي", "t": "Management of badly destructed teeth (Part 1)", "w": "15 (الفصل الأول)", "q": "Quiz 1"}, {"id": 104, "s": "العلاج التحفظي", "t": "Management of badly destructed teeth (Part 2)", "w": "16 (الفصل الأول)", "q": "Quiz 1"}, {"id": 105, "s": "العلاج التحفظي", "t": "Etiology, diagnosis and management of non-carious lesion (Part 1)", "w": "1 (الفصل الثاني)", "q": "Quiz 2"}, {"id": 106, "s": "العلاج التحفظي", "t": "Etiology, diagnosis and management of non-carious lesion (Part 2)", "w": "2 (الفصل الثاني)", "q": "Quiz 2"}, {"id": 107, "s": "العلاج التحفظي", "t": "Advanced restorative materials in operative dentistry Online Ramadan (Part 1)", "w": "3 (الفصل الثاني)", "q": "Quiz 2"}, {"id": 108, "s": "العلاج التحفظي", "t": "Advanced restorative materials in operative dentistry Online -Ramadan (Part 2)", "w": "4 (الفصل الثاني)", "q": "Quiz 2"}, {"id": 109, "s": "العلاج التحفظي", "t": "Micro and nanoleakage of dental restorations (Part 1)", "w": "8 (الفصل الثاني)", "q": "بعد Quiz 2"}, {"id": 110, "s": "العلاج التحفظي", "t": "Micro and nanoleakage of dental restorations (Part 2)", "w": "10 (الفصل الثاني)", "q": "بعد Quiz 2"}, {"id": 111, "s": "العلاج التحفظي", "t": "Failure of dental restorations (Part 1)", "w": "11 (الفصل الثاني)", "q": "بعد Quiz 2"}, {"id": 112, "s": "العلاج التحفظي", "t": "Failure of dental restorations (Part 2)", "w": "12 (الفصل الثاني)", "q": "بعد Quiz 2"}, {"id": 113, "s": "التركيبات الثابتة", "t": "Course Introduction", "w": "1 (الفصل الأول)", "q": "Quiz 1"}, {"id": 114, "s": "التركيبات الثابتة", "t": "Diagnosis", "w": "2 (الفصل الأول)", "q": "Quiz 1"}, {"id": 115, "s": "التركيبات الثابتة", "t": "Treatment Planning", "w": "3 (الفصل الأول)", "q": "Quiz 1"}, {"id": 116, "s": "التركيبات الثابتة", "t": "Mouth Preparation", "w": "4 (الفصل الأول)", "q": "Quiz 1"}, {"id": 117, "s": "التركيبات الثابتة", "t": "Periodontal Considerations in Fixed Prosthodontics", "w": "5 (الفصل الأول)", "q": "Quiz 1"}, {"id": 118, "s": "التركيبات الثابتة", "t": "Soft Tissue Management", "w": "6 (الفصل الأول)", "q": "Quiz 1"}, {"id": 119, "s": "التركيبات الثابتة", "t": "Impression Materials & Techniques", "w": "7 (الفصل الأول)", "q": "Quiz 1"}, {"id": 120, "s": "التركيبات الثابتة", "t": "Bite Registration", "w": "8 (الفصل الأول)", "q": "Quiz 1"}, {"id": 121, "s": "التركيبات الثابتة", "t": "Communication with Dental Laboratory", "w": "9 (الفصل الأول)", "q": "Quiz 1"}, {"id": 122, "s": "التركيبات الثابتة", "t": "Try-in", "w": "10 (الفصل الأول)", "q": "Quiz 1"}, {"id": 123, "s": "التركيبات الثابتة", "t": "Cements and Cementation", "w": "11 (الفصل الأول)", "q": "Quiz 1"}, {"id": 124, "s": "التركيبات الثابتة", "t": "Postoperative Care and Follow-up", "w": "12 (الفصل الأول)", "q": "Quiz 1"}, {"id": 125, "s": "التركيبات الثابتة", "t": "Postinsertion Problems & Failures", "w": "13 (الفصل الأول)", "q": "Quiz 1"}, {"id": 126, "s": "التركيبات الثابتة", "t": "Removal & Repair of Failed Fixed Dental Prostheses (Flipped Classroom)", "w": "14 (الفصل الأول)", "q": "Quiz 1"}, {"id": 127, "s": "التركيبات الثابتة", "t": "Biomimetic Posterior Restorations", "w": "15 (الفصل الأول)", "q": "Quiz 1"}, {"id": 128, "s": "التركيبات الثابتة", "t": "All-ceramic Restorations", "w": "1 (الفصل الثاني)", "q": "Quiz 2"}, {"id": 129, "s": "التركيبات الثابتة", "t": "Resin-bonded Fixed Dental Prostheses", "w": "2 (الفصل الثاني)", "q": "Quiz 2"}, {"id": 130, "s": "التركيبات الثابتة", "t": "Esthetic Considerations in Fixed Prosthodontics (Online Ramadan)", "w": "3 (الفصل الثاني)", "q": "Quiz 2"}, {"id": 131, "s": "التركيبات الثابتة", "t": "Ceramic Labial Veneers (Online Ramadan)", "w": "4 (الفصل الثاني)", "q": "Quiz 2"}, {"id": 132, "s": "التركيبات الثابتة", "t": "Implant-supported Fixed Dental Prostheses (Part I)", "w": "8 (الفصل الثاني)", "q": "بعد Quiz 2"}, {"id": 133, "s": "التركيبات الثابتة", "t": "Implant-supported Fixed Dental Prostheses (Part II)", "w": "10 (الفصل الثاني)", "q": "بعد Quiz 2"}, {"id": 134, "s": "التركيبات الثابتة", "t": "Laser in Fixed Prosthodontics", "w": "11 (الفصل الثاني)", "q": "بعد Quiz 2"}, {"id": 135, "s": "التركيبات الثابتة", "t": "Digital Workflow in Fixed Prosthodontics", "w": "12 (الفصل الثاني)", "q": "بعد Quiz 2"}, {"id": 136, "s": "علاج الجذور", "t": "Endodontic diagnosis and treatment plan (Part 1)", "w": "1 (الفصل الأول)", "q": "Quiz 1"}, {"id": 137, "s": "علاج الجذور", "t": "Endodontic diagnosis and treatment plan (Part 2)", "w": "2 (الفصل الأول)", "q": "Quiz 1"}, {"id": 138, "s": "علاج الجذور", "t": "Endodontic diagnosis and treatment plan (Part 3)", "w": "3 (الفصل الأول)", "q": "Quiz 1"}, {"id": 139, "s": "علاج الجذور", "t": "Endodontic diagnosis and treatment plan (Part 4)", "w": "4 (الفصل الأول)", "q": "Quiz 1"}, {"id": 140, "s": "علاج الجذور", "t": "Recent advances in root canal Disinfection (part1)", "w": "5 (الفصل الأول)", "q": "Quiz 1"}, {"id": 141, "s": "علاج الجذور", "t": "Recent advances in root canal Disinfection (part2)", "w": "6 (الفصل الأول)", "q": "Quiz 1"}, {"id": 142, "s": "علاج الجذور", "t": "Etiology of pulp inflammation", "w": "7 (الفصل الأول)", "q": "Quiz 1"}, {"id": 143, "s": "علاج الجذور", "t": "Pulp and periapical pathosis (part 1)", "w": "8 (الفصل الأول)", "q": "Quiz 1"}, {"id": 144, "s": "علاج الجذور", "t": "Pulp and periapical pathosis (part 2)", "w": "9 (الفصل الأول)", "q": "Quiz 1"}, {"id": 145, "s": "علاج الجذور", "t": "Endodontic Emergency", "w": "10 (الفصل الأول)", "q": "Quiz 1"}, {"id": 146, "s": "علاج الجذور", "t": "Endo-perio lesions", "w": "11 (الفصل الأول)", "q": "Quiz 1"}, {"id": 147, "s": "علاج الجذور", "t": "Combined Endo-Perio therapy", "w": "12 (الفصل الأول)", "q": "Quiz 1"}, {"id": 148, "s": "علاج الجذور", "t": "New materials and techniques for vital pulp therapy", "w": "13 (الفصل الأول)", "q": "Quiz 1"}, {"id": 149, "s": "علاج الجذور", "t": "Treatment of immature teeth", "w": "14 (الفصل الأول)", "q": "Quiz 1"}, {"id": 150, "s": "علاج الجذور", "t": "Endo surgical procedures", "w": "15 (الفصل الأول)", "q": "Quiz 1"}, {"id": 151, "s": "علاج الجذور", "t": "Non-vital tooth bleaching", "w": "16 (الفصل الأول)", "q": "Quiz 1"}, {"id": 152, "s": "علاج الجذور", "t": "Traumatic injuries (Part 1)", "w": "1 (الفصل الثاني)", "q": "Quiz 2"}, {"id": 153, "s": "علاج الجذور", "t": "Traumatic injuries (Part 2)", "w": "2 (الفصل الثاني)", "q": "Quiz 2"}, {"id": 154, "s": "علاج الجذور", "t": "Traumatic injuries (Part 3) (on line)", "w": "3 (الفصل الثاني)", "q": "Quiz 2"}, {"id": 155, "s": "علاج الجذور", "t": "Traumatic injuries (Part 4) (on line)", "w": "4 (الفصل الثاني)", "q": "Quiz 2"}, {"id": 156, "s": "علاج الجذور", "t": "Outcomes of root canal treatment", "w": "8 (الفصل الثاني)", "q": "بعد Quiz 2"}, {"id": 157, "s": "علاج الجذور", "t": "Endodontic retreatment (Part 1)", "w": "10 (الفصل الثاني)", "q": "بعد Quiz 2"}, {"id": 158, "s": "علاج الجذور", "t": "Endodontic retreatment (Part 2)", "w": "11 (الفصل الثاني)", "q": "بعد Quiz 2"}];
+
+const MEMBERS = [
+  { name: "الورداني", role: "The Surgeon", roleAr: "الجراح", emoji: "⚔️", color: "#F5C842", color2: "#C49A10" },
+  { name: "أيمن وليد", role: "The Consultant", roleAr: "الاستشاري", emoji: "🧠", color: "#00C9D4", color2: "#007A85" },
+  { name: "عبدالحميد رافت", role: "The Academic", roleAr: "الأكاديمي", emoji: "📚", color: "#FF4D8D", color2: "#B5005E" }
+];
+
+const SUBJECTS = [...new Set(LECTURES.map(l => l.s))];
+const QUIZZES = [...new Set(LECTURES.map(l => l.q))];
+
+</script>
+<script>
+// ── STATE ──────────────────────────────────────────
+let currentUser = null;
+let filterSubj = 'all';
+let filterQuiz = 'all';
+let searchQuery = '';
+const SUBJ_COLORS = ['#00C9D4','#F5C842','#FF4D8D','#8B5CF6','#F97316','#06B6D4','#10B981'];
+const SUBJ_SHORT = {
+  'طب الفم وأمراض اللثة (Perio)':'Perio',
+  'طب الفم (Medicine)':'Medicine',
+  'جراحة الفم والوجه والفك والتجميل (Surgery)':'Surgery',
+  'استعاضة صناعية (Prosthesis)':'Prosthesis',
+  'العلاج التحفظي':'Operative',
+  'التركيبات الثابتة':'Fixed Prosth.',
+  'علاج الجذور':'Endo'
+};
+
+// ── GAMIFICATION ───────────────────────────────────
+const EMOJIS = {
+  1: ['🦷', '💡', '📖'],
+  2: ['⚡', '💚', '🔋', '🌱'],
+  3: ['⭐', '🌟', '✨', '🏆'],
+  4: ['🔥', '💎', '🧬', '🧠'],
+  5: ['🔥💀', '👾', '💥', '⚡🔥'],
+  6: ['👑']
+};
+
+const PHRASES = {
+  1: ['ادخل اللعبة 🎯', 'ابدأ يا فنان 💪', 'خد الخطوة ⚡', 'وحشتنا المصاصة 🦷'],
+  2: ['دايرة معاك 🌀', 'متوقفش! 🚀', 'اللي بدأ ما وقفش 🏃', 'شغالين ما بنتعبش 💪'],
+  3: ['عالي يا دكتور ⭐', 'المصاصة شغالة 🦷', 'جبار وما بيوقفش 🏗️', 'الشابتر في امان 📚'],
+  4: ['موووت المادة ☠️', 'مفيش مستحيل 🌊', 'بنخلص الخلاصة 🩸', 'ده انت؟! 🤯'],
+  5: ['أسطورة بدأت 🧠', 'محدش زيك 🥇', 'المادة بتتلعب ⚡', 'الخلاصة تتحول 🌊'],
+  6: ['خلاصة في المصاصاة 👑', 'أسطورة حقيقية 🌟', 'التاريخ اتسجّل 📜']
+};
+
+const LEVEL_NAMES = {
+  1: 'مبتدئ — Level 1',
+  2: 'شغال — Level 2',
+  3: 'ماشي كويس — Level 3',
+  4: 'وحش — Level 4',
+  5: 'أسطوري — Level 5',
+  6: 'الخلاصة في المصاصاة — MAX'
+};
+
+const COMPETE_MSGS = [
+  (name, other) => `${name} بدأ يسبقك! متقفش 🔥`,
+  (name, other) => `${other} لسه قدامك بمحاضرة.. خلصها! ⚡`,
+  (name, other) => `أنت في المرتبة الأولى! حافظ عليها 🥇`,
+  (name, other) => `${name} خلص محاضرة جديدة! عايز تسيبه يسبقك؟ 💀`,
+  (name, other) => `فاضلك محاضرة واحدة عشان تعدي ${other}! 🚀`,
+];
+
+function getLevel(pct) {
+  if (pct >= 90) return 6;
+  if (pct >= 70) return 5;
+  if (pct >= 50) return 4;
+  if (pct >= 30) return 3;
+  if (pct >= 10) return 2;
+  return 1;
+}
+
+function getLevelEmoji(pct) {
+  const lv = getLevel(pct);
+  const arr = EMOJIS[lv];
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function getLevelPhrase(pct) {
+  const lv = getLevel(pct);
+  const arr = PHRASES[lv];
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+// ── TOAST ──────────────────────────────────────────
+let toastTimer = null;
+function showToast(msg, type = 'success') {
+  const el = document.getElementById('toast');
+  el.className = 'toast toast-' + type;
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// ── STORAGE ────────────────────────────────────────
+function getProgress(uid) {
+  try { return JSON.parse(localStorage.getItem('streak_p_' + uid) || '{}'); } catch { return {}; }
+}
+function setProgress(uid, data) {
+  localStorage.setItem('streak_p_' + uid, JSON.stringify(data));
+}
+
+function toggleLecture(lecId) {
+  const p = getProgress(currentUser);
+  const wasUndone = !p[lecId];
+  if (p[lecId]) delete p[lecId]; else p[lecId] = Date.now();
+  setProgress(currentUser, p);
+
+  if (wasUndone) {
+    const done = Object.keys(p).length;
+    const pct = Math.round((done / LECTURES.length) * 100);
+    const lv = getLevel(pct);
+
+    // Milestone toasts
+    if (done === 1) showToast('🎯 أول محاضرة! ادخل اللعبة يا دكتور', 'success');
+    else if (done === 10) showToast('⚡ ١٠ محاضرات! شغال يا وحش', 'warn');
+    else if (done === 25) showToast('🔥 ٢٥ محاضرة! الخلاصة بتتعمل', 'fire');
+    else if (done === 50) showToast('💎 نص الطريق! مفيش رجوع', 'fire');
+    else if (done === 100) showToast('👑 ١٠٠ محاضرة! أسطورة حقيقية', 'epic');
+    else if (pct === 100) showToast('🏆 خلصت كل حاجة!! أنت الخلاصة في المصاصاة', 'epic');
+    else {
+      // Competitive toast
+      const otherScores = MEMBERS.map((m, i) => ({
+        idx: i, name: m.name,
+        done: Object.keys(getProgress(i)).length
+      })).filter(x => x.idx !== currentUser).sort((a,b) => b.done - a.done);
+      
+      const myDone = done;
+      const leader = otherScores[0];
+      
+      if (leader && myDone > leader.done && myDone === leader.done + 1) {
+        showToast(`🥇 عديت ${leader.name}! أنت الأول دلوقتي`, 'fire');
+      } else if (leader && leader.done > myDone && leader.done - myDone <= 3) {
+        showToast(`⚡ ${leader.name} قدامك بـ ${leader.done - myDone} بس! لحقه`, 'warn');
+      } else if (done % 5 === 0) {
+        showToast(getLevelPhrase(pct), lv >= 4 ? 'fire' : lv >= 3 ? 'warn' : 'success');
+      }
+    }
+
+    // Check subject completion
+    const lec = LECTURES.find(l => l.id === lecId);
+    if (lec) {
+      const subjLecs = LECTURES.filter(l => l.s === lec.s);
+      const subjDone = subjLecs.filter(l => p[l.id]).length;
+      if (subjDone === subjLecs.length) {
+        showToast(`🏆 خلصت ${SUBJ_SHORT[lec.s]} بالكامل!`, 'epic');
+      }
+    }
+  }
+
+  renderLectures();
+  renderHeader();
+  renderLevelBanner();
+}
+
+// ── USER SELECT ────────────────────────────────────
+function buildUserSelect() {
+  const c = document.getElementById('usCards');
+  c.innerHTML = MEMBERS.map((m, i) => `
+    <div class="us-card" onclick="selectUser(${i})" style="border-color:${m.color}22">
+      <div class="us-av" style="background:${m.color}18">${m.emoji}</div>
+      <div><div class="nm" style="color:${m.color}">${m.name}</div>
+      <div class="rl">${m.role} — ${m.roleAr}</div></div>
+    </div>`).join('');
+}
+
+function selectUser(i) {
+  currentUser = i;
+  localStorage.setItem('streak_user', i);
+  document.getElementById('userSelect').classList.add('hide');
+  document.getElementById('mainApp').classList.remove('hide');
+  initApp();
+}
+
+function logout() {
+  localStorage.removeItem('streak_user');
+  currentUser = null;
+  document.getElementById('mainApp').classList.add('hide');
+  document.getElementById('userSelect').classList.remove('hide');
+}
+
+// ── INIT APP ───────────────────────────────────────
+function initApp() {
+  buildFilters();
+  renderHeader();
+  renderLevelBanner();
+  renderSubjProgress();
+  renderLectures();
+  switchTab('lectures');
+}
+
+// ── HEADER ─────────────────────────────────────────
+function renderHeader() {
+  const m = MEMBERS[currentUser];
+  const p = getProgress(currentUser);
+  const done = Object.keys(p).length;
+  const pct = Math.round((done / LECTURES.length) * 100);
+  document.getElementById('ahName').textContent = m.name;
+  document.getElementById('ahName').style.color = m.color;
+  document.getElementById('ahStat').textContent = `${done} / ${LECTURES.length} محاضرة مكتملة`;
+  document.getElementById('ahPct').textContent = pct + '%';
+}
+
+// ── LEVEL BANNER ───────────────────────────────────
+function renderLevelBanner() {
+  const p = getProgress(currentUser);
+  const done = Object.keys(p).length;
+  const pct = Math.round((done / LECTURES.length) * 100);
+  const lv = getLevel(pct);
+  const emoji = EMOJIS[lv][done % EMOJIS[lv].length];
+  const phrase = PHRASES[lv][done % PHRASES[lv].length];
+  
+  document.getElementById('levelBanner').innerHTML = `
+    <div class="level-banner lb-lv${lv}">
+      <div class="lb-emoji">${emoji}</div>
+      <div class="lb-text">
+        <div class="lb-phrase">${phrase}</div>
+        <div class="lb-level">${LEVEL_NAMES[lv]} — ${done}/${LECTURES.length}</div>
+      </div>
+    </div>`;
+}
+
+// ── TABS ───────────────────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t.dataset.tab === tab));
+  document.getElementById('pageLectures').classList.toggle('hide', tab !== 'lectures');
+  document.getElementById('pageLeaderboard').classList.toggle('hide', tab !== 'leaderboard');
+  if (tab === 'leaderboard') renderLeaderboard();
+  if (tab === 'lectures') { renderLevelBanner(); renderSubjProgress(); renderLectures(); }
+}
+
+// ── SEARCH ─────────────────────────────────────────
+function onSearch() {
+  searchQuery = document.getElementById('searchInput').value.trim().toLowerCase();
+  renderLectures();
+}
+
+// ── FILTERS ────────────────────────────────────────
+function buildFilters() {
+  const sf = document.getElementById('subjFilters');
+  sf.innerHTML = `<div class="chip on" onclick="setSubjFilter('all')">الكل</div>` +
+    SUBJECTS.map((s, i) => `<div class="chip sc${i}" onclick="setSubjFilter('${s}')">${SUBJ_SHORT[s] || s}</div>`).join('');
+
+  const qf = document.getElementById('quizFilters');
+  qf.innerHTML = `<div class="chip chip-q on" onclick="setQuizFilter('all')">الكل</div>` +
+    QUIZZES.map(q => `<div class="chip chip-q" onclick="setQuizFilter('${q}')">${q}</div>`).join('');
+}
+
+function setSubjFilter(v) {
+  filterSubj = v;
+  document.querySelectorAll('#subjFilters .chip').forEach(c => {
+    c.classList.toggle('on', (v === 'all' && c.textContent === 'الكل') || c.getAttribute('onclick')?.includes(v));
+  });
+  renderSubjProgress();
+  renderLectures();
+}
+
+function setQuizFilter(v) {
+  filterQuiz = v;
+  document.querySelectorAll('#quizFilters .chip').forEach(c => {
+    c.classList.toggle('on', (v === 'all' && c.textContent === 'الكل') || c.getAttribute('onclick')?.includes(v));
+  });
+  renderLectures();
+}
+
+// ── SUBJECT PROGRESS ───────────────────────────────
+function renderSubjProgress() {
+  const p = getProgress(currentUser);
+  const c = document.getElementById('subjProgress');
+  const subjs = filterSubj === 'all' ? SUBJECTS : [filterSubj];
+  c.innerHTML = subjs.map((s, i) => {
+    const total = LECTURES.filter(l => l.s === s).length;
+    const done = LECTURES.filter(l => l.s === s && p[l.id]).length;
+    const pct = total ? Math.round((done / total) * 100) : 0;
+    const ci = SUBJECTS.indexOf(s);
+    const color = SUBJ_COLORS[ci] || '#888';
+    return `<div class="sp-row">
+      <div class="sp-nm">${SUBJ_SHORT[s] || s}</div>
+      <div class="sp-bar"><div class="sp-fill" style="width:${pct}%;background:${color}"></div></div>
+      <div class="sp-pct" style="color:${color}">${done}/${total}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── LECTURES ───────────────────────────────────────
+function renderLectures() {
+  const p = getProgress(currentUser);
+  let lecs = LECTURES;
+  if (filterSubj !== 'all') lecs = lecs.filter(l => l.s === filterSubj);
+  if (filterQuiz !== 'all') lecs = lecs.filter(l => l.q === filterQuiz);
+  if (searchQuery) lecs = lecs.filter(l => l.t.toLowerCase().includes(searchQuery) || l.s.toLowerCase().includes(searchQuery) || (SUBJ_SHORT[l.s] || '').toLowerCase().includes(searchQuery));
+
+  const c = document.getElementById('lecList');
+  c.innerHTML = lecs.map((l, idx) => {
+    const isDone = !!p[l.id];
+    const ci = SUBJECTS.indexOf(l.s);
+    const color = SUBJ_COLORS[ci] || '#888';
+    return `<div class="lec ${isDone ? 'done' : ''}" onclick="toggleLecture(${l.id})" style="animation-delay:${idx * 0.03}s;${isDone ? `border-color:${color}33` : ''}">
+      ${isDone ? `<div style="position:absolute;top:0;left:0;right:0;height:2px;background:${color}"></div>` : ''}
+      <div class="lec-check" style="${isDone ? `background:${color};border-color:${color}` : ''}">${isDone ? '✓' : ''}</div>
+      <div class="lec-info">
+        <div class="lec-title">${l.t}</div>
+        <div class="lec-meta">
+          <span class="lec-tag" style="background:${color}15;color:${color}">${SUBJ_SHORT[l.s] || l.s}</span>
+          <span class="lec-tag lt-quiz">${l.q}</span>
+          <span class="lec-tag lt-week">W${l.w.replace(/[^\d]/g,'').slice(0,2)}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  if (!lecs.length) {
+    c.innerHTML = '<div style="text-align:center;padding:40px;color:var(--txt3)">لا توجد محاضرات بهذا الفلتر</div>';
+  }
+}
+
+// ── LEADERBOARD ────────────────────────────────────
+function renderLeaderboard() {
+  const data = MEMBERS.map((m, i) => {
+    const p = getProgress(i);
+    const done = LECTURES.filter(l => p[l.id]).length;
+    const bySubj = {};
+    SUBJECTS.forEach(s => {
+      const total = LECTURES.filter(l => l.s === s).length;
+      const d = LECTURES.filter(l => l.s === s && p[l.id]).length;
+      bySubj[s] = { done: d, total };
+    });
+    return { idx: i, m, done, bySubj };
+  }).sort((a, b) => b.done - a.done);
+
+  const ranks = ['🥇','🥈','🥉'];
+  const rClasses = ['r1','r2','r3'];
+  const c = document.getElementById('lbCards');
+  c.innerHTML = data.map((d, ri) => {
+    const pct = Math.round((d.done / LECTURES.length) * 100);
+    const lv = getLevel(pct);
+    const lvEmoji = EMOJIS[lv][d.done % EMOJIS[lv].length];
+    const lvPhrase = PHRASES[lv][d.done % PHRASES[lv].length];
+    return `<div class="lb-card ${rClasses[ri]}">
+      <div class="lb-top">
+        <div class="lb-rank">${ranks[ri]}</div>
+        <div class="lb-av" style="background:${d.m.color}20">${d.m.emoji}</div>
+        <div class="lb-nm" style="color:${d.m.color}">${d.m.name}</div>
+        <div class="lb-total"><div class="n">${pct}%</div><div class="d">${d.done}/${LECTURES.length}</div></div>
+      </div>
+      <div style="text-align:center;font-size:12px;font-weight:700;margin-bottom:6px;color:${d.m.color};opacity:0.8">${lvEmoji} ${lvPhrase}</div>
+      <div style="text-align:center;font-size:9px;color:var(--txt3);margin-bottom:8px;font-family:Inter,sans-serif">${LEVEL_NAMES[lv]}</div>
+      <div class="lb-bar-wrap"><div class="lb-bar-fill" style="width:${pct}%;background:linear-gradient(90deg,${d.m.color2},${d.m.color})"></div></div>
+      <div class="lb-subjects">
+        ${SUBJECTS.map((s, si) => {
+          const sd = d.bySubj[s];
+          return `<div class="lb-subj"><span>${SUBJ_SHORT[s]}</span><span style="color:${SUBJ_COLORS[si]}">${sd.done}/${sd.total}</span></div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── BOOT ───────────────────────────────────────────
+buildUserSelect();
+const saved = localStorage.getItem('streak_user');
+if (saved !== null && MEMBERS[parseInt(saved)]) {
+  selectUser(parseInt(saved));
+}
+
+</script>
+</body>
+</html>
