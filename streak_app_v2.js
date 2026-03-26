@@ -345,6 +345,84 @@ function recordPinFail(uid) {
   return false;
 }
 
+// ── Session Conflict Management ──────────────────────────────────────
+// Each browser session gets a unique ID stored in sessionStorage.
+// Firebase path: sessions/{userId} = { deviceId, loginAt }
+// When another device logs into the same account, the first gets kicked.
+
+const MY_DEVICE_ID = (() => {
+  let id = sessionStorage.getItem('_did');
+  if (!id) { id = Math.random().toString(36).slice(2) + Date.now().toString(36); sessionStorage.setItem('_did', id); }
+  return id;
+})();
+
+let _sessionUnsubscribe = null;
+
+function _writeSession(userId) {
+  if (!window._fbReady || !window._fbDb) return;
+  const { ref, set } = window._fbSDK;
+  set(ref(window._fbDb, `sessions/${userId}`), { deviceId: MY_DEVICE_ID, loginAt: Date.now() });
+
+  // Watch for session takeover: if another device logs in my account, auto-logout
+  if (_sessionUnsubscribe) _sessionUnsubscribe();
+  const { onValue } = window.firebase_database;
+  _sessionUnsubscribe = onValue(ref(window._fbDb, `sessions/${userId}`), (snap) => {
+    const s = snap.val();
+    if (s && s.deviceId && s.deviceId !== MY_DEVICE_ID) {
+      // Another device has taken over this session
+      showToast('🔴 تسجيل دخول من جهاز آخر — سيتم تسجيل خروجك', 'warn');
+      setTimeout(() => {
+        logout();
+        // Show a message on the user select screen
+        showToast('تم تسجيل خروجك لأن نفس الحساب فُتح على جهاز آخر', 'warn');
+      }, 2500);
+    }
+  });
+}
+
+async function _checkSessionConflict(userId) {
+  // If Firebase isn't ready yet, skip the check (allow login)
+  if (!window._fbReady || !window._fbDb) return false;
+  try {
+    const { ref } = window._fbSDK;
+    const { get } = window.firebase_database;
+    if (!get) return false;
+    const snap = await get(ref(window._fbDb, `sessions/${userId}`));
+    const s = snap.val();
+    if (s && s.deviceId && s.deviceId !== MY_DEVICE_ID) return true; // conflict
+  } catch(e) { console.warn('[Session check error]', e); }
+  return false;
+}
+
+function _showSessionConflictModal(userId, onConfirm, onCancel) {
+  const name = MEMBERS[userId].name;
+  const overlay = document.createElement('div');
+  overlay.id = '_sessionModal';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9998;display:flex;align-items:center;justify-content:center';
+  overlay.innerHTML = `
+    <div style="background:var(--bg2,#1e1e2e);border:1px solid rgba(255,80,80,.4);border-radius:16px;padding:28px 24px;max-width:320px;width:90%;text-align:center;font-family:Cairo,sans-serif">
+      <div style="font-size:32px;margin-bottom:12px">⚠️</div>
+      <div style="font-weight:700;font-size:16px;color:#ff6b6b;margin-bottom:10px">حساب مستخدم بالفعل</div>
+      <div style="font-size:13px;color:var(--txt2,#aaa);line-height:1.6;margin-bottom:20px">
+        حساب <b style="color:${MEMBERS[userId].color}">${name}</b> مسجل دخول على جهاز آخر حالياً.<br>
+        هل تريد تسجيل الخروج من الجهاز الآخر والدخول هنا؟
+      </div>
+      <div style="display:flex;gap:10px;justify-content:center">
+        <button onclick="document.getElementById('_sessionModal').remove();(window._sessionCancel&&window._sessionCancel())"
+          style="padding:10px 18px;border-radius:10px;border:1px solid rgba(255,255,255,.15);background:transparent;color:var(--txt1,#fff);cursor:pointer;font-family:Cairo,sans-serif;font-size:13px">
+          إلغاء
+        </button>
+        <button onclick="document.getElementById('_sessionModal').remove();(window._sessionConfirm&&window._sessionConfirm())"
+          style="padding:10px 18px;border-radius:10px;border:none;background:#ff4d4d;color:#fff;cursor:pointer;font-family:Cairo,sans-serif;font-size:13px;font-weight:700">
+          اطرد الجهاز الآخر وادخل هنا
+        </button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  window._sessionConfirm = onConfirm;
+  window._sessionCancel = onCancel;
+}
+
 let pendingUser = null;
 let pendingLecId = null;
 
@@ -362,11 +440,22 @@ function closePinModal() {
   pendingUser = null;
 }
 
-function checkPin() {
+function _doLogin(confirmedUser) {
+  localStorage.setItem('streak_user', confirmedUser);
+  document.getElementById('userSelect').classList.add('hide');
+  document.getElementById('mainApp').classList.remove('hide');
+  store.set({ currentUser: confirmedUser });
+  showToast(`أهلاً بك يا ${MEMBERS[confirmedUser].name} 💪`, 'success');
+  _writeSession(confirmedUser);
+  if (typeof showMeme === 'function') {
+    setTimeout(() => showMeme('login', 0, `أهلاً يا ${MEMBERS[confirmedUser].name}! جاهز تذاكر؟ 💪`), 400);
+  }
+}
+
+async function checkPin() {
   const input = document.getElementById('pinInput');
   const val = input.value;
   if (val.length === 4) {
-    // Brute-force lockout check
     if (isPinLocked(pendingUser)) {
       document.getElementById('pinError').textContent = '🔒 كثرت المحاولات، انتظر دقيقة';
       document.getElementById('pinError').style.opacity = '1';
@@ -374,19 +463,20 @@ function checkPin() {
       return;
     }
     if (val === MEMBERS[pendingUser].pin) {
-      pinAttempts[pendingUser] = { count: 0 }; // reset on success
+      pinAttempts[pendingUser] = { count: 0 };
       const confirmedUser = pendingUser;
       closePinModal();
-      
-      localStorage.setItem('streak_user', confirmedUser);
-      document.getElementById('userSelect').classList.add('hide');
-      document.getElementById('mainApp').classList.remove('hide');
-      
-      store.set({ currentUser: confirmedUser });
-      showToast(`أهلاً بك يا ${MEMBERS[confirmedUser].name} 💪`, 'success');
 
-      if (typeof showMeme === 'function') {
-        setTimeout(() => showMeme('login', 0, `أهلاً يا ${MEMBERS[confirmedUser].name}! جاهز تذاكر؟ 💪`), 400);
+      // Check if this account is already active on another device
+      const hasConflict = await _checkSessionConflict(confirmedUser);
+      if (hasConflict) {
+        _showSessionConflictModal(
+          confirmedUser,
+          () => _doLogin(confirmedUser),    // Confirm: kick other device
+          () => {} // Cancel: do nothing
+        );
+      } else {
+        _doLogin(confirmedUser);
       }
     } else {
       const locked = recordPinFail(pendingUser);
@@ -401,6 +491,8 @@ function checkPin() {
     document.getElementById('pinError').style.opacity = '0';
   }
 }
+
+
 
 function toggleLecture(lecId) {
   const s = store.get();
