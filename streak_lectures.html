@@ -304,9 +304,9 @@ body{background:var(--bg);min-height:100dvh;font-family:'Cairo',sans-serif;color
 <!-- Firebase SDK (v9 modular) — fires 'firebase-ready' event when loaded -->
 <script type="module">
   import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
-  import { getDatabase, ref, onValue, set, update } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js';
+  import { getDatabase, ref, onValue, set, update, remove } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js';
   window.firebase_app = { initializeApp, getApps };
-  window.firebase_database = { getDatabase, ref, onValue, set, update };
+  window.firebase_database = { getDatabase, ref, onValue, set, update, remove };
   window.dispatchEvent(new Event('firebase-ready'));
 </script>
 

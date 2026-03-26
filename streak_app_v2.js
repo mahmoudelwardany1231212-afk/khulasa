@@ -8,7 +8,7 @@
  * 4) No DOM Latency or Initialization Race Conditions
  */
 
-const DEBUG_MODE = true;
+const DEBUG_MODE = false; // ← production mode: no console leakage
 
 // ── 1. GLOBAL STATE STORE ──────────────────────────────
 const store = {
@@ -110,13 +110,16 @@ const store = {
         const app = getApps().length > 0 ? getApps()[0] : initializeApp(FIREBASE_CONFIG);
         const db = getDatabase(app);
         window._fbDb  = db;
-        window._fbSDK = { ref, set, update };
+        window._fbSDK = { ref, set, update, remove: window.firebase_database.remove };
         window._fbReady = true;
+
+        // Store unsubscribe function for cleanup on logout
+        window._fbUnsubscribe = null;
 
         // Show loading indicator while waiting for first cloud sync
         this._showSyncBanner();
 
-        onValue(ref(db, 'progress'), (snapshot) => {
+        window._fbUnsubscribe = onValue(ref(db, 'progress'), (snapshot) => {
           const raw = snapshot.val();
           this._hideSyncBanner();
 
@@ -228,7 +231,10 @@ const store = {
     if (isChanged) {
       if (DEBUG_MODE) console.log('[Store: Migration] Successfully migrated legacy data.', migratedProgress);
       this.state.progress = migratedProgress;
-      this.save();
+      // Fix: migrateLegacyData must use full save() — no Firebase write, just sync to localStorage
+      try {
+        localStorage.setItem('streak_store_v2', JSON.stringify({ version: 2, progress: migratedProgress }));
+      } catch(e) {}
     } else {
       if (DEBUG_MODE) console.log('[Store: Migration] No legacy data found to migrate.');
     }
@@ -295,7 +301,29 @@ function showToast(msg, type = 'success') {
   toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
 }
 
-// ── MODALS & INTERACTIONS ──────────────────────────────
+// ── PIN Brute-Force Protection ────────────────────────
+const PIN_MAX_ATTEMPTS = 5;
+const PIN_LOCKOUT_MS   = 60 * 1000; // 1 minute
+let pinAttempts = {}; // { userId: { count, lockedUntil } }
+
+function isPinLocked(uid) {
+  const a = pinAttempts[uid];
+  if (!a) return false;
+  if (a.lockedUntil && Date.now() < a.lockedUntil) return true;
+  if (a.lockedUntil && Date.now() >= a.lockedUntil) { pinAttempts[uid] = { count: 0 }; }
+  return false;
+}
+
+function recordPinFail(uid) {
+  if (!pinAttempts[uid]) pinAttempts[uid] = { count: 0 };
+  pinAttempts[uid].count++;
+  if (pinAttempts[uid].count >= PIN_MAX_ATTEMPTS) {
+    pinAttempts[uid].lockedUntil = Date.now() + PIN_LOCKOUT_MS;
+    return true; // just got locked
+  }
+  return false;
+}
+
 let pendingUser = null;
 let pendingLecId = null;
 
@@ -317,8 +345,15 @@ function checkPin() {
   const input = document.getElementById('pinInput');
   const val = input.value;
   if (val.length === 4) {
+    // Brute-force lockout check
+    if (isPinLocked(pendingUser)) {
+      document.getElementById('pinError').textContent = '🔒 كثرت المحاولات، انتظر دقيقة';
+      document.getElementById('pinError').style.opacity = '1';
+      input.value = '';
+      return;
+    }
     if (val === MEMBERS[pendingUser].pin) {
-      // Save user index BEFORE closePinModal clears pendingUser
+      pinAttempts[pendingUser] = { count: 0 }; // reset on success
       const confirmedUser = pendingUser;
       closePinModal();
       
@@ -326,15 +361,18 @@ function checkPin() {
       document.getElementById('userSelect').classList.add('hide');
       document.getElementById('mainApp').classList.remove('hide');
       
-      // Now set correctly — confirmedUser is a valid integer, not null
       store.set({ currentUser: confirmedUser });
       showToast(`أهلاً بك يا ${MEMBERS[confirmedUser].name} 💪`, 'success');
 
-      // Welcome meme — only on first login of the session
       if (typeof showMeme === 'function') {
         setTimeout(() => showMeme('login', 0, `أهلاً يا ${MEMBERS[confirmedUser].name}! جاهز تذاكر؟ 💪`), 400);
       }
     } else {
+      const locked = recordPinFail(pendingUser);
+      const remaining = PIN_MAX_ATTEMPTS - (pinAttempts[pendingUser]?.count || 0);
+      document.getElementById('pinError').textContent = locked
+        ? '🔒 تم القفل لمدة دقيقة'
+        : `كلمة السر غلط — ${remaining} محاولات متبقية`;
       document.getElementById('pinError').style.opacity = '1';
       setTimeout(() => { if(input) input.value = ''; }, 500);
     }
@@ -346,13 +384,25 @@ function checkPin() {
 function toggleLecture(lecId) {
   const s = store.get();
   const userProgress = s.progress[s.currentUser] || {};
+  const uid = s.currentUser;
   
   if (userProgress[lecId] !== undefined) {
+    // Remove from local state
     store.set(st => {
       const cloned = { ...st.progress[st.currentUser] };
       delete cloned[lecId];
       return { ...st, progress: { ...st.progress, [st.currentUser]: cloned } };
     });
+    // Fix: sync the deletion to Firebase using remove()
+    if (window._fbReady && window._fbDb) {
+      try {
+        const { ref, remove } = window._fbSDK;
+        if (remove) {
+          remove(ref(window._fbDb, `progress/${uid}/${lecId}`));
+          if (DEBUG_MODE) console.log(`[Firebase: Remove] user:${uid} lecture:${lecId}`);
+        }
+      } catch(e) { console.warn('[Firebase: Remove Error]', e); }
+    }
   } else {
     pendingLecId = lecId;
     document.getElementById('pctModal').classList.add('show');
@@ -429,6 +479,12 @@ function selectPct(pctVal) {
 
 function logout() {
   localStorage.removeItem('streak_user');
+  // Detach Firebase listener to prevent memory leak
+  if (typeof window._fbUnsubscribe === 'function') {
+    window._fbUnsubscribe();
+    window._fbUnsubscribe = null;
+    window._fbReady = false;
+  }
   store.set({ currentUser: null });
   document.getElementById('mainApp').classList.add('hide');
   document.getElementById('userSelect').classList.remove('hide');
