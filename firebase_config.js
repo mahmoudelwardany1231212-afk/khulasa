@@ -6,8 +6,8 @@
 const FIREBASE_CONFIG = {
   apiKey:            "AIzaSyAAsvcc4ez40w7hukJ-JzThIEpAWv7RmN8",
   authDomain:        "khulasa-fil-masasa.firebaseapp.com",
-  databaseURL:       "https://khulasa-fil-masasa-default-rtdb.firebaseio.com",
-  projectId:          "khulasa-fil-masasa",
+  databaseURL:       "https://khulasa-fil-masasa-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:         "khulasa-fil-masasa",
   storageBucket:     "khulasa-fil-masasa.firebasestorage.app",
   messagingSenderId: "1097041737188",
   appId:             "1:1097041737188:web:b3e9c597a9ed61901f83f1",
