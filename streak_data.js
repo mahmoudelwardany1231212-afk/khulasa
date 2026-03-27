@@ -109,13 +109,13 @@ const LECTURES = [
 {"s":"Surgery","t":"Management of Lefort, Orbital and NOE fractures (3 hrs.) part 2","q":"كويز 2","g":120,"id":197,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_u0t-cl/IQC_ebgP_ut6RJv0QX6X36lUAS1T_Fcwlq7MNnbyjJPQcZ4","u2":"https://t.me/talagah/473","u3":"https://t.me/talagah/475","u4":"https://t.me/talagah/476"},
 {"s":"Surgery","t":"Management of Zygomatic complex fractures (3 hrs.) part 1","q":"كويز 2","g":120,"id":198,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_u0t-cl/IQDELK2K7UzGQ6IxH3RhabPwAW78if6y4SXEcB9tkcVcZ2E","u2":"https://t.me/talagah/474"},
 {"s":"Surgery","t":"Management of Zygomatic complex fractures (3 hrs.) part 2","q":"كويز 2","g":120,"id":199,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_u0t-cl/IQDELK2K7UzGQ6IxH3RhabPwAW78if6y4SXEcB9tkcVcZ2E","u2":"https://t.me/talagah/474"},
-{"s":"Surgery","t":"Pediatric Maxillofacial trauma (3 hrs.) part 1","q":"كويز 2","g":120,"id":200,"u":""},
-{"s":"Surgery","t":"Pediatric Maxillofacial trauma (3 hrs.) part 2","q":"كويز 2","g":120,"id":201,"u":""},
-{"s":"Surgery","t":"Orthognathic surgery, management of dentofacial deformities & distraction osteogenesis (4 hrs.) part 1","q":"كويز 2","g":120,"id":202,"u":""},
-{"s":"Surgery","t":"Orthognathic surgery, management of dentofacial deformities & distraction osteogenesis (4 hrs.) part 2","q":"كويز 2","g":120,"id":203,"u":""},
-{"s":"Surgery","t":"Orthognathic surgery, management of dentofacial deformities & distraction osteogenesis (4 hrs.) part 3","q":"كويز 2","g":120,"id":204,"u":""},
-{"s":"Surgery","t":"Diagnosis and management of Orofacial pain (3 hrs.) part 1","q":"كويز 2","g":120,"id":205,"u":""},
-{"s":"Surgery","t":"Diagnosis and management of Orofacial pain (3 hrs.) part 2","q":"كويز 2","g":120,"id":206,"u":""},
+{"s":"Surgery","t":"Pediatric Maxillofacial trauma (3 hrs.) part 1","q":"بعد كويز 2","g":120,"id":200,"u":""},
+{"s":"Surgery","t":"Pediatric Maxillofacial trauma (3 hrs.) part 2","q":"بعد كويز 2","g":120,"id":201,"u":""},
+{"s":"Surgery","t":"Orthognathic surgery, management of dentofacial deformities & distraction osteogenesis (4 hrs.) part 1","q":"بعد كويز 2","g":120,"id":202,"u":""},
+{"s":"Surgery","t":"Orthognathic surgery, management of dentofacial deformities & distraction osteogenesis (4 hrs.) part 2","q":"بعد كويز 2","g":120,"id":203,"u":""},
+{"s":"Surgery","t":"Orthognathic surgery, management of dentofacial deformities & distraction osteogenesis (4 hrs.) part 3","q":"بعد كويز 2","g":120,"id":204,"u":""},
+{"s":"Surgery","t":"Diagnosis and management of Orofacial pain (3 hrs.) part 1","q":"بعد كويز 2","g":120,"id":205,"u":""},
+{"s":"Surgery","t":"Diagnosis and management of Orofacial pain (3 hrs.) part 2","q":"بعد كويز 2","g":120,"id":206,"u":""},
 
 // ════════════════════════════════════════════════════════
 // PROSTHESIS — كويز 1 (Term 1)
@@ -142,9 +142,9 @@ const LECTURES = [
 {"s":"Prosthesis","t":"Single Denture","q":"كويز 2","g":120,"id":85,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_s-lzcl/IQAAkbCS90RmTI2s6LrSY7mGASY8Bo-dywj-rr37En-tt6c","u2":"https://t.me/bitinjan/161"},
 
 // PROSTHESIS — بعد كويز 2
-{"s":"Prosthesis","t":"Occlusion for complete denture","q":"بعد كويز 2","g":120,"id":78,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_s-lzcl/IQBP60pIciT8RbqpsVTty7kKARlxtrSrlFNi8L3yfBqn3hc"},
-{"s":"Prosthesis","t":"Complaints of R.P.D.","q":"بعد كويز 2","g":120,"id":79,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_s-lzcl/IQAJw1m8RfoET57w81tyg0KNAUA0btMyHQIomiexg4uvnPM"},
-{"s":"Prosthesis","t":"Repair& relining","q":"بعد كويز 2","g":120,"id":80,"u":"https://t.me/talagah/439"},
+{"s":"Prosthesis","t":"Occlusion for complete denture","q":"بين كويز 1 و 2","g":120,"id":78,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_s-lzcl/IQBP60pIciT8RbqpsVTty7kKARlxtrSrlFNi8L3yfBqn3hc"},
+{"s":"Prosthesis","t":"Complaints of R.P.D.","q":"بين كويز 1 و 2","g":120,"id":79,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_s-lzcl/IQAJw1m8RfoET57w81tyg0KNAUA0btMyHQIomiexg4uvnPM"},
+{"s":"Prosthesis","t":"Repair& relining","q":"بين كويز 1 و 2","g":120,"id":80,"u":"https://t.me/talagah/439"},
 {"s":"Prosthesis","t":"Over denture & Submerged root","q":"بعد كويز 2","g":120,"id":86,"u":""},
 {"s":"Prosthesis","t":"Implant prosthesis","q":"بعد كويز 2","g":120,"id":87,"u":""},
 {"s":"Prosthesis","t":"Digital workflow for R.P.D., Advanced denture bases used for R.P.D . (part 1)","q":"بعد كويز 2","g":120,"id":88,"u":""},
