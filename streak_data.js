@@ -114,11 +114,11 @@ const LECTURES = [
 {"s":"Prosthesis","t":"Support &Tissue damage for R.P.D.","q":"بين كويز 1 و 2","g":120,"id":77,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_s-lzcl/EelNElSnKTdCv33g8JB0TkwB5urVR6Usejnczli4wm-GoA"},
 
 // PROSTHESIS — كويز 2 (Term 1 & 2)
-{"s":"Prosthesis","t":"Neutral zone","q":"كويز 2","g":120,"id":81,"u":"https://t.me/talagah/441"},
-{"s":"Prosthesis","t":"Aesthetic partial denture","q":"كويز 2","g":120,"id":82,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_s-lzcl/IQB9L5ATS6n9TbP3IdOfeSCnASiZ5QnG8YMBYecOiQm3fSM"},
+{"s":"Prosthesis","t":"Neutral zone","q":"كويز 2","g":120,"id":81,"u":"","u2":"https://t.me/talagah/441"},
+{"s":"Prosthesis","t":"Ethetic in RPD","q":"كويز 2","g":120,"id":82,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_s-lzcl/IQB9L5ATS6n9TbP3IdOfeSCnASiZ5QnG8YMBYecOiQm3fSM"},
 {"s":"Prosthesis","t":"Geriatric patients","q":"كويز 2","g":120,"id":83,"u":"https://t.me/c/2006385993/429","u2":"https://t.me/talagah/451"},
-{"s":"Prosthesis","t":"Immediate denture Online Ramadan","q":"كويز 2","g":120,"id":84,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_s-lzcl/IQA2WhAl8ehtTYjQbAKz4WmyAZeIEEDVBC6-PGyhskg_ZD4"},
-{"s":"Prosthesis","t":"Single Denture Online Ramadan","q":"كويز 2","g":120,"id":85,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_s-lzcl/IQAAkbCS90RmTI2s6LrSY7mGASY8Bo-dywj-rr37En-tt6c","u2":"https://t.me/bitinjan/161"},
+{"s":"Prosthesis","t":"Immediate denture","q":"كويز 2","g":120,"id":84,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_s-lzcl/IQA2WhAl8ehtTYjQbAKz4WmyAZeIEEDVBC6-PGyhskg_ZD4"},
+{"s":"Prosthesis","t":"Single Denture","q":"كويز 2","g":120,"id":85,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_s-lzcl/IQAAkbCS90RmTI2s6LrSY7mGASY8Bo-dywj-rr37En-tt6c","u2":"https://t.me/bitinjan/161"},
 
 // PROSTHESIS — بعد كويز 2
 {"s":"Prosthesis","t":"Occlusion for complete denture","q":"بعد كويز 2","g":120,"id":78,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_s-lzcl/IQBP60pIciT8RbqpsVTty7kKARlxtrSrlFNi8L3yfBqn3hc"},
@@ -155,8 +155,8 @@ const LECTURES = [
 // OPERATIVE — كويز 2 (Term 2)
 {"s":"Operative","t":"Etiology, diagnosis and management of non-carious lesion (Part 1)","q":"كويز 2","g":80,"id":105,"u":"https://t.me/c/2006385993/421","u2":"https://t.me/talagah/450"},
 {"s":"Operative","t":"Etiology, diagnosis and management of non-carious lesion (Part 2)","q":"كويز 2","g":80,"id":106,"u":"https://t.me/c/2006385993/430"},
-{"s":"Operative","t":"Advanced restorative materials in operative dentistry Online Ramadan (Part 1)","q":"كويز 2","g":80,"id":107,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_dlpdb7/IQDvduTITWjjRqaQJyy5JI5tATj6vC8cSRnKkSkXV3-QNGc"},
-{"s":"Operative","t":"Advanced restorative materials in operative dentistry Online -Ramadan (Part 2)","q":"كويز 2","g":80,"id":108,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_dlpdb7/IQAagn3A3GrYR4eCPgwgveEOAfQ7G9mtkfK3xmsnYFC1u_0"},
+{"s":"Operative","t":"Advanced restorative materials 1","q":"كويز 2","g":80,"id":107,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_dlpdb7/IQDvduTITWjjRqaQJyy5JI5tATj6vC8cSRnKkSkXV3-QNGc"},
+{"s":"Operative","t":"Advanced restorative materials 2","q":"كويز 2","g":80,"id":108,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_dlpdb7/IQAagn3A3GrYR4eCPgwgveEOAfQ7G9mtkfK3xmsnYFC1u_0"},
 
 // OPERATIVE — بعد كويز 2
 {"s":"Operative","t":"Micro and nanoleakage of dental restorations (Part 1)","q":"بعد كويز 2","g":80,"id":109,"u":""},
