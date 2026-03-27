@@ -155,10 +155,10 @@ const LECTURES = [
 // OPERATIVE — كويز 2 (Term 2)
 {"s":"Operative","t":"Etiology, diagnosis and management of non-carious lesion (Part 1)","q":"كويز 2","g":80,"id":105,"u":"https://t.me/c/2006385993/421","u2":"https://t.me/talagah/450"},
 {"s":"Operative","t":"Etiology, diagnosis and management of non-carious lesion (Part 2)","q":"كويز 2","g":80,"id":106,"u":"https://t.me/c/2006385993/430"},
-{"s":"Operative","t":"Advanced restorative materials 1","q":"كويز 2","g":80,"id":107,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_dlpdb7/IQDvduTITWjjRqaQJyy5JI5tATj6vC8cSRnKkSkXV3-QNGc"},
-{"s":"Operative","t":"Advanced restorative materials 2","q":"كويز 2","g":80,"id":108,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_dlpdb7/IQAagn3A3GrYR4eCPgwgveEOAfQ7G9mtkfK3xmsnYFC1u_0"},
 
 // OPERATIVE — بعد كويز 2
+{"s":"Operative","t":"Advanced restorative materials 1","q":"بعد كويز 2","g":80,"id":107,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_dlpdb7/IQDvduTITWjjRqaQJyy5JI5tATj6vC8cSRnKkSkXV3-QNGc"},
+{"s":"Operative","t":"Advanced restorative materials 2","q":"بعد كويز 2","g":80,"id":108,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_dlpdb7/IQAagn3A3GrYR4eCPgwgveEOAfQ7G9mtkfK3xmsnYFC1u_0"},
 {"s":"Operative","t":"Micro and nanoleakage of dental restorations (Part 1)","q":"بعد كويز 2","g":80,"id":109,"u":""},
 {"s":"Operative","t":"Micro and nanoleakage of dental restorations (Part 2)","q":"بعد كويز 2","g":80,"id":110,"u":""},
 {"s":"Operative","t":"Failure of dental restorations (Part 1)","q":"بعد كويز 2","g":80,"id":111,"u":""},
