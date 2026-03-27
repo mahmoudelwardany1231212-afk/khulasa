@@ -829,7 +829,7 @@ function renderLectures(state) {
 
   const c = document.getElementById('lecList');
   c.innerHTML = lecs.map(l => {
-    const isDone = p[l.id] !== undefined && parseFloat(p[l.id]) > 0;
+    const isDone = p[l.id] !== undefined;
     const compPct = isDone ? p[l.id] : null; 
     const ci = SUBJECTS.indexOf(l.s);
     const color = isDone ? PCT_COLORS[compPct] : (SUBJ_COLORS[ci] || '#888');
@@ -940,13 +940,45 @@ if (savedUserStr !== null) {
 }
 
 // ── 6. BUY LIST ────────────────────────────
+window.copyBuyList = function(userId) {
+  const p = store.get().progress[userId] || {};
+  const missingLecs = LECTURES.filter(l => p[l.id] !== undefined && parseFloat(p[l.id]) === 0);
+  let text = `محاضرات للشراء - د. ${MEMBERS[userId].name}:\n\n`;
+  missingLecs.forEach((l, idx) => {
+    text += `${idx + 1}. ${l.t} (${SUBJ_SHORT[l.s] || l.s})\n`;
+  });
+  text += `\nالإجمالي: ${missingLecs.length} محاضرة`;
+  
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => {
+      showToast('تم نسخ القائمة 📋!', 'success');
+    }).catch(e => {
+      console.warn('Clipboard failed', e);
+      showToast('لم نتمكن من النسخ التلقائي، حاول مرة أخرى', 'fire');
+    });
+  } else {
+    // Fallback for older browsers
+    const el = document.createElement('textarea');
+    el.value = text;
+    document.body.appendChild(el);
+    el.select();
+    try {
+      document.execCommand('copy');
+      showToast('تم نسخ القائمة 📋!', 'success');
+    } catch(e) {
+      showToast('متصفحك لا يدعم النسخ التلقائي', 'warn');
+    }
+    document.body.removeChild(el);
+  }
+};
+
 function renderBuyList(state) {
   const c = document.getElementById('buyCards');
   if (!c) return;
   const data = MEMBERS.map((m, i) => {
     const p = state.progress[i] || {};
     const missingLecs = LECTURES.filter(l => p[l.id] !== undefined && parseFloat(p[l.id]) === 0);
-    return { m, missingLecs };
+    return { m, missingLecs, idx: i };
   }).filter(d => d.missingLecs.length > 0);
   
   if (!data.length) {
@@ -956,19 +988,27 @@ function renderBuyList(state) {
   
   c.innerHTML = data.map(d => {
     return `<div class="lb-card" style="border-color:${d.m.color}60;margin-bottom:12px;padding:12px;">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:10px;position:relative;">
         <div class="lb-av" style="background:${d.m.color}20;width:34px;height:34px;font-size:16px;">${d.m.emoji}</div>
-        <div class="lb-nm" style="color:${d.m.color};font-size:14px;flex:1;">${d.m.name}</div>
-        <div style="font-size:11px;color:var(--rose);background:rgba(255,77,141,0.1);padding:4px 8px;border-radius:12px;font-weight:700;">${d.missingLecs.length} محاضرة</div>
+        
+        <div style="display:flex;flex-direction:column;flex:1;">
+          <div class="lb-nm" style="color:${d.m.color};font-size:14px;">${d.m.name}</div>
+          <div style="font-size:11px;color:var(--rose);font-weight:700;">${d.missingLecs.length} محاضرة</div>
+        </div>
+
+        <button onclick="copyBuyList(${d.idx})" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:var(--txt);border-radius:8px;padding:6px 12px;font-size:11px;cursor:pointer;font-family:'Cairo',sans-serif;font-weight:600;display:flex;align-items:center;gap:4px;transition:background 0.2s;">
+          <span>📋</span> نسخ
+        </button>
       </div>
-      <div style="display:flex;flex-direction:column;gap:6px;">
+
+      <div style="display:flex;flex-direction:column;gap:8px;">
         ${d.missingLecs.map(l => {
           const ci = SUBJECTS.indexOf(l.s);
           const cColor = SUBJ_COLORS[ci] || '#888';
-          return `<div style="background:var(--bg);padding:8px 10px;border-radius:8px;border:1px solid var(--border);display:flex;align-items:center;gap:8px;">
-            <div style="width:6px;height:6px;border-radius:50%;background:${cColor};flex-shrink:0;"></div>
-            <div style="font-size:11px;font-weight:600;color:var(--txt);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${l.t}</div>
-            <div style="font-size:9px;color:${cColor};background:${cColor}15;padding:2px 6px;border-radius:6px;flex-shrink:0;font-family:'Inter',sans-serif">${SUBJ_SHORT[l.s] || l.s}</div>
+          return `<div style="background:var(--bg);padding:10px 12px;border-radius:10px;border:1px solid var(--border);display:flex;align-items:flex-start;gap:8px;">
+            <div style="width:6px;height:6px;border-radius:50%;background:${cColor};flex-shrink:0;margin-top:6px;"></div>
+            <div style="font-size:12px;font-weight:600;color:var(--txt);flex:1;line-height:1.5;">${l.t}</div>
+            <div style="font-size:9px;color:${cColor};background:${cColor}15;padding:2px 6px;border-radius:6px;flex-shrink:0;font-family:'Inter',sans-serif;margin-top:2px;">${SUBJ_SHORT[l.s] || l.s}</div>
           </div>`;
         }).join('')}
       </div>
