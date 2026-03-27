@@ -93,7 +93,7 @@ const LECTURES = [
 {"s":"Surgery","t":"Diagnosis and management of Orofacial pain (3 hrs.)","q":"بعد كويز 2","g":120,"id":66,"u":""},
 
 // ════════════════════════════════════════════════════════
-// PROSTHESIS — قبل كويز 1 (Term 1)
+// PROSTHESIS — كويز 1 (Term 1)
 // ════════════════════════════════════════════════════════
 {"s":"Prosthesis","t":"Orientation","q":"كويز 1","g":120,"id":67,"u":""},
 {"s":"Prosthesis","t":"Diagnosis, and treatment planning for partial denture","q":"كويز 1","g":120,"id":68,"u":"https://t.me/c/2006385993/334"},
@@ -101,12 +101,12 @@ const LECTURES = [
 {"s":"Prosthesis","t":"Principle of partial denture design","q":"كويز 1","g":120,"id":70,"u":"https://t.me/c/2006385993/350"},
 {"s":"Prosthesis","t":"Impression techniques for R.P.D.","q":"كويز 1","g":120,"id":71,"u":"https://t.me/c/2006385993/359","u2":"https://t.me/talagah/205"},
 {"s":"Prosthesis","t":"Occlusal relationships for R.P.D.","q":"كويز 1","g":120,"id":72,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_s-lzcl/EZ4-Idl2_x9FpxhGLN8nLFcBLFYyJ62la73yG0W9Z0Y6dA"},
+{"s":"Prosthesis","t":"Class I","q":"كويز 1","g":120,"id":73,"u":"https://t.me/c/2006385993/374"},
+{"s":"Prosthesis","t":"Class II, Class III","q":"كويز 1","g":120,"id":74,"u":"https://t.me/c/2006385993/383"},
+{"s":"Prosthesis","t":"Class IV","q":"كويز 1","g":120,"id":75,"u":"https://t.me/talagah/199","u2":"https://t.me/tagmiaat1/3272"},
+{"s":"Prosthesis","t":"Try-in & insertion for R.P.D.","q":"كويز 1","g":120,"id":76,"u":"https://t.me/talagah/198"},
 
 // PROSTHESIS — بين كويز 1 و 2
-{"s":"Prosthesis","t":"Class I","q":"بين كويز 1 و 2","g":120,"id":73,"u":"https://t.me/c/2006385993/374"},
-{"s":"Prosthesis","t":"Class II, Class III","q":"بين كويز 1 و 2","g":120,"id":74,"u":"https://t.me/c/2006385993/383"},
-{"s":"Prosthesis","t":"Class IV","q":"بين كويز 1 و 2","g":120,"id":75,"u":"https://t.me/talagah/199","u2":"https://t.me/tagmiaat1/3272"},
-{"s":"Prosthesis","t":"Try-in & insertion for R.P.D.","q":"بين كويز 1 و 2","g":120,"id":76,"u":"https://t.me/talagah/198"},
 {"s":"Prosthesis","t":"Support &Tissue damage for R.P.D.","q":"بين كويز 1 و 2","g":120,"id":77,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_s-lzcl/EelNElSnKTdCv33g8JB0TkwB5urVR6Usejnczli4wm-GoA"},
 
 // PROSTHESIS — كويز 2 (Term 1)
