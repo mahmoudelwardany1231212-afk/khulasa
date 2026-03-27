@@ -154,28 +154,28 @@ const LECTURES = [
 // OPERATIVE — كويز 1 (Term 1)
 // ════════════════════════════════════════════════════════
 {"s":"Operative","t":"Adhesion and Adhesive Materials (Part 1)","q":"كويز 1","g":80,"id":90,"u":"https://t.me/c/2006385993/323","u2":"https://t.me/talagah/212"},
-{"s":"Operative","t":"Adhesion and Adhesive Materials (Part 2)","q":"كويز 1","g":80,"id":91,"u":"https://t.me/c/2006385993/328"},
-{"s":"Operative","t":"Adhesion and Adhesive Materials (Part 3)","q":"كويز 1","g":80,"id":92,"u":"https://t.me/c/2006385993/336"},
+{"s":"Operative","t":"Adhesion and Adhesive Materials (Part 2)","q":"كويز 1","g":80,"id":91,"u":"https://t.me/c/2006385993/328","u2":"https://t.me/talagah/212"},
+{"s":"Operative","t":"Adhesion and Adhesive Materials (Part 3)","q":"كويز 1","g":80,"id":92,"u":"https://t.me/c/2006385993/336","u2":"https://t.me/talagah/212"},
 {"s":"Operative","t":"Cariology and caries management (Part 1)","q":"كويز 1","g":80,"id":93,"u":"https://t.me/c/2006385993/347","u2":"https://t.me/talagah/214"},
-{"s":"Operative","t":"Cariology and caries management (Part 2)","q":"كويز 1","g":80,"id":94,"u":"https://t.me/c/2006385993/356"},
+{"s":"Operative","t":"Cariology and caries management (Part 2)","q":"كويز 1","g":80,"id":94,"u":"https://t.me/c/2006385993/356","u2":"https://t.me/talagah/214"},
 {"s":"Operative","t":"Esthetic consideration (Part 1)","q":"كويز 1","g":80,"id":95,"u":"https://t.me/c/2006385993/371","u2":"https://t.me/talagah/217"},
-{"s":"Operative","t":"Esthetic consideration (Part 2)","q":"كويز 1","g":80,"id":96,"u":"https://t.me/talagah/219"},
+{"s":"Operative","t":"Esthetic consideration (Part 2)","q":"كويز 1","g":80,"id":96,"u":"https://t.me/talagah/219","u2":"https://t.me/talagah/217"},
 
 // OPERATIVE — بين كويز 1 و 2
-{"s":"Operative","t":"Shade selection for direct restorations (Part 1)","q":"بين كويز 1 و 2","g":80,"id":97,"u":""},
-{"s":"Operative","t":"Shade selection for direct restorations (Part 2)","q":"بين كويز 1 و 2","g":80,"id":98,"u":""},
-{"s":"Operative","t":"Management of discolored teeth (Part 1)","q":"بين كويز 1 و 2","g":80,"id":101,"u":""},
-{"s":"Operative","t":"Management of discolored teeth (Part 2)","q":"بين كويز 1 و 2","g":80,"id":102,"u":""},
-{"s":"Operative","t":"Management of badly destructed teeth (Part 1)","q":"بين كويز 1 و 2","g":80,"id":103,"u":""},
+{"s":"Operative","t":"Shade selection for direct restorations (Part 1)","q":"بين كويز 1 و 2","g":80,"id":97,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_dlpdb7/IQDCd-7lOt7tSrnKkT6c_VSOARxEpyRCMHI202fgzTWK-mo"},
+{"s":"Operative","t":"Shade selection for direct restorations (Part 2)","q":"بين كويز 1 و 2","g":80,"id":98,"u":"https://t.me/c/2006385993/380"},
+{"s":"Operative","t":"Management of discolored teeth (Part 1)","q":"بين كويز 1 و 2","g":80,"id":101,"u":"https://t.me/c/2006385993/404","u2":"https://t.me/talagah/430"},
+{"s":"Operative","t":"Management of discolored teeth (Part 2)","q":"بين كويز 1 و 2","g":80,"id":102,"u":"https://t.me/c/2006385993/412","u2":"https://t.me/talagah/430"},
+{"s":"Operative","t":"Management of badly destructed teeth (Part 1)","q":"بين كويز 1 و 2","g":80,"id":103,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_dlpdb7/IQB6wOpaLFeNR5VBzfHCx0UDATY8IRPQ9dreqlbr8AqCsSI"},
 {"s":"Operative","t":"Management of badly destructed teeth (Part 2)","q":"بين كويز 1 و 2","g":80,"id":104,"u":""},
 
 // OPERATIVE — كويز 2 (Term 1)
 {"s":"Operative","t":"Laser in restorative dentistry (Part 1)","q":"كويز 2","g":80,"id":99,"u":"https://t.me/c/2006385993/389","u2":"https://t.me/puma49/1659"},
-{"s":"Operative","t":"Laser in restorative dentistry (Part 2)","q":"كويز 2","g":80,"id":100,"u":"https://t.me/c/2006385993/399"},
+{"s":"Operative","t":"Laser in restorative dentistry (Part 2)","q":"كويز 2","g":80,"id":100,"u":"https://t.me/c/2006385993/399","u2":"https://t.me/puma49/1659"},
 
 // OPERATIVE — كويز 2 (Term 2)
 {"s":"Operative","t":"Etiology, diagnosis and management of non-carious lesion (Part 1)","q":"كويز 2","g":80,"id":105,"u":"https://t.me/c/2006385993/421","u2":"https://t.me/talagah/450"},
-{"s":"Operative","t":"Etiology, diagnosis and management of non-carious lesion (Part 2)","q":"كويز 2","g":80,"id":106,"u":"https://t.me/c/2006385993/430"},
+{"s":"Operative","t":"Etiology, diagnosis and management of non-carious lesion (Part 2)","q":"كويز 2","g":80,"id":106,"u":"https://t.me/c/2006385993/430","u2":"https://t.me/talagah/450"},
 
 // OPERATIVE — بعد كويز 2
 {"s":"Operative","t":"Advanced restorative materials 1","q":"بعد كويز 2","g":80,"id":107,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_dlpdb7/IQDvduTITWjjRqaQJyy5JI5tATj6vC8cSRnKkSkXV3-QNGc"},
