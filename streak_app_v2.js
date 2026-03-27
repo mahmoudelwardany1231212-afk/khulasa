@@ -18,9 +18,10 @@ const store = {
     filterSubj: 'all',
     filterQuiz: 'all',
     searchQuery: '',
-    progress: {} // { "uid": { "lecId": pctVal } }
+    progress: {}
   },
   listeners: [],
+  _pins: {}, // PINs fetched from Firebase at runtime (never in source code)
 
   get() {
     return this.state;
@@ -196,6 +197,20 @@ const store = {
 
           this.notify();
         });
+
+        // Load PINs from Firebase — they never live in the source code
+        const { get } = window.firebase_database || {};
+        if (get) {
+          get(ref(db, 'config/pins')).then(snap => {
+            const pins = snap.val();
+            if (pins) {
+              this._pins = pins;
+              console.log('[Firebase] PINs loaded from cloud ✅');
+            } else {
+              console.warn('[Firebase] config/pins not found — login will be blocked');
+            }
+          }).catch(e => console.warn('[Firebase] PIN load error:', e));
+        }
 
         console.log('[Firebase] Cloud-first listener attached to:', FIREBASE_CONFIG.databaseURL);
       } catch(e) {
@@ -492,7 +507,13 @@ async function checkPin() {
       input.value = '';
       return;
     }
-    if (val === MEMBERS[pendingUser].pin) {
+    // Guard: PINs are loaded from Firebase — if not ready yet, show a message
+    if (!store._pins || store._pins[pendingUser] === undefined) {
+      document.getElementById('pinError').textContent = '⏳ جاري تحميل البيانات، انتظر لحظة';
+      document.getElementById('pinError').style.opacity = '1';
+      return;
+    }
+    if (val === store._pins[pendingUser]) {
       pinAttempts[pendingUser] = { count: 0 };
       const confirmedUser = pendingUser;
       closePinModal();

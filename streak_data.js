@@ -228,9 +228,9 @@ const LECTURES = [
 ];
 
 const MEMBERS = [
-  { name: "الورداني", role: "The Surgeon", roleAr: "الجراح", emoji: "⚔️", color: "#F5C842", color2: "#C49A10", pin: "4444" },
-  { name: "أيمن وليد", role: "The Consultant", roleAr: "الاستشاري", emoji: "🧠", color: "#00C9D4", color2: "#007A85", pin: "0000" },
-  { name: "عبدالحميد رافت", role: "The Academic", roleAr: "الأكاديمي", emoji: "📚", color: "#FF4D8D", color2: "#B5005E", pin: "1111" }
+  { name: "الورداني",     role: "The Surgeon",    roleAr: "الجراح",      emoji: "⚔️", color: "#F5C842", color2: "#C49A10" },
+  { name: "أيمن وليد",   role: "The Consultant", roleAr: "الاستشاري",   emoji: "🧠", color: "#00C9D4", color2: "#007A85" },
+  { name: "عبدالحميد رافت", role: "The Academic", roleAr: "الأكاديمي",  emoji: "📚", color: "#FF4D8D", color2: "#B5005E" }
 ];
 
 const SUBJECTS = [...new Set(LECTURES.map(l => l.s))];
