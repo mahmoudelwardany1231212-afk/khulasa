@@ -403,10 +403,9 @@ const MY_DEVICE_ID = (() => {
 
 let _sessionUnsubscribe = null;
 
-function _writeSession(userId) {
+function _watchSession(userId) {
   if (!window._fbReady || !window._fbDb) return;
-  const { ref, set } = window._fbSDK;
-  set(ref(window._fbDb, `sessions/${userId}`), { deviceId: MY_DEVICE_ID, loginAt: Date.now() });
+  const { ref } = window._fbSDK;
 
   // Watch for session takeover: if another device logs in my account, auto-logout
   if (_sessionUnsubscribe) _sessionUnsubscribe();
@@ -425,18 +424,55 @@ function _writeSession(userId) {
   });
 }
 
-async function _checkSessionConflict(userId) {
-  // If Firebase isn't ready yet, skip the check (allow login)
-  if (!window._fbReady || !window._fbDb) return false;
+async function _tryClaimSession(userId, forceKick = false) {
+  if (!window._fbReady || !window._fbDb) return { success: true }; // allow offline
+  const { ref } = window._fbSDK;
+  const { runTransaction } = window.firebase_database;
+  
+  if (!runTransaction) {
+    // Fallback if runTransaction is missing
+    try {
+      const { get, set } = window.firebase_database;
+      if (get && set) {
+        if (!forceKick) {
+          const snap = await get(ref(window._fbDb, `sessions/${userId}`));
+          const s = snap.val();
+          if (s && s.deviceId && s.deviceId !== MY_DEVICE_ID) return { success: false, conflict: true };
+        }
+        await set(ref(window._fbDb, `sessions/${userId}`), { deviceId: MY_DEVICE_ID, loginAt: Date.now() });
+        return { success: true };
+      }
+    } catch(e) { console.warn('[Session fallback error]', e); }
+    return { success: true };
+  }
+  
   try {
-    const { ref } = window._fbSDK;
-    const { get } = window.firebase_database;
-    if (!get) return false;
-    const snap = await get(ref(window._fbDb, `sessions/${userId}`));
-    const s = snap.val();
-    if (s && s.deviceId && s.deviceId !== MY_DEVICE_ID) return true; // conflict
-  } catch(e) { console.warn('[Session check error]', e); }
-  return false;
+    const result = await runTransaction(ref(window._fbDb, `sessions/${userId}`), (currentData) => {
+      if (currentData === null) {
+        // No session exists, claim it
+        return { deviceId: MY_DEVICE_ID, loginAt: Date.now() };
+      }
+      if (currentData.deviceId === MY_DEVICE_ID) {
+        // Already our session, update timestamp
+        return { deviceId: MY_DEVICE_ID, loginAt: Date.now() };
+      }
+      if (forceKick) {
+        // User explicitly chose to kick the other device
+        return { deviceId: MY_DEVICE_ID, loginAt: Date.now() };
+      }
+      // Another device has it, abort transaction
+      return; // returning undefined aborts it
+    });
+
+    if (result.committed) {
+      return { success: true };
+    } else {
+      return { success: false, conflict: true };
+    }
+  } catch(e) {
+    console.warn('[Session claim error]', e);
+    return { success: true }; // fallback to allow login on error
+  }
 }
 
 function _showSessionConflictModal(userId, onConfirm, onCancel) {
@@ -491,7 +527,7 @@ function _doLogin(confirmedUser) {
   document.getElementById('mainApp').classList.remove('hide');
   store.set({ currentUser: confirmedUser });
   showToast(`أهلاً بك يا ${MEMBERS[confirmedUser].name} 💪`, 'success');
-  _writeSession(confirmedUser);
+  _watchSession(confirmedUser);
   if (typeof showMeme === 'function') {
     setTimeout(() => showMeme('login', 0, `أهلاً يا ${MEMBERS[confirmedUser].name}! جاهز تذاكر؟ 💪`), 400);
   }
@@ -519,11 +555,19 @@ async function checkPin() {
       closePinModal();
 
       // Check if this account is already active on another device
-      const hasConflict = await _checkSessionConflict(confirmedUser);
-      if (hasConflict) {
+      const claimResult = await _tryClaimSession(confirmedUser, false);
+      if (!claimResult.success && claimResult.conflict) {
         _showSessionConflictModal(
           confirmedUser,
-          () => _doLogin(confirmedUser),    // Confirm: kick other device
+          async () => {
+             // Confirm: kick other device
+             const forceClaim = await _tryClaimSession(confirmedUser, true);
+             if (forceClaim.success) {
+               _doLogin(confirmedUser);
+             } else {
+               showToast('حدث خطأ أثناء محاولة طرد الجهاز الآخر', 'error');
+             }
+          },
           () => {} // Cancel: do nothing
         );
       } else {
