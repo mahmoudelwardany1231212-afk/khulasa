@@ -113,17 +113,17 @@ const LECTURES = [
 // PROSTHESIS — بين كويز 1 و 2
 {"s":"Prosthesis","t":"Support &Tissue damage for R.P.D.","q":"بين كويز 1 و 2","g":120,"id":77,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_s-lzcl/EelNElSnKTdCv33g8JB0TkwB5urVR6Usejnczli4wm-GoA"},
 
-// PROSTHESIS — كويز 2 (Term 1)
+// PROSTHESIS — كويز 2 (Term 1 & 2)
 {"s":"Prosthesis","t":"Neutral zone","q":"كويز 2","g":120,"id":81,"u":"https://t.me/talagah/441"},
+{"s":"Prosthesis","t":"Aesthetic partial denture","q":"كويز 2","g":120,"id":82,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_s-lzcl/IQB9L5ATS6n9TbP3IdOfeSCnASiZ5QnG8YMBYecOiQm3fSM"},
+{"s":"Prosthesis","t":"Geriatric patients","q":"كويز 2","g":120,"id":83,"u":"https://t.me/c/2006385993/429","u2":"https://t.me/talagah/451"},
+{"s":"Prosthesis","t":"Immediate denture Online Ramadan","q":"كويز 2","g":120,"id":84,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_s-lzcl/IQA2WhAl8ehtTYjQbAKz4WmyAZeIEEDVBC6-PGyhskg_ZD4"},
+{"s":"Prosthesis","t":"Single Denture Online Ramadan","q":"كويز 2","g":120,"id":85,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_s-lzcl/IQAAkbCS90RmTI2s6LrSY7mGASY8Bo-dywj-rr37En-tt6c","u2":"https://t.me/bitinjan/161"},
 
-// PROSTHESIS — بعد كويز 2 (after Term 1 quiz2 and all Term 2)
+// PROSTHESIS — بعد كويز 2
 {"s":"Prosthesis","t":"Occlusion for complete denture","q":"بعد كويز 2","g":120,"id":78,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_s-lzcl/IQBP60pIciT8RbqpsVTty7kKARlxtrSrlFNi8L3yfBqn3hc"},
 {"s":"Prosthesis","t":"Complaints of R.P.D.","q":"بعد كويز 2","g":120,"id":79,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_s-lzcl/IQAJw1m8RfoET57w81tyg0KNAUA0btMyHQIomiexg4uvnPM"},
 {"s":"Prosthesis","t":"Repair& relining","q":"بعد كويز 2","g":120,"id":80,"u":"https://t.me/talagah/439"},
-{"s":"Prosthesis","t":"Aesthetic partial denture","q":"بعد كويز 2","g":120,"id":82,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_s-lzcl/IQAhzZ8hIqy8Q5mLe9H3e2EBAaatWq5N1AaZGWwLmGJfnCQ"},
-{"s":"Prosthesis","t":"Geriatric patients","q":"بعد كويز 2","g":120,"id":83,"u":"https://t.me/c/2006385993/429","u2":"https://t.me/talagah/451"},
-{"s":"Prosthesis","t":"Immediate denture Online Ramadan","q":"بعد كويز 2","g":120,"id":84,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_s-lzcl/IQA2WhAl8ehtTYjQbAKz4WmyAZeIEEDVBC6-PGyhskg_ZD4"},
-{"s":"Prosthesis","t":"Single Denture Online Ramadan","q":"بعد كويز 2","g":120,"id":85,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_s-lzcl/IQAAkbCS90RmTI2s6LrSY7mGASY8Bo-dywj-rr37En-tt6c","u2":"https://t.me/bitinjan/161"},
 {"s":"Prosthesis","t":"Over denture & Submerged root","q":"بعد كويز 2","g":120,"id":86,"u":""},
 {"s":"Prosthesis","t":"Implant prosthesis","q":"بعد كويز 2","g":120,"id":87,"u":""},
 {"s":"Prosthesis","t":"Digital workflow for R.P.D., Advanced denture bases used for R.P.D . (part 1)","q":"بعد كويز 2","g":120,"id":88,"u":""},
