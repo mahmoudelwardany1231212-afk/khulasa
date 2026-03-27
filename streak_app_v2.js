@@ -604,7 +604,7 @@ function toggleLecture(lecId) {
   const userProgress = s.progress[s.currentUser] || {};
   const uid = s.currentUser;
   
-  if (userProgress[lecId] !== undefined && parseFloat(userProgress[lecId]) > 0) {
+  if (userProgress[lecId] !== undefined) {
     // Optimistic local update (instant UI)
     store.set(st => {
       const cloned = { ...st.progress[st.currentUser] };
