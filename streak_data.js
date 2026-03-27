@@ -19,11 +19,13 @@ const LECTURES = [
 {"s":"Perio","t":"Periodontal Response to External Forces","q":"بين كويز 1 و 2","g":120,"id":12,"u":"https://t.me/c/2006385993/405"},
 {"s":"Perio","t":"The Periodontal Flap – The Flap Technique for Pocket Therapy","q":"بين كويز 1 و 2","g":120,"id":15,"u":"https://t.me/talagah/417","u2":"https://youtu.be/zqRTldGt2ws?si=MsCI05ePfDryTyqp"},
 
+// PERIO — كويز 2 (Term 2)
+{"s":"Perio","t":"Anti – infective- Agents - Host Modulation Agents","q":"كويز 2","g":120,"id":14,"u":"https://t.me/c/1674571996/1269","u2":"https://t.me/c/2006385993/422","u3":"https://youtu.be/JmpNZ_l7Ozs?si=spsLJ8ajEgcAZeHP","u4":"https://youtu.be/P9Fa8nwztKE?si=4Gb9LgPSNPVPViyF"},
+{"s":"Perio","t":"General Principles of Periodontal surgery -Gingival Surgical Techniques","q":"كويز 2","g":120,"id":13,"u":"https://t.me/talagah/490"},
+{"s":"Perio","t":"Resective Osseous Surgery – Bone Loss and Patterns of Bone Destruction 1","q":"كويز 2","g":120,"id":16,"u":"https://t.me/c/2006385993/427"},
+{"s":"Perio","t":"Resective Osseous Surgery – Bone Loss and Patterns of Bone Destruction 2","q":"كويز 2","g":120,"id":17,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_3j6ecl/IQDQJpkaM9sDTbdlVD6eHeG4AZGUI_6prg47Vgi13_d3LTE"},
+
 // PERIO — بعد كويز 2 (Term 2)
-{"s":"Perio","t":"Anti – infective- Agents - Host Modulation Agents","q":"بعد كويز 2","g":120,"id":14,"u":"https://t.me/c/1674571996/1269","u2":"https://t.me/c/2006385993/422"},
-{"s":"Perio","t":"General Principles of Periodontal surgery -Gingival Surgical Techniques","q":"بعد كويز 2","g":120,"id":13,"u":"https://t.me/talagah/490"},
-{"s":"Perio","t":"Resective Osseous Surgery – Bone Loss and Patterns of Bone Destruction 1","q":"بعد كويز 2","g":120,"id":16,"u":"https://t.me/c/2006385993/427"},
-{"s":"Perio","t":"Resective Osseous Surgery – Bone Loss and Patterns of Bone Destruction 2","q":"بعد كويز 2","g":120,"id":17,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_3j6ecl/IQDQJpkaM9sDTbdlVD6eHeG4AZGUI_6prg47Vgi13_d3LTE"},
 {"s":"Perio","t":"Reconstructive Periodontal Surgery","q":"بعد كويز 2","g":120,"id":18,"u":""},
 {"s":"Perio","t":"Furcation: Involvement and Treatment","q":"بعد كويز 2","g":120,"id":19,"u":""},
 {"s":"Perio","t":"Periodontal Plastic and Aesthetic Surgery","q":"بعد كويز 2","g":120,"id":20,"u":""},
@@ -51,11 +53,13 @@ const LECTURES = [
 {"s":"Medicine","t":"Salivary Gland Diseases (Part 1)","q":"بين كويز 1 و 2","g":120,"id":36,"u":"https://t.me/c/2006385993/409","u2":"https://t.me/talagah/400"},
 {"s":"Medicine","t":"Salivary Gland Diseases (Part 2)","q":"بين كويز 1 و 2","g":120,"id":37,"u":"","u2":"https://t.me/talagah/402"},
 
+// MEDICINE — كويز 2 (Term 2)
+{"s":"Medicine","t":"Hematologic Diseases (Part 1)","q":"كويز 2","g":120,"id":38,"u":"https://t.me/c/2006385993/418"},
+{"s":"Medicine","t":"Hematologic Diseases (Part 2)","q":"كويز 2","g":120,"id":39,"u":"https://t.me/c/2006385993/425"},
+{"s":"Medicine","t":"Oral cancer (on line)","q":"كويز 2","g":120,"id":40,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_ouoqcl/IQBLhorJlBVrS4QkinRi0Q-oAfxtu-dPxpT7ekfBhW5fy2A"},
+{"s":"Medicine","t":"Medically compromised patients","q":"كويز 2","g":120,"id":45,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_ouoqcl/IQB8z4MwOFxTSYqiaPIQ68gGAR4qkxs-EvZFTrTtxZIRGtA"},
+
 // MEDICINE — بعد كويز 2 (Term 2)
-{"s":"Medicine","t":"Hematologic Diseases (Part 1)","q":"بعد كويز 2","g":120,"id":38,"u":"https://t.me/c/2006385993/418"},
-{"s":"Medicine","t":"Hematologic Diseases (Part 2)","q":"بعد كويز 2","g":120,"id":39,"u":"https://t.me/c/2006385993/425"},
-{"s":"Medicine","t":"Oral cancer (on line)","q":"بعد كويز 2","g":120,"id":40,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_ouoqcl/IQBLhorJlBVrS4QkinRi0Q-oAfxtu-dPxpT7ekfBhW5fy2A"},
-{"s":"Medicine","t":"Medically compromised patients","q":"بعد كويز 2","g":120,"id":45,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_ouoqcl/IQB8z4MwOFxTSYqiaPIQ68gGAR4qkxs-EvZFTrTtxZIRGtA"},
 {"s":"Medicine","t":"Diseases of the Tongue (on line)","q":"بعد كويز 2","g":120,"id":41,"u":""},
 {"s":"Medicine","t":"Orofacial pain & Headache","q":"بعد كويز 2","g":120,"id":42,"u":""},
 {"s":"Medicine","t":"Infectious Diseases (Part 1)","q":"بعد كويز 2","g":120,"id":43,"u":""},

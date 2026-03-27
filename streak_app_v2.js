@@ -842,6 +842,8 @@ function renderLectures(state) {
           <span class="lec-tag lt-quiz">${l.q}</span>
           ${l.u ? `<a href="${l.u}" target="_blank" onclick="event.stopPropagation()" class="lec-tag lt-link">🔗 المحاضرة</a>` : ''}
           ${l.u2 ? `<a href="${l.u2}" target="_blank" onclick="event.stopPropagation()" class="lec-tag lt-link lt-link2">🔗 البديل</a>` : ''}
+          ${l.u3 ? `<a href="${l.u3}" target="_blank" onclick="event.stopPropagation()" class="lec-tag lt-link lt-link3" style="background:rgba(255,165,0,0.15);color:#ff9800;border:1px solid rgba(255,165,0,0.3)">🔗 بديل 2</a>` : ''}
+          ${l.u4 ? `<a href="${l.u4}" target="_blank" onclick="event.stopPropagation()" class="lec-tag lt-link lt-link4" style="background:rgba(255,165,0,0.15);color:#ff9800;border:1px solid rgba(255,165,0,0.3)">🔗 بديل 3</a>` : ''}
         </div>
       </div>
     </div>`;
