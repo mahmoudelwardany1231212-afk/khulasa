@@ -604,7 +604,7 @@ function toggleLecture(lecId) {
   const userProgress = s.progress[s.currentUser] || {};
   const uid = s.currentUser;
   
-  if (userProgress[lecId] !== undefined) {
+  if (userProgress[lecId] !== undefined && parseFloat(userProgress[lecId]) > 0) {
     // Optimistic local update (instant UI)
     store.set(st => {
       const cloned = { ...st.progress[st.currentUser] };
@@ -639,7 +639,7 @@ function selectPct(pctVal) {
   store.save(currentUser, lecId, pctVal);
 
   const p = store.get().progress[store.get().currentUser];
-  const done = Object.keys(p).filter(id => LECTURES.some(l => l.id == id)).length;
+  const done = Object.keys(p).filter(id => LECTURES.some(l => l.id == id) && parseFloat(p[id]) > 0).length;
   const progressPct = Math.round((done / LECTURES.length) * 100);
 
   showToast(PCT_MSGS[pctVal], pctVal >= 75 ? 'success' : pctVal >= 50 ? 'warn' : 'fire');
@@ -717,6 +717,8 @@ function switchTab(tab) {
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t.dataset.tab === tab));
   document.getElementById('pageLectures').classList.toggle('hide', tab !== 'lectures');
   document.getElementById('pageLeaderboard').classList.toggle('hide', tab !== 'leaderboard');
+  const pageBuy = document.getElementById('pageBuy');
+  if (pageBuy) pageBuy.classList.toggle('hide', tab !== 'buy');
   // No render calls here! Pure state-driven CSS decoupling.
 }
 
@@ -750,12 +752,13 @@ store.subscribe((state) => {
   renderSubjProgress(state);
   renderLectures(state);
   renderLeaderboard(state);
+  if (typeof renderBuyList === 'function') renderBuyList(state);
 });
 
 function renderHeader(state) {
   const m = MEMBERS[state.currentUser];
   const p = state.progress[state.currentUser] || {};
-  const done = Object.keys(p).filter(id => LECTURES.some(l => l.id == id)).length;
+  const done = Object.keys(p).filter(id => LECTURES.some(l => l.id == id) && parseFloat(p[id]) > 0).length;
   const pct = Math.round((done / LECTURES.length) * 100);
   
   document.getElementById('ahName').textContent = m.name;
@@ -766,7 +769,7 @@ function renderHeader(state) {
 
 function renderLevelBanner(state) {
   const p = state.progress[state.currentUser] || {};
-  const done = Object.keys(p).filter(id => LECTURES.some(l => l.id == id)).length;
+  const done = Object.keys(p).filter(id => LECTURES.some(l => l.id == id) && parseFloat(p[id]) > 0).length;
   const pct = Math.round((done / LECTURES.length) * 100);
   const lv = getLevel(pct);
   const emoji = EMOJIS[lv][done % EMOJIS[lv].length];
@@ -790,7 +793,7 @@ function renderSubjProgress(state) {
   c.innerHTML = subjs.map((s, i) => {
     const subjLecs = LECTURES.filter(l => l.s === s);
     const total = subjLecs.length;
-    const done = subjLecs.filter(l => p[l.id] !== undefined).length;
+    const done = subjLecs.filter(l => p[l.id] !== undefined && parseFloat(p[l.id]) > 0).length;
     const subjectGrade = parseFloat(subjLecs[0]?.g) || 100;
 
     let gradeAchieved = 0;
@@ -826,7 +829,7 @@ function renderLectures(state) {
 
   const c = document.getElementById('lecList');
   c.innerHTML = lecs.map(l => {
-    const isDone = p[l.id] !== undefined;
+    const isDone = p[l.id] !== undefined && parseFloat(p[l.id]) > 0;
     const compPct = isDone ? p[l.id] : null; 
     const ci = SUBJECTS.indexOf(l.s);
     const color = isDone ? PCT_COLORS[compPct] : (SUBJ_COLORS[ci] || '#888');
@@ -858,7 +861,7 @@ function renderLectures(state) {
 function renderLeaderboard(state) {
   const data = MEMBERS.map((m, i) => {
     const p = state.progress[i] || {};
-    const done = LECTURES.filter(l => p[l.id] !== undefined).length;
+    const done = LECTURES.filter(l => p[l.id] !== undefined && parseFloat(p[l.id]) > 0).length;
     
     let totalScoreAchieved = 0;
     let maxPossibleScore = 0;
@@ -867,7 +870,7 @@ function renderLeaderboard(state) {
     SUBJECTS.forEach(s => {
       const subjLecs = LECTURES.filter(l => l.s === s);
       const total = subjLecs.length;
-      const d = subjLecs.filter(l => p[l.id] !== undefined).length;
+      const d = subjLecs.filter(l => p[l.id] !== undefined && parseFloat(p[l.id]) > 0).length;
       
       const subjectGrade = parseFloat(subjLecs[0]?.g) || 100;
       maxPossibleScore += subjectGrade;
