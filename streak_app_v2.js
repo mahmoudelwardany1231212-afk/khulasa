@@ -938,3 +938,40 @@ if (savedUserStr !== null) {
     requestUserSelect(savedUid);
   }
 }
+
+// ── 6. BUY LIST ────────────────────────────
+function renderBuyList(state) {
+  const c = document.getElementById('buyCards');
+  if (!c) return;
+  const data = MEMBERS.map((m, i) => {
+    const p = state.progress[i] || {};
+    const missingLecs = LECTURES.filter(l => p[l.id] !== undefined && parseFloat(p[l.id]) === 0);
+    return { m, missingLecs };
+  }).filter(d => d.missingLecs.length > 0);
+  
+  if (!data.length) {
+    c.innerHTML = '<div style="text-align:center;padding:40px;color:var(--txt3)">مافيش حد مسجل محاضرات ناقصة حالياً</div>';
+    return;
+  }
+  
+  c.innerHTML = data.map(d => {
+    return `<div class="lb-card" style="border-color:${d.m.color}60;margin-bottom:12px;padding:12px;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:10px;">
+        <div class="lb-av" style="background:${d.m.color}20;width:34px;height:34px;font-size:16px;">${d.m.emoji}</div>
+        <div class="lb-nm" style="color:${d.m.color};font-size:14px;flex:1;">${d.m.name}</div>
+        <div style="font-size:11px;color:var(--rose);background:rgba(255,77,141,0.1);padding:4px 8px;border-radius:12px;font-weight:700;">${d.missingLecs.length} محاضرة</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        ${d.missingLecs.map(l => {
+          const ci = SUBJECTS.indexOf(l.s);
+          const cColor = SUBJ_COLORS[ci] || '#888';
+          return `<div style="background:var(--bg);padding:8px 10px;border-radius:8px;border:1px solid var(--border);display:flex;align-items:center;gap:8px;">
+            <div style="width:6px;height:6px;border-radius:50%;background:${cColor};flex-shrink:0;"></div>
+            <div style="font-size:11px;font-weight:600;color:var(--txt);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${l.t}</div>
+            <div style="font-size:9px;color:${cColor};background:${cColor}15;padding:2px 6px;border-radius:6px;flex-shrink:0;font-family:'Inter',sans-serif">${SUBJ_SHORT[l.s] || l.s}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
