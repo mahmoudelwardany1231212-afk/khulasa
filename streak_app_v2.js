@@ -639,7 +639,7 @@ function selectPct(pctVal) {
   store.save(currentUser, lecId, pctVal);
 
   const p = store.get().progress[store.get().currentUser];
-  const done = Object.keys(p).length;
+  const done = Object.keys(p).filter(id => LECTURES.some(l => l.id == id)).length;
   const progressPct = Math.round((done / LECTURES.length) * 100);
 
   showToast(PCT_MSGS[pctVal], pctVal >= 75 ? 'success' : pctVal >= 50 ? 'warn' : 'fire');
@@ -755,7 +755,7 @@ store.subscribe((state) => {
 function renderHeader(state) {
   const m = MEMBERS[state.currentUser];
   const p = state.progress[state.currentUser] || {};
-  const done = Object.keys(p).length;
+  const done = Object.keys(p).filter(id => LECTURES.some(l => l.id == id)).length;
   const pct = Math.round((done / LECTURES.length) * 100);
   
   document.getElementById('ahName').textContent = m.name;
@@ -766,7 +766,7 @@ function renderHeader(state) {
 
 function renderLevelBanner(state) {
   const p = state.progress[state.currentUser] || {};
-  const done = Object.keys(p).length;
+  const done = Object.keys(p).filter(id => LECTURES.some(l => l.id == id)).length;
   const pct = Math.round((done / LECTURES.length) * 100);
   const lv = getLevel(pct);
   const emoji = EMOJIS[lv][done % EMOJIS[lv].length];
