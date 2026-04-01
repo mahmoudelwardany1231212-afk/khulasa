@@ -1053,7 +1053,7 @@ function renderBuyList(state) {
               <div style="font-size:12px;font-weight:600;color:var(--txt);line-height:1.5;">${l.t}</div>
               <div style="display:flex;align-items:center;gap:6px;">
                 <div style="font-size:9px;color:${cColor};background:${cColor}15;padding:1px 6px;border-radius:6px;font-family:'Inter',sans-serif;">${SUBJ_SHORT[l.s] || l.s}</div>
-                ${d.idx === state.currentUser ? `<button onclick="markAsBought(${d.idx}, ${l.id})" style="background:transparent;border:none;color:var(--green);font-size:10px;cursor:pointer;font-weight:700;padding:2px 4px;font-family:'Cairo',sans-serif;">✅ تم الشراء</button>` : ''}
+                ${d.idx === state.currentUser ? `<button onclick="markAsBought(${d.idx}, ${l.id})" style="background:rgba(0,214,143,0.08);border:1px solid rgba(0,214,143,0.25);color:var(--green);font-size:10px;cursor:pointer;font-weight:800;padding:5px 12px;border-radius:8px;font-family:'Cairo',sans-serif;white-space:nowrap;transition:all 0.2s;">تم الشراء ✅</button>` : ''}
               </div>
             </div>
           </div>`;
