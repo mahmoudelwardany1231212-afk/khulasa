@@ -994,20 +994,24 @@ window.closeConfirmModal = function() {
 
 window.markAsBought = function(userId, lecId) {
   const st = store.get();
-  if (userId !== st.currentUser) {
+  const uid = parseInt(userId);
+  const lid = parseInt(lecId);
+  const currentUid = parseInt(st.currentUser);
+
+  if (uid !== currentUid) {
     showToast('لا يمكنك التعديل في بيانات زملائك يا وحش ✋', 'warn');
     return;
   }
   
   showConfirmModal('تأكيد الشراء 🏗️', 'هل تأكدت من شراء هذه المحاضرة؟ سيتم إزالتها من قائمة النواقص تلقائياً.', () => {
     // 1. Update Cloud (Remove the 0% mark)
-    store._removeFromCloud(userId, lecId);
+    store._removeFromCloud(uid, lid);
     
     // 2. Update Local State (Reactive UI will handle the rest)
     store.set(st => {
-      const cloned = { ...st.progress[userId] };
-      delete cloned[lecId];
-      return { ...st, progress: { ...st.progress, [userId]: cloned } };
+      const cloned = { ...st.progress[uid] };
+      delete cloned[lid];
+      return { ...st, progress: { ...st.progress, [uid]: cloned } };
     });
     
     showToast('تم حذف المحاضرة من قائمة النواقص 👍', 'success');
@@ -1053,7 +1057,7 @@ function renderBuyList(state) {
               <div style="font-size:12px;font-weight:600;color:var(--txt);line-height:1.5;">${l.t}</div>
               <div style="display:flex;align-items:center;gap:6px;">
                 <div style="font-size:9px;color:${cColor};background:${cColor}15;padding:1px 6px;border-radius:6px;font-family:'Inter',sans-serif;">${SUBJ_SHORT[l.s] || l.s}</div>
-                ${d.idx === state.currentUser ? `<button onclick="markAsBought(${d.idx}, ${l.id})" style="background:rgba(0,214,143,0.08);border:1px solid rgba(0,214,143,0.25);color:var(--green);font-size:10px;cursor:pointer;font-weight:800;padding:5px 12px;border-radius:8px;font-family:'Cairo',sans-serif;white-space:nowrap;transition:all 0.2s;">تم الشراء ✅</button>` : ''}
+                ${d.idx === state.currentUser ? `<button onclick="event.stopPropagation();markAsBought(${d.idx}, ${l.id})" style="background:rgba(0,214,143,0.08);border:1px solid rgba(0,214,143,0.25);color:var(--green);font-size:10px;cursor:pointer;font-weight:800;padding:5px 12px;border-radius:8px;font-family:'Cairo',sans-serif;white-space:nowrap;transition:all 0.2s;">تم الشراء ✅</button>` : ''}
               </div>
             </div>
           </div>`;

@@ -970,6 +970,17 @@
     </div>
   </div>
 
+  <div class="modal-overlay" id="confirmModal">
+    <div class="modal-box" style="position:relative;max-width:320px">
+      <div class="m-title" id="confirmTitle">تأكيد الشراء 🏗️</div>
+      <div class="m-sub" id="confirmText">هل تأكدت من شراء هذه المحاضرة؟ سيتم إزالتها من قائمة النواقص تلقائياً.</div>
+      <div style="display:flex;gap:10px;margin-top:10px">
+        <button class="pct-btn" id="confirmBtn" style="flex:1;justify-content:center;background:rgba(0,214,143,0.12);border-color:rgba(0,214,143,0.3);color:var(--green)">تأكيد</button>
+        <button class="pct-btn" onclick="closeConfirmModal()" style="flex:1;justify-content:center;color:var(--txt2);background:rgba(255,255,255,0.04)">تراجع</button>
+      </div>
+    </div>
+  </div>
+
   <!-- USER SELECT -->
   <div id="userSelect" class="user-select">
     <div style="font-size:48px">🦷</div>
@@ -1133,10 +1144,10 @@
     </script>
 
     <!-- App Scripts -->
-    <script src="firebase_config.js?v=14"></script>
-    <script src="streak_data.js?v=14"></script>
-    <script src="meme_system.js?v=14"></script>
-    <script src="streak_app_v2.js?v=14"></script>
+    <script src="firebase_config.js?v=16"></script>
+    <script src="streak_data.js?v=16"></script>
+    <script src="meme_system.js?v=16"></script>
+    <script src="streak_app_v2.js?v=16"></script>
 </body>
 
 </html>
