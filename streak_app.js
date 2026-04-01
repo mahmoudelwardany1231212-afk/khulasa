@@ -456,7 +456,7 @@ function renderLeaderboard() {
     const lvPhrase = PHRASES[lv][d.done % PHRASES[lv].length] || 'عظيم';
     return `<div class="lb-card ${rClasses[ri]}">
       <div class="lb-top">
-        <div class="lb-rank">${ranks[ri]}</div>
+        <div class="lb-rank">${ranks[ri] || '🎖️'}</div>
         <div class="lb-av" style="background:${d.m.color}20">${d.m.emoji}</div>
         <div class="lb-nm" style="color:${d.m.color}">${d.m.name}</div>
         <div class="lb-total">

@@ -262,8 +262,8 @@ const store = {
     let migratedProgress = {};
     let isChanged = false;
 
-    // We assume 3 users max as per the hardcoded array
-    [0, 1, 2].forEach(uid => {
+    // We loop through all available members defined in streak_data.js
+    MEMBERS.forEach((_, uid) => {
       migratedProgress[uid] = {};
       
       // Step A: Parse `streak_p_X` (Semi-modern, early V2 test schema)
@@ -905,7 +905,7 @@ function renderLeaderboard(state) {
     
     return `<div class="lb-card ${rClasses[ri]}">
       <div class="lb-top">
-        <div class="lb-rank">${ranks[ri]}</div>
+        <div class="lb-rank">${ranks[ri] || '🎖️'}</div>
         <div class="lb-av" style="background:${d.m.color}20">${d.m.emoji}</div>
         <div class="lb-nm" style="color:${d.m.color}">${d.m.name}</div>
         <div class="lb-total">
@@ -973,6 +973,21 @@ window.copyBuyList = function(userId) {
     document.body.removeChild(el);
   }
 };
+window.markAsBought = function(userId, lecId) {
+  if (!confirm('هل تأكدت من شراء هذه المحاضرة؟ سيتم حذفها من قائمة النواقص.')) return;
+  
+  // 1. Update Cloud (Remove the 0% mark)
+  store._removeFromCloud(userId, lecId);
+  
+  // 2. Update Local State (Reactive UI will handle the rest)
+  store.set(st => {
+    const cloned = { ...st.progress[userId] };
+    delete cloned[lecId];
+    return { ...st, progress: { ...st.progress, [userId]: cloned } };
+  });
+  
+  showToast('تم حذف المحاضرة من قائمة النواقص 👍', 'success');
+};
 
 function renderBuyList(state) {
   const c = document.getElementById('buyCards');
@@ -1009,8 +1024,13 @@ function renderBuyList(state) {
           const cColor = SUBJ_COLORS[ci] || '#888';
           return `<div style="background:var(--bg);padding:10px 12px;border-radius:10px;border:1px solid var(--border);display:flex;align-items:flex-start;gap:8px;">
             <div style="width:6px;height:6px;border-radius:50%;background:${cColor};flex-shrink:0;margin-top:6px;"></div>
-            <div style="font-size:12px;font-weight:600;color:var(--txt);flex:1;line-height:1.5;">${l.t}</div>
-            <div style="font-size:9px;color:${cColor};background:${cColor}15;padding:2px 6px;border-radius:6px;flex-shrink:0;font-family:'Inter',sans-serif;margin-top:2px;">${SUBJ_SHORT[l.s] || l.s}</div>
+            <div style="display:flex;flex-direction:column;flex:1;gap:4px;">
+              <div style="font-size:12px;font-weight:600;color:var(--txt);line-height:1.5;">${l.t}</div>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <div style="font-size:9px;color:${cColor};background:${cColor}15;padding:1px 6px;border-radius:6px;font-family:'Inter',sans-serif;">${SUBJ_SHORT[l.s] || l.s}</div>
+                <button onclick="markAsBought(${d.idx}, ${l.id})" style="background:transparent;border:none;color:var(--green);font-size:10px;cursor:pointer;font-weight:700;padding:2px 4px;font-family:'Cairo',sans-serif;">✅ تم الشراء</button>
+              </div>
+            </div>
           </div>`;
         }).join('')}
       </div>
