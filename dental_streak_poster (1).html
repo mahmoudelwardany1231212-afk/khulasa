@@ -405,6 +405,7 @@
       gap: 8px;
       margin-top: 16px;
       flex-direction: row-reverse;
+      flex-wrap: wrap;
     }
 
     .badge {
@@ -925,14 +926,14 @@
 
     .members-row {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
     }
 
     .mc-card {
       background: var(--card-bg);
-      border-radius: 14px;
-      padding: 13px 14px 11px;
+      border-radius: 12px;
+      padding: 10px 8px 8px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -1051,6 +1052,27 @@
       color: var(--rose2);
     }
 
+    .mc-s {
+      border-color: rgba(139, 92, 246, 0.22);
+    }
+
+    .mc-s::before {
+      background: linear-gradient(90deg, #6D28D9, #8B5CF6, #C4B5FD, #8B5CF6);
+    }
+
+    .av-s {
+      background: linear-gradient(135deg, #F3E8FF, #D8B4FE);
+    }
+
+    .nm-s {
+      color: #6D28D9;
+    }
+
+    .rt-s {
+      background: rgba(139, 92, 246, 0.11);
+      color: #6D28D9;
+    }
+
     .rule-strip {
       background: var(--navy);
       border-radius: 11px;
@@ -1162,8 +1184,8 @@
     <div class="panel-row">
       <div class="field"><label>اسم العضو ١</label><input type="text" id="n0" value="الورداني" oninput="sync()"></div>
       <div class="field"><label>اسم العضو ٢</label><input type="text" id="n1" value="أيمن وليد" oninput="sync()"></div>
-      <div class="field"><label>اسم العضو ٣</label><input type="text" id="n2" value="عبدالحميد رافت" oninput="sync()">
-      </div>
+      <div class="field"><label>اسم العضو ٣</label><input type="text" id="n2" value="عبدالحميد رافت" oninput="sync()"></div>
+      <div class="field"><label>اسم العضو ٤</label><input type="text" id="n3" value="حسن علي" oninput="sync()"></div>
       <div class="field"><label>Streak #</label><input type="number" id="snum" value="1" min="1" max="99"
           style="min-width:70px" oninput="render()"></div>
       <div class="btns">
@@ -1263,13 +1285,14 @@
       { bdot: 'bd-w', badge: 'b-w', mc: 'mc-w', av: 'av-w', nm: 'nm-w', rt: 'rt-w', color: '#C49A10', ring: '#F5C842', role: 'The Surgeon', roleAr: 'الجراح' },
       { bdot: 'bd-a', badge: 'b-a', mc: 'mc-a', av: 'av-a', nm: 'nm-a', rt: 'rt-a', color: '#007A85', ring: '#00C9D4', role: 'The Consultant', roleAr: 'الاستشاري' },
       { bdot: 'bd-r', badge: 'b-r', mc: 'mc-r', av: 'av-r', nm: 'nm-r', rt: 'rt-r', color: '#B5005E', ring: '#FF4D8D', role: 'The Academic', roleAr: 'الأكاديمي' },
+      { bdot: 'bd-s', badge: 'b-s', mc: 'mc-s', av: 'av-s', nm: 'nm-s', rt: 'rt-s', color: '#6D28D9', ring: '#8B5CF6', role: 'The Specialist', roleAr: 'المختص' },
     ];
 
-    let sessions = Array.from({ length: 10 }, () => ({ done: false, date: null, members: [true, true, true] }));
+    let sessions = Array.from({ length: 10 }, () => ({ done: false, date: null, members: [true, true, true, true] }));
 
     // ── HELPERS ───────────────────────────────────────────────
     const toAr = n => String(n).replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
-    const names = () => [0, 1, 2].map(i => document.getElementById('n' + i)?.value || '');
+    const names = () => [0, 1, 2, 3].map(i => document.getElementById('n' + i)?.value || '');
     const snum = () => String(parseInt(document.getElementById('snum')?.value) || 1).padStart(2, '0');
     function todayStr() {
       const d = new Date();

@@ -543,13 +543,15 @@ async function checkPin() {
       input.value = '';
       return;
     }
-    // Guard: PINs are loaded from Firebase — if not ready yet, show a message
-    if (!store._pins || store._pins[pendingUser] === undefined) {
+    // Guard: PINs are loaded from Firebase — if not ready yet, check hardcoded fallback
+    const correctPin = store._pins[pendingUser] || MEMBERS[pendingUser]?.pin;
+    if (!correctPin) {
       document.getElementById('pinError').textContent = '⏳ جاري تحميل البيانات، انتظر لحظة';
       document.getElementById('pinError').style.opacity = '1';
       return;
     }
-    if (val === store._pins[pendingUser]) {
+
+    if (val === correctPin) {
       pinAttempts[pendingUser] = { count: 0 };
       const confirmedUser = pendingUser;
       closePinModal();
