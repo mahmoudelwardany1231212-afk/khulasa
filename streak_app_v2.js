@@ -973,20 +973,45 @@ window.copyBuyList = function(userId) {
     document.body.removeChild(el);
   }
 };
+window.showConfirmModal = function(title, text, onConfirm) {
+  const el = document.getElementById('confirmModal');
+  if (!el) return;
+  document.getElementById('confirmTitle').innerText = title;
+  document.getElementById('confirmText').innerText = text;
+  el.classList.add('show');
+  const btn = document.getElementById('confirmBtn');
+  const newBtn = btn.cloneNode(true);
+  btn.parentNode.replaceChild(newBtn, btn);
+  newBtn.onclick = () => {
+    onConfirm();
+    closeConfirmModal();
+  };
+};
+window.closeConfirmModal = function() {
+  const el = document.getElementById('confirmModal');
+  if (el) el.classList.remove('show');
+};
+
 window.markAsBought = function(userId, lecId) {
-  if (!confirm('هل تأكدت من شراء هذه المحاضرة؟ سيتم حذفها من قائمة النواقص.')) return;
+  const st = store.get();
+  if (userId !== st.currentUser) {
+    showToast('لا يمكنك التعديل في بيانات زملائك يا وحش ✋', 'warn');
+    return;
+  }
   
-  // 1. Update Cloud (Remove the 0% mark)
-  store._removeFromCloud(userId, lecId);
-  
-  // 2. Update Local State (Reactive UI will handle the rest)
-  store.set(st => {
-    const cloned = { ...st.progress[userId] };
-    delete cloned[lecId];
-    return { ...st, progress: { ...st.progress, [userId]: cloned } };
+  showConfirmModal('تأكيد الشراء 🏗️', 'هل تأكدت من شراء هذه المحاضرة؟ سيتم إزالتها من قائمة النواقص تلقائياً.', () => {
+    // 1. Update Cloud (Remove the 0% mark)
+    store._removeFromCloud(userId, lecId);
+    
+    // 2. Update Local State (Reactive UI will handle the rest)
+    store.set(st => {
+      const cloned = { ...st.progress[userId] };
+      delete cloned[lecId];
+      return { ...st, progress: { ...st.progress, [userId]: cloned } };
+    });
+    
+    showToast('تم حذف المحاضرة من قائمة النواقص 👍', 'success');
   });
-  
-  showToast('تم حذف المحاضرة من قائمة النواقص 👍', 'success');
 };
 
 function renderBuyList(state) {
@@ -1028,7 +1053,7 @@ function renderBuyList(state) {
               <div style="font-size:12px;font-weight:600;color:var(--txt);line-height:1.5;">${l.t}</div>
               <div style="display:flex;align-items:center;gap:6px;">
                 <div style="font-size:9px;color:${cColor};background:${cColor}15;padding:1px 6px;border-radius:6px;font-family:'Inter',sans-serif;">${SUBJ_SHORT[l.s] || l.s}</div>
-                <button onclick="markAsBought(${d.idx}, ${l.id})" style="background:transparent;border:none;color:var(--green);font-size:10px;cursor:pointer;font-weight:700;padding:2px 4px;font-family:'Cairo',sans-serif;">✅ تم الشراء</button>
+                ${d.idx === state.currentUser ? `<button onclick="markAsBought(${d.idx}, ${l.id})" style="background:transparent;border:none;color:var(--green);font-size:10px;cursor:pointer;font-weight:700;padding:2px 4px;font-family:'Cairo',sans-serif;">✅ تم الشراء</button>` : ''}
               </div>
             </div>
           </div>`;
