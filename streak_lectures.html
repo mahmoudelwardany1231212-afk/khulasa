@@ -772,6 +772,83 @@
       color: var(--gold)
     }
 
+    /* COUNTDOWN WIDGET */
+    .countdown-widget {
+      margin: 0 16px 16px;
+      padding: 16px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, rgba(245, 200, 66, 0.08), rgba(255, 77, 141, 0.08));
+      border: 1px solid rgba(245, 200, 66, 0.2);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      position: relative;
+      overflow: hidden;
+      animation: pop 0.4s ease both;
+    }
+
+    .countdown-widget::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--gold2), var(--gold), var(--rose), var(--rose2));
+    }
+
+    .cd-title {
+      font-size: 15px;
+      font-weight: 900;
+      color: var(--gold);
+      text-align: center;
+      letter-spacing: 1px;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+      font-family: 'Inter', 'Cairo', sans-serif;
+    }
+
+    .cd-timer {
+      display: flex;
+      gap: 10px;
+      width: 100%;
+      justify-content: center;
+      direction: ltr;
+    }
+
+    .cd-box {
+      background: rgba(9, 14, 28, 0.85);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 10px 0;
+      width: 65px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      transition: all .2s;
+    }
+
+    .cd-box:hover {
+      border-color: rgba(245, 200, 66, 0.4);
+      transform: translateY(-2px);
+    }
+
+    .cd-box span {
+      font-size: 22px;
+      font-weight: 900;
+      font-family: 'Inter', sans-serif;
+      color: var(--txt);
+      line-height: 1;
+      text-shadow: 0 0 10px rgba(0, 201, 212, 0.3);
+    }
+
+    .cd-box small {
+      font-size: 10px;
+      color: var(--txt2);
+      margin-top: 4px;
+      font-weight: 700;
+      font-family: 'Cairo', sans-serif;
+    }
+
     /* ANIMATIONS */
     @keyframes pop {
       0% {
@@ -1028,6 +1105,18 @@
         <div class="filter-row" id="quizFilters"></div>
       </div>
       <div id="levelBanner"></div>
+      
+      <!-- COUNTDOWN WIDGET -->
+      <div class="countdown-widget" id="countdownWidget">
+        <div class="cd-title">🕊️ يوم تحرير العبيد 🕊️</div>
+        <div class="cd-timer">
+          <div class="cd-box"><span id="cd-days">--</span><small>يوم</small></div>
+          <div class="cd-box"><span id="cd-hours">--</span><small>ساعة</small></div>
+          <div class="cd-box"><span id="cd-mins">--</span><small>دقيقة</small></div>
+          <div class="cd-box"><span id="cd-secs">--</span><small>ثانية</small></div>
+        </div>
+      </div>
+
       <div class="subj-progress" id="subjProgress"></div>
       <div class="lec-list" id="lecList"></div>
     </div>
@@ -1148,6 +1237,33 @@
     <script src="streak_data.js?v=16"></script>
     <script src="meme_system.js?v=16"></script>
     <script src="streak_app_v2.js?v=16"></script>
+    <script>
+      function updateCountdown() {
+        const target = new Date('2026-06-21T00:00:00+02:00'); // Cairo time
+        const now = new Date();
+        const diff = target - now;
+        
+        if (diff <= 0) {
+          document.getElementById('cd-days').textContent = '00';
+          document.getElementById('cd-hours').textContent = '00';
+          document.getElementById('cd-mins').textContent = '00';
+          document.getElementById('cd-secs').textContent = '00';
+          return;
+        }
+        
+        const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
+        const m = Math.floor((diff / 1000 / 60) % 60);
+        const s = Math.floor((diff / 1000) % 60);
+        
+        document.getElementById('cd-days').textContent = d.toString().padStart(2, '0');
+        document.getElementById('cd-hours').textContent = h.toString().padStart(2, '0');
+        document.getElementById('cd-mins').textContent = m.toString().padStart(2, '0');
+        document.getElementById('cd-secs').textContent = s.toString().padStart(2, '0');
+      }
+      setInterval(updateCountdown, 1000);
+      updateCountdown();
+    </script>
 </body>
 
 </html>

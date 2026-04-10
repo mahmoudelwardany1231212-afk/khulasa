@@ -87,6 +87,17 @@
     .lb-lv4 { background: linear-gradient(135deg, rgba(0, 122, 133, 0.15), rgba(13, 27, 62, 0.15)); border: 1px solid rgba(0, 201, 212, 0.2); color: var(--teal) }
     .lb-lv5 { background: linear-gradient(135deg, rgba(139, 92, 246, 0.12), rgba(23, 0, 64, 0.15)); border: 1px solid rgba(139, 92, 246, 0.25); color: #c4b5fd }
     .lb-lv6 { background: linear-gradient(135deg, rgba(245, 200, 66, 0.15), rgba(196, 154, 16, 0.1)); border: 1px solid rgba(245, 200, 66, 0.3); color: var(--gold) }
+    
+    /* COUNTDOWN WIDGET */
+    .countdown-widget { margin: 0 16px 16px; padding: 16px; border-radius: 16px; background: linear-gradient(135deg, rgba(245, 200, 66, 0.08), rgba(255, 77, 141, 0.08)); border: 1px solid rgba(245, 200, 66, 0.2); display: flex; flex-direction: column; align-items: center; gap: 12px; position: relative; overflow: hidden; animation: pop 0.4s ease both; }
+    .countdown-widget::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--gold2), var(--gold), var(--rose), var(--rose2)); }
+    .cd-title { font-size: 15px; font-weight: 900; color: var(--gold); text-align: center; letter-spacing: 1px; text-shadow: 0 2px 8px rgba(0,0,0,0.5); font-family: 'Inter', 'Cairo', sans-serif; }
+    .cd-timer { display: flex; gap: 10px; width: 100%; justify-content: center; direction: ltr; }
+    .cd-box { background: rgba(9, 14, 28, 0.85); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 10px 0; width: 65px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.3); transition: all .2s; }
+    .cd-box:hover { border-color: rgba(245, 200, 66, 0.4); transform: translateY(-2px); }
+    .cd-box span { font-size: 22px; font-weight: 900; font-family: 'Inter', sans-serif; color: var(--txt); line-height: 1; text-shadow: 0 0 10px rgba(0, 201, 212, 0.3); }
+    .cd-box small { font-size: 10px; color: var(--txt2); margin-top: 4px; font-weight: 700; font-family: 'Cairo', sans-serif; }
+
     @keyframes pop { 0% { transform: scale(0.8); opacity: 0 } 100% { transform: scale(1); opacity: 1 } }
     .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(9, 14, 28, 0.85); backdrop-filter: blur(10px); z-index: 99999; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: all .3s }
     .modal-overlay.show { opacity: 1; pointer-events: all }
@@ -161,6 +172,18 @@
       <div class="search-wrap"><span class="search-icon">🔍</span><input class="search-input" id="searchInput" type="text" placeholder="ابحث عن محاضرة..." oninput="onSearch()"></div>
       <div class="filters"><div class="filter-row" id="subjFilters"></div><div class="filter-row" id="quizFilters"></div></div>
       <div id="levelBanner"></div>
+      
+      <!-- COUNTDOWN WIDGET -->
+      <div class="countdown-widget" id="countdownWidget">
+        <div class="cd-title">🕊️ يوم تحرير العبيد 🕊️</div>
+        <div class="cd-timer">
+          <div class="cd-box"><span id="cd-days">--</span><small>يوم</small></div>
+          <div class="cd-box"><span id="cd-hours">--</span><small>ساعة</small></div>
+          <div class="cd-box"><span id="cd-mins">--</span><small>دقيقة</small></div>
+          <div class="cd-box"><span id="cd-secs">--</span><small>ثانية</small></div>
+        </div>
+      </div>
+
       <div class="subj-progress" id="subjProgress"></div>
       <div class="lec-list" id="lecList"></div>
     </div>
@@ -422,6 +445,7 @@ const LECTURES = [
 {"s":"Endo","t":"Endodontic retreatment (Part 1)","q":"بعد كويز 2","g":60,"id":157,"u":""},
 {"s":"Endo","t":"Endodontic retreatment (Part 2)","q":"بعد كويز 2","g":60,"id":158,"u":""}
 ];
+
 const MEMBERS = [
   { name: "الورداني",     role: "The Surgeon",    roleAr: "الجراح",      emoji: "⚔️", color: "#F5C842", color2: "#C49A10" },
   { name: "أيمن وليد",   role: "The Consultant", roleAr: "الاستشاري",   emoji: "🧠", color: "#00C9D4", color2: "#007A85" },
@@ -430,10 +454,11 @@ const MEMBERS = [
   { name: "جمال",      role: "The Expert", roleAr: "الخبير",    emoji: "✨", color: "#10B981", color2: "#059669", pin: "2222" }
 ];
 
+const SUBJECTS = [...new Set(LECTURES.map(l => l.s))];
+const QUIZZES = ["كويز 1", "بين كويز 1 و 2", "كويز 2", "بعد كويز 2"];
+
   const SUBJ_COLORS = ["#00C9D4", "#F5C842", "#FF4D8D", "#00D68F", "#8B5CF6", "#EC4899", "#3B82F6", "#10B981"];
   const SUBJ_SHORT = { "Perio": "Perio", "Medicine": "Medicine", "Surgery": "Surgery", "Prosthesis": "Prosthesis", "Operative": "Operative", "Fixed Prosth.": "Fixed", "Endo": "Endo", "العلاج التحفظي": "تحفظي", "التركيبات الثابتة": "ثابتة", "علاج الجذور": "جذور", "جراحة الفم والوجه والفك والتجميل (Surgery)": "جراحة", "استعاضة صناعية (Prosthesis)": "استعاضة", "طب الفم وأمراض اللثة (Perio)": "لثة", "طب الفم (Medicine)": "طب فم" };
-  const SUBJECTS = [...new Set(LECTURES.map(l => l.s))];
-  const QUIZZES = ["كويز 1", "بين كويز 1 و 2", "كويز 2", "بعد كويز 2"];
   const LEVEL_NAMES = ["المستوى 0: البداية", "المستوى 1: المثابر", "المستوى 2: المجتهد", "المستوى 3: المتفوق", "المستوى 4: العملاق", "المستوى 5: الأسطورة", "المستوى 6: الخلاصة"];
   const EMOJIS = [ ["🌱","☘️"], ["📖","✍️"], ["🔥","⚡"], ["🚀","🌟"], ["👑","🏆"], ["💎","🌌"], ["🧠","🦷"] ];
   const PHRASES = [ ["البداية دايماً صعبة، استمر!"], ["خطوة كويسة، كمل يا بطل"], ["الحماس شغال، عاش جداً"], ["انت في الطريق الصحيح"], ["مستوى مذهل، لا يتوقف!"], ["أداء أسطوري، قربت تخلص"], ["انت الخلاصة في المصاصة!"] ];
@@ -679,6 +704,29 @@ const MEMBERS = [
   buildUserSelect();
   const saved = localStorage.getItem('streak_user');
   if (saved !== null) selectUser(parseInt(saved));
+  
+  function updateCountdown() {
+    const target = new Date('2026-06-21T00:00:00+02:00'); // Cairo time
+    const now = new Date();
+    const diff = target - now;
+    if (diff <= 0) {
+      document.getElementById('cd-days').textContent = '00';
+      document.getElementById('cd-hours').textContent = '00';
+      document.getElementById('cd-mins').textContent = '00';
+      document.getElementById('cd-secs').textContent = '00';
+      return;
+    }
+    const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
+    const m = Math.floor((diff / 1000 / 60) % 60);
+    const s = Math.floor((diff / 1000) % 60);
+    document.getElementById('cd-days').textContent = d.toString().padStart(2, '0');
+    document.getElementById('cd-hours').textContent = h.toString().padStart(2, '0');
+    document.getElementById('cd-mins').textContent = m.toString().padStart(2, '0');
+    document.getElementById('cd-secs').textContent = s.toString().padStart(2, '0');
+  }
+  setInterval(updateCountdown, 1000);
+  updateCountdown();
 </script>
 </body>
 </html>
