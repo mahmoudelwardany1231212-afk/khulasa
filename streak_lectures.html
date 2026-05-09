@@ -1088,7 +1088,8 @@
     <div class="tabs">
       <div class="tab on" data-tab="lectures" onclick="switchTab('lectures')">📚 المحاضرات</div>
       <div class="tab" data-tab="leaderboard" onclick="switchTab('leaderboard')">🏆 المنافسة</div>
-      <div class="tab" data-tab="buy" onclick="switchTab('buy')">💸 لازم تشتريها</div>
+      <div class="tab" data-tab="finished" onclick="switchTab('finished')">✅ الخلصانة</div>
+      <div class="tab" data-tab="buy" onclick="switchTab('buy')">💸 الشراء</div>
     </div>
 
     <!-- TOAST -->
@@ -1134,6 +1135,14 @@
       <div class="lb-page">
         <div class="lb-title">💸 محاضرات لازم تشتريها</div>
         <div class="lb-cards" id="buyCards"></div>
+      </div>
+    </div>
+
+    <!-- FINISHED LECTURES PAGE -->
+    <div id="pageFinished" class="hide">
+      <div class="lb-page">
+        <div class="lb-title">✅ محاضرات الخلصانة</div>
+        <div class="lb-cards" id="finishedCards"></div>
       </div>
     </div>
 

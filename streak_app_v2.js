@@ -721,6 +721,8 @@ function switchTab(tab) {
   document.getElementById('pageLeaderboard').classList.toggle('hide', tab !== 'leaderboard');
   const pageBuy = document.getElementById('pageBuy');
   if (pageBuy) pageBuy.classList.toggle('hide', tab !== 'buy');
+  const pageFinished = document.getElementById('pageFinished');
+  if (pageFinished) pageFinished.classList.toggle('hide', tab !== 'finished');
   // No render calls here! Pure state-driven CSS decoupling.
 }
 
@@ -755,6 +757,7 @@ store.subscribe((state) => {
   renderLectures(state);
   renderLeaderboard(state);
   if (typeof renderBuyList === 'function') renderBuyList(state);
+  if (typeof renderFinishedList === 'function') renderFinishedList(state);
 });
 
 function renderHeader(state) {
@@ -1058,6 +1061,52 @@ function renderBuyList(state) {
               <div style="display:flex;align-items:center;gap:6px;">
                 <div style="font-size:9px;color:${cColor};background:${cColor}15;padding:1px 6px;border-radius:6px;font-family:'Inter',sans-serif;">${SUBJ_SHORT[l.s] || l.s}</div>
                 ${d.idx === state.currentUser ? `<button onclick="event.stopPropagation();markAsBought(${d.idx}, ${l.id})" style="background:rgba(0,214,143,0.08);border:1px solid rgba(0,214,143,0.25);color:var(--green);font-size:10px;cursor:pointer;font-weight:800;padding:5px 12px;border-radius:8px;font-family:'Cairo',sans-serif;white-space:nowrap;transition:all 0.2s;">تم الشراء ✅</button>` : ''}
+              </div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderFinishedList(state) {
+  const c = document.getElementById('finishedCards');
+  if (!c) return;
+  const data = MEMBERS.map((m, i) => {
+    const p = state.progress[i] || {};
+    const finishedLecs = LECTURES.filter(l => p[l.id] !== undefined && parseFloat(p[l.id]) > 0).map(l => ({ ...l, pct: parseFloat(p[l.id]) }));
+    return { m, finishedLecs, idx: i, doneCount: finishedLecs.length };
+  }).filter(d => d.doneCount > 0).sort((a, b) => b.doneCount - a.doneCount); // Sort by who finished more
+  
+  if (!data.length) {
+    c.innerHTML = '<div style="text-align:center;padding:40px;color:var(--txt3)">مافيش حد خلص محاضرات لسه</div>';
+    return;
+  }
+  
+  c.innerHTML = data.map(d => {
+    return `<div class="lb-card" style="border-color:${d.m.color}60;margin-bottom:12px;padding:12px;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:10px;position:relative;">
+        <div class="lb-av" style="background:${d.m.color}20;width:34px;height:34px;font-size:16px;">${d.m.emoji}</div>
+        
+        <div style="display:flex;flex-direction:column;flex:1;">
+          <div class="lb-nm" style="color:${d.m.color};font-size:14px;">${d.m.name}</div>
+          <div style="font-size:11px;color:var(--green);font-weight:700;">${d.doneCount} محاضرة خلصانة</div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        ${d.finishedLecs.map(l => {
+          const ci = SUBJECTS.indexOf(l.s);
+          const cColor = SUBJ_COLORS[ci] || '#888';
+          const pctColor = PCT_COLORS[l.pct] || 'var(--green)';
+          return `<div style="background:var(--bg);padding:10px 12px;border-radius:10px;border:1px solid var(--border);display:flex;align-items:flex-start;gap:8px;">
+            <div style="width:6px;height:6px;border-radius:50%;background:${cColor};flex-shrink:0;margin-top:6px;"></div>
+            <div style="display:flex;flex-direction:column;flex:1;gap:4px;">
+              <div style="font-size:12px;font-weight:600;color:var(--txt);line-height:1.5;">${l.t}</div>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <div style="font-size:9px;color:${cColor};background:${cColor}15;padding:1px 6px;border-radius:6px;font-family:'Inter',sans-serif;">${SUBJ_SHORT[l.s] || l.s}</div>
+                <div style="font-size:10px;color:${pctColor};font-weight:800;font-family:'Inter',sans-serif;background:${pctColor}22;padding:2px 8px;border-radius:6px;">${l.pct}%</div>
               </div>
             </div>
           </div>`;
