@@ -1944,8 +1944,417 @@
       }
     }
     /* ─────────────────────────────────────────────────────────────
-   LIGHT THEME OVERRIDES (Vodafone etc.)
+   SPACEX DESIGN SYSTEM OVERRIDES
+   Pure black · White ink · Industrial D-DIN/Inter · Ghost-pill CTAs
+   No gradients · No glows · No decorative shadows · No clip-paths
    ───────────────────────────────────────────────────────────── */
+
+    /* === CANVAS === */
+    [data-theme="spacex"] body {
+      background-color: #000 !important;
+      background-image: none !important;
+      font-family: 'Inter', 'Arial Narrow', Arial, Verdana, sans-serif !important;
+      letter-spacing: 0.32px !important;
+    }
+
+    [data-theme="spacex"] body::after { display: none !important; }
+
+    /* === HEADER / NAV === */
+    [data-theme="spacex"] .app-header {
+      background: rgba(0,0,0,0.96) !important;
+      border-bottom: 1px solid #3a3a3f !important;
+      box-shadow: none !important;
+      clip-path: none !important;
+    }
+
+    [data-theme="spacex"] .ah-name {
+      font-size: 13px !important;
+      font-weight: 700 !important;
+      letter-spacing: 1.17px !important;
+      text-transform: uppercase !important;
+      color: #ffffff !important;
+    }
+
+    [data-theme="spacex"] .ah-stat {
+      font-size: 11px !important;
+      color: #5a5a5f !important;
+      letter-spacing: 0.96px !important;
+      text-transform: uppercase !important;
+    }
+
+    [data-theme="spacex"] .ah-pct {
+      background: transparent !important;
+      border: 1px solid #ffffff !important;
+      color: #ffffff !important;
+      clip-path: none !important;
+      border-radius: 32px !important;
+      font-size: 12px !important;
+      letter-spacing: 1.17px !important;
+      text-shadow: none !important;
+    }
+
+    [data-theme="spacex"] .ah-back,
+    [data-theme="spacex"] .ah-menu {
+      background: transparent !important;
+      border: 1px solid #3a3a3f !important;
+      clip-path: none !important;
+      border-radius: 4px !important;
+      color: #ffffff !important;
+    }
+
+    [data-theme="spacex"] .ah-back:hover,
+    [data-theme="spacex"] .ah-menu:hover {
+      background: #111 !important;
+      border-color: #ffffff !important;
+    }
+
+    /* === BOTTOM NAV === */
+    [data-theme="spacex"] .bottom-nav {
+      background: rgba(0,0,0,0.98) !important;
+      border-top: 1px solid #3a3a3f !important;
+      box-shadow: none !important;
+    }
+
+    [data-theme="spacex"] .bnav-item {
+      letter-spacing: 0.96px !important;
+      text-transform: uppercase !important;
+      font-size: 8px !important;
+    }
+
+    [data-theme="spacex"] .bnav-item.on { color: #ffffff !important; }
+    [data-theme="spacex"] .bnav-item.on::after { background: #ffffff !important; box-shadow: none !important; }
+
+    /* === SIDEBAR === */
+    [data-theme="spacex"] .sidebar {
+      background: #000 !important;
+      border-left: 1px solid #3a3a3f !important;
+      box-shadow: none !important;
+    }
+
+    [data-theme="spacex"] .sidebar-nav-item {
+      font-size: 11px !important;
+      letter-spacing: 1.17px !important;
+      text-transform: uppercase !important;
+      border-bottom: 1px solid #3a3a3f !important;
+    }
+
+    [data-theme="spacex"] .sidebar-nav-item:hover,
+    [data-theme="spacex"] .sidebar-nav-item.on {
+      color: #ffffff !important;
+      background: #0a0a0a !important;
+    }
+
+    /* === USER SELECT === */
+    [data-theme="spacex"] .user-select {
+      background: #000 !important;
+    }
+
+    [data-theme="spacex"] .us-title {
+      background: transparent !important;
+      border: 1px solid #ffffff !important;
+      border-radius: 32px !important;
+      clip-path: none !important;
+      text-shadow: none !important;
+      font-size: 18px !important;
+      letter-spacing: 1.6px !important;
+      padding: 14px 32px !important;
+    }
+
+    [data-theme="spacex"] .us-sub {
+      color: #5a5a5f !important;
+      letter-spacing: 0.96px !important;
+    }
+
+    [data-theme="spacex"] .us-card {
+      background: #0a0a0a !important;
+      border: 1px solid #3a3a3f !important;
+      clip-path: none !important;
+      border-radius: 4px !important;
+      box-shadow: none !important;
+      border-left: 1px solid #3a3a3f !important;
+    }
+
+    [data-theme="spacex"] .us-card:hover,
+    [data-theme="spacex"] .us-card:active {
+      background: #111 !important;
+      border: 1px solid #ffffff !important;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+
+    [data-theme="spacex"] .us-av {
+      border: 1px solid #3a3a3f !important;
+      clip-path: none !important;
+      border-radius: 4px !important;
+      animation: none !important;
+    }
+
+    [data-theme="spacex"] .us-card .nm {
+      font-size: 13px !important;
+      letter-spacing: 1.17px !important;
+    }
+
+    [data-theme="spacex"] .us-card .rl {
+      color: #5a5a5f !important;
+      letter-spacing: 0.96px !important;
+    }
+
+    /* === LECTURE CARDS === */
+    [data-theme="spacex"] .lec {
+      background: #0a0a0a !important;
+      border: 1px solid #3a3a3f !important;
+      border-left: 2px solid #3a3a3f !important;
+      clip-path: none !important;
+      border-radius: 4px !important;
+      box-shadow: none !important;
+      animation: none !important;
+    }
+
+    [data-theme="spacex"] .lec:hover {
+      background: #111 !important;
+      border-color: #ffffff !important;
+      border-left-color: #ffffff !important;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+
+    [data-theme="spacex"] .lec.done {
+      background: #0a0a0a !important;
+      border-left: 2px solid #ffffff !important;
+    }
+
+    [data-theme="spacex"] .lec-title {
+      color: #ffffff !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.96px !important;
+      font-weight: 700 !important;
+    }
+
+    [data-theme="spacex"] .lec-check {
+      background: #111 !important;
+      border: 1px solid #3a3a3f !important;
+      clip-path: none !important;
+      border-radius: 4px !important;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+
+    [data-theme="spacex"] .lec-check::after {
+      background: #5a5a5f !important;
+    }
+
+    [data-theme="spacex"] .lec.done .lec-check::after {
+      background: #ffffff !important;
+      box-shadow: none !important;
+    }
+
+    [data-theme="spacex"] .lec-check::before {
+      background: #3a3a3f !important;
+    }
+
+    [data-theme="spacex"] .lec.done .lec-check::before {
+      background: #ffffff !important;
+    }
+
+    [data-theme="spacex"] .lec-tag {
+      background: #111 !important;
+      border: 1px solid #3a3a3f !important;
+      clip-path: none !important;
+      border-radius: 32px !important;
+      letter-spacing: 0.96px !important;
+      color: #5a5a5f !important;
+    }
+
+    [data-theme="spacex"] .lt-quiz { color: #f0f0fa !important; border-color: #5a5a5f !important; }
+    [data-theme="spacex"] .lt-link, [data-theme="spacex"] .lt-link2 {
+      background: transparent !important;
+      border: 1px solid #3a3a3f !important;
+      border-radius: 32px !important;
+      color: #ffffff !important;
+    }
+
+    /* === FILTERS / CHIPS === */
+    [data-theme="spacex"] .chip {
+      background: transparent !important;
+      border: 1px solid #3a3a3f !important;
+      clip-path: none !important;
+      border-radius: 32px !important;
+      color: #5a5a5f !important;
+      letter-spacing: 0.96px !important;
+    }
+
+    [data-theme="spacex"] .chip.on {
+      background: #ffffff !important;
+      color: #000000 !important;
+      border-color: #ffffff !important;
+      box-shadow: none !important;
+    }
+
+    /* === SEARCH === */
+    [data-theme="spacex"] .search-input {
+      background: #0a0a0a !important;
+      border: 1px solid #3a3a3f !important;
+      clip-path: none !important;
+      border-radius: 4px !important;
+      color: #ffffff !important;
+      letter-spacing: 0.96px !important;
+    }
+
+    [data-theme="spacex"] .search-input:focus {
+      border-color: #ffffff !important;
+      box-shadow: none !important;
+    }
+
+    /* === PROGRESS BARS === */
+    [data-theme="spacex"] .sp-bar { border-radius: 0 !important; clip-path: none !important; border: none !important; background: #111 !important; }
+    [data-theme="spacex"] .sp-fill { background: #ffffff !important; box-shadow: none !important; }
+    [data-theme="spacex"] .sp-fill::after { display: none !important; }
+    [data-theme="spacex"] .sp-nm { color: #f0f0fa !important; letter-spacing: 0.96px !important; }
+    [data-theme="spacex"] .sp-nm::before { background: #ffffff !important; }
+    [data-theme="spacex"] .sp-pct { color: #ffffff !important; text-shadow: none !important; }
+
+    /* === LEVEL BANNER === */
+    [data-theme="spacex"] .level-banner {
+      background: #0a0a0a !important;
+      border: 1px solid #3a3a3f !important;
+      border-left: 2px solid #ffffff !important;
+      clip-path: none !important;
+      border-radius: 4px !important;
+      box-shadow: none !important;
+    }
+
+    [data-theme="spacex"] .level-banner .lb-phrase {
+      letter-spacing: 1.17px !important;
+      color: #ffffff !important;
+    }
+
+    [data-theme="spacex"] .level-banner .lb-level {
+      color: #5a5a5f !important;
+      letter-spacing: 0.96px !important;
+    }
+
+    /* === COUNTDOWN === */
+    [data-theme="spacex"] .countdown-widget {
+      background: #0a0a0a !important;
+      border: 1px solid #3a3a3f !important;
+      clip-path: none !important;
+      border-radius: 4px !important;
+      box-shadow: none !important;
+    }
+
+    [data-theme="spacex"] .countdown-widget::before { display: none !important; }
+    [data-theme="spacex"] .cd-title { color: #ffffff !important; text-shadow: none !important; animation: none !important; letter-spacing: 1.6px !important; }
+    [data-theme="spacex"] .cd-box { border-bottom: 1px solid #ffffff !important; clip-path: none !important; }
+    [data-theme="spacex"] .cd-box span { text-shadow: none !important; color: #ffffff !important; }
+    [data-theme="spacex"] .cd-box small { color: #5a5a5f !important; letter-spacing: 0.96px !important; }
+
+    /* === LEADERBOARD === */
+    [data-theme="spacex"] #pageLeaderboard {
+      background: #000 !important;
+      background-image: none !important;
+      border-top: 1px solid #3a3a3f !important;
+    }
+
+    [data-theme="spacex"] .lb-title {
+      letter-spacing: 1.6px !important;
+      text-shadow: none !important;
+    }
+
+    [data-theme="spacex"] .lb-card {
+      background: #0a0a0a !important;
+      border: 1px solid #3a3a3f !important;
+      border-left: 2px solid #3a3a3f !important;
+      clip-path: none !important;
+      border-radius: 4px !important;
+      box-shadow: none !important;
+    }
+
+    [data-theme="spacex"] .lb-card.r1 { border-left-color: #ffffff !important; background: #0a0a0a !important; }
+    [data-theme="spacex"] .lb-card.r2 { border-left-color: #5a5a5f !important; }
+    [data-theme="spacex"] .lb-card.r3 { border-left-color: #3a3a3f !important; }
+
+    [data-theme="spacex"] .lb-av {
+      background: #111 !important;
+      border: 1px solid #3a3a3f !important;
+      clip-path: none !important;
+      border-radius: 4px !important;
+    }
+
+    [data-theme="spacex"] .lb-total .n { color: #ffffff !important; text-shadow: none !important; font-style: normal !important; }
+    [data-theme="spacex"] .lb-bar-fill { background: #ffffff !important; box-shadow: none !important; }
+    [data-theme="spacex"] .lb-bar-wrap { border: 1px solid #3a3a3f !important; clip-path: none !important; border-radius: 0 !important; }
+    [data-theme="spacex"] .lb-subj { clip-path: none !important; border-radius: 2px !important; }
+
+    /* === MODALS === */
+    [data-theme="spacex"] .modal-box {
+      background: #0a0a0a !important;
+      border: 1px solid #3a3a3f !important;
+      clip-path: none !important;
+      border-radius: 8px !important;
+      box-shadow: none !important;
+    }
+
+    [data-theme="spacex"] .m-title {
+      letter-spacing: 1.6px !important;
+      text-shadow: none !important;
+    }
+
+    [data-theme="spacex"] .m-close {
+      background: #111 !important;
+      border: 1px solid #3a3a3f !important;
+      clip-path: none !important;
+      border-radius: 4px !important;
+    }
+
+    [data-theme="spacex"] .pct-btn {
+      background: #0a0a0a !important;
+      border: 1px solid #3a3a3f !important;
+      clip-path: none !important;
+      border-radius: 32px !important;
+      letter-spacing: 0.96px !important;
+    }
+
+    [data-theme="spacex"] .pct-btn:hover {
+      background: #111 !important;
+      border-color: #ffffff !important;
+      box-shadow: none !important;
+      transform: none !important;
+    }
+
+    /* === PIN INPUT === */
+    [data-theme="spacex"] .pin-input {
+      background: #0a0a0a !important;
+      border: 1px solid #3a3a3f !important;
+      clip-path: none !important;
+      border-radius: 4px !important;
+      color: #ffffff !important;
+      box-shadow: none !important;
+    }
+
+    /* === TOAST === */
+    [data-theme="spacex"] .toast {
+      background: #ffffff !important;
+      color: #000000 !important;
+      clip-path: none !important;
+      border-radius: 32px !important;
+      box-shadow: none !important;
+      letter-spacing: 1.17px !important;
+    }
+
+    /* === FINISHED PAGE === */
+    [data-theme="spacex"] #pageFinished {
+      background: #000 !important;
+      background-image: none !important;
+      border: 1px solid #3a3a3f !important;
+    }
+
+    [data-theme="spacex"] #pageFinished h2 {
+      text-shadow: none !important;
+      letter-spacing: 1.6px !important;
+      border-bottom-color: #3a3a3f !important;
+    }
+
+
     [data-theme="vodafone"] body,
     [data-theme="vodafone"] body::before {
       background-image: none !important;
