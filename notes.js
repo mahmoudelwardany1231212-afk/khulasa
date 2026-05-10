@@ -1,15 +1,25 @@
 /**
  * notes.js — Lecture-Linked Notes, Bookmarks, Per-Lecture Notes Modal
- * Everything is bidirectionally linked to the lecture system.
+ * FIXED: All writes now sync to Firebase users/{userId}/notes & users/{userId}/bookmarks
  */
 
 const Notes = (() => {
-  // Per-lecture notes
+  // ── Per-lecture notes ──
   function getNote(lecId) { return LS.get('note_' + lecId, ''); }
+
   function setNote(lecId, text) {
-    if (text && text.trim()) LS.set('note_' + lecId, text.trim());
-    else LS.del('note_' + lecId);
+    const uid = typeof store !== 'undefined' ? store.get().currentUser : null;
+    if (text && text.trim()) {
+      LS.set('note_' + lecId, text.trim());
+    } else {
+      LS.del('note_' + lecId);
+    }
+    // ── Firebase sync ──
+    if (uid !== null && typeof window._writeUserData === 'function') {
+      window._writeUserData(uid, { ['notes/' + lecId]: text && text.trim() ? text.trim() : null });
+    }
   }
+
   function getAllNotedLectures() {
     const noted = [];
     if (typeof LECTURES === 'undefined') return noted;
@@ -20,29 +30,49 @@ const Notes = (() => {
     return noted;
   }
 
-  // Bookmarks
+  // ── Bookmarks ──
   function getBookmarks() { return LS.get('bookmarks', []); }
+
   function toggleBookmark(lecId) {
+    const uid = typeof store !== 'undefined' ? store.get().currentUser : null;
     LS.update('bookmarks', arr => {
       const idx = arr.indexOf(lecId);
       if (idx >= 0) arr.splice(idx, 1); else arr.push(lecId);
       return arr;
     }, []);
+    // ── Firebase sync ──
+    if (uid !== null && typeof window._writeUserData === 'function') {
+      window._writeUserData(uid, { bookmarks: LS.get('bookmarks', []) });
+    }
   }
+
   function isBookmarked(lecId) { return getBookmarks().includes(lecId); }
+
   function getBookmarkedLectures() {
     if (typeof LECTURES === 'undefined') return [];
     const bm = getBookmarks();
     return LECTURES.filter(l => bm.includes(l.id));
   }
 
-  // Sticky Notes (free-form, quick capture)
+  // ── Sticky Notes (free-form, quick capture) ──
   function getStickies() { return LS.get('stickies', []); }
+
   function addSticky(text, color = '#FFB300') {
+    const uid = typeof store !== 'undefined' ? store.get().currentUser : null;
     LS.push('stickies', { id: LS.uid(), text, color, createdAt: Date.now() }, 50);
+    // ── Firebase sync ──
+    if (uid !== null && typeof window._writeUserData === 'function') {
+      window._writeUserData(uid, { stickies: LS.get('stickies', []) });
+    }
   }
+
   function removeSticky(id) {
+    const uid = typeof store !== 'undefined' ? store.get().currentUser : null;
     LS.update('stickies', arr => arr.filter(s => s.id !== id), []);
+    // ── Firebase sync ──
+    if (uid !== null && typeof window._writeUserData === 'function') {
+      window._writeUserData(uid, { stickies: LS.get('stickies', []) });
+    }
   }
 
   return { getNote, setNote, getAllNotedLectures, getBookmarks, toggleBookmark, isBookmarked, getBookmarkedLectures, getStickies, addSticky, removeSticky };
@@ -87,7 +117,7 @@ function _saveLecNote(lecId) {
   Notes.setNote(lecId, text);
   document.getElementById('noteModal').remove();
   store.notify(); // re-render lecture cards to show 📝 indicator
-  if (typeof showToast === 'function') showToast('💾 الملاحظة محفوظة', 'success');
+  if (typeof showToast === 'function') showToast('💾 الملاحظة محفوظة وتزامنت مع السحابة ☁️', 'success');
 }
 
 
@@ -158,7 +188,6 @@ function renderNotesPage() {
         ${bookmarkedLecs.map(l => {
           const ci = typeof SUBJECTS !== 'undefined' ? SUBJECTS.indexOf(l.s) : 0;
           const col = typeof SUBJ_COLORS !== 'undefined' ? SUBJ_COLORS[ci] || '#888' : '#888';
-          // Get current pct
           let pctText = '';
           if (typeof store !== 'undefined') {
             const s = store.get();

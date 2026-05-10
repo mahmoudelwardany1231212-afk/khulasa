@@ -593,6 +593,20 @@ function _watchUserData(userId) {
     if (Array.isArray(data.pomo_sessions)) LS.set('pomo_sessions', data.pomo_sessions);
     if (Array.isArray(data.custom_tasks)) LS.set('custom_tasks', data.custom_tasks);
 
+    // Sync bookmarks
+    if (Array.isArray(data.bookmarks)) LS.set('bookmarks', data.bookmarks);
+
+    // Sync sticky notes
+    if (Array.isArray(data.stickies)) LS.set('stickies', data.stickies);
+
+    // Sync per-lecture notes (stored as notes/{lecId})
+    if (data.notes && typeof data.notes === 'object') {
+      Object.entries(data.notes).forEach(([lecId, text]) => {
+        if (text) LS.set('note_' + lecId, text);
+        else LS.del('note_' + lecId);
+      });
+    }
+
     // Sync check-ins
     if (data.checkins && typeof data.checkins === 'object') {
       Object.entries(data.checkins).forEach(([date, ci]) => LS.set('checkin_' + date, ci));
@@ -606,6 +620,12 @@ function _watchUserData(userId) {
 
     // Recheck badges in case new ones arrived
     if (typeof Gamification !== 'undefined') setTimeout(() => Gamification.recheckBadges(), 100);
+
+    // Re-render notes page if open
+    if (typeof renderNotesPage === 'function') {
+      const np = document.getElementById('pageNotes');
+      if (np && !np.classList.contains('hide')) renderNotesPage();
+    }
   }, { onlyOnce: false });
 }
 
