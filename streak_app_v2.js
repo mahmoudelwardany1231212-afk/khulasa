@@ -245,8 +245,8 @@ const store = {
     b.innerHTML = '🔄 جاري الاتصال بالسحابة...';
     Object.assign(b.style, {
       position: 'fixed', bottom: '70px', left: '50%', transform: 'translateX(-50%)',
-      background: 'rgba(0,0,0,0.75)', color: '#fff', padding: '8px 18px',
-      borderRadius: '20px', fontSize: '13px', zIndex: '9999',
+      background: 'var(--charcoal, #2c2c34)', color: 'var(--on-primary, #ffffff)', padding: '8px 18px',
+      borderRadius: '9999px', boxShadow: 'rgba(5, 0, 56, 0.12) 0px 16px 48px -8px', fontSize: '13px', zIndex: '9999',
       fontFamily: 'Cairo, sans-serif', direction: 'rtl'
     });
     document.body.appendChild(b);
@@ -479,22 +479,22 @@ function _showSessionConflictModal(userId, onConfirm, onCancel) {
   const name = MEMBERS[userId].name;
   const overlay = document.createElement('div');
   overlay.id = '_sessionModal';
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9998;display:flex;align-items:center;justify-content:center';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(28, 28, 30, 0.4);backdrop-filter:blur(4px);z-index:9998;display:flex;align-items:center;justify-content:center';
   overlay.innerHTML = `
-    <div style="background:var(--bg2,#1e1e2e);border:1px solid rgba(255,80,80,.4);border-radius:16px;padding:28px 24px;max-width:320px;width:90%;text-align:center;font-family:Cairo,sans-serif">
+    <div style="background:var(--canvas,#fff);border:1px solid var(--hairline,#e0e2e8);border-radius:24px;padding:32px 24px;max-width:360px;width:90%;text-align:center;font-family:Cairo,sans-serif;box-shadow:rgba(5,0,56,0.12) 0px 16px 48px -8px">
       <div style="font-size:32px;margin-bottom:12px">⚠️</div>
-      <div style="font-weight:700;font-size:16px;color:#ff6b6b;margin-bottom:10px">حساب مستخدم بالفعل</div>
-      <div style="font-size:13px;color:var(--txt2,#aaa);line-height:1.6;margin-bottom:20px">
+      <div style="font-weight:900;font-size:22px;color:var(--brand-coral,#ff9999);margin-bottom:10px">حساب مستخدم بالفعل</div>
+      <div style="font-size:14px;color:var(--slate,#555a6a);line-height:1.6;margin-bottom:24px">
         حساب <b style="color:${MEMBERS[userId].color}">${name}</b> مسجل دخول على جهاز آخر حالياً.<br>
         هل تريد تسجيل الخروج من الجهاز الآخر والدخول هنا؟
       </div>
       <div style="display:flex;gap:10px;justify-content:center">
         <button onclick="document.getElementById('_sessionModal').remove();(window._sessionCancel&&window._sessionCancel())"
-          style="padding:10px 18px;border-radius:10px;border:1px solid rgba(255,255,255,.15);background:transparent;color:var(--txt1,#fff);cursor:pointer;font-family:Cairo,sans-serif;font-size:13px">
+          style="padding:16px 24px;border-radius:9999px;border:1px solid var(--hairline-strong,#c7cad5);background:var(--canvas,#fff);color:var(--ink,#1c1c1e);cursor:pointer;font-family:Cairo,sans-serif;font-size:15px;font-weight:700;transition:all 0.2s">
           إلغاء
         </button>
         <button onclick="document.getElementById('_sessionModal').remove();(window._sessionConfirm&&window._sessionConfirm())"
-          style="padding:10px 18px;border-radius:10px;border:none;background:#ff4d4d;color:#fff;cursor:pointer;font-family:Cairo,sans-serif;font-size:13px;font-weight:700">
+          style="padding:16px 24px;border-radius:9999px;border:none;background:var(--primary,#1c1c1e);color:var(--on-primary,#fff);cursor:pointer;font-family:Cairo,sans-serif;font-size:15px;font-weight:700;transition:all 0.2s">
           اطرد الجهاز الآخر وادخل هنا
         </button>
       </div>
@@ -730,9 +730,9 @@ function switchTab(tab) {
 function buildUserSelect() {
   const c = document.getElementById('usCards');
   c.innerHTML = MEMBERS.map((m, i) => `
-    <div class="us-card" onclick="requestUserSelect(${i})" style="border-color:${m.color}22">
+    <div class="us-card" onclick="requestUserSelect(${i})">
       <div class="us-av" style="background:${m.color}18">${m.emoji}</div>
-      <div><div class="nm" style="color:${m.color}">${m.name}</div>
+      <div><div class="nm">${m.name}</div>
       <div class="rl">${m.role} — ${m.roleAr}</div></div>
     </div>`).join('');
 }
@@ -767,8 +767,7 @@ function renderHeader(state) {
   const pct = Math.round((done / LECTURES.length) * 100);
   
   document.getElementById('ahName').textContent = m.name;
-  document.getElementById('ahName').style.color = m.color;
-  document.getElementById('ahStat').textContent = `${done} / ${LECTURES.length} محاضرة مكتملة`;
+    document.getElementById('ahStat').textContent = `${done} / ${LECTURES.length} محاضرة مكتملة`;
   document.getElementById('ahPct').textContent = pct + '%';
 }
 
@@ -842,7 +841,7 @@ function renderLectures(state) {
     // Removed sequential animation delays completely. Rely on basic CSS fade for performance.
     return `<div class="lec ${isDone ? 'done' : ''}" onclick="toggleLecture(${l.id})" style="${isDone ? `border-color:${color}66` : ''}">
       ${isDone ? `<div style="position:absolute;top:0;left:0;right:0;height:3px;background:${color}"></div>` : ''}
-      <div class="lec-check" style="${isDone ? `background:${color}22;border-color:${color};color:${color};font-size:11px` : ''}">${isDone ? `${compPct}%` : ''}</div>
+      <div class="lec-check" style="--pct:${isDone ? compPct : 0};${isDone ? `border-color:${color};` : ''}"></div>
       <div class="lec-info">
         <div class="lec-title">${l.t}</div>
         <div class="lec-meta">
@@ -1054,7 +1053,7 @@ function renderBuyList(state) {
         ${d.missingLecs.map(l => {
           const ci = SUBJECTS.indexOf(l.s);
           const cColor = SUBJ_COLORS[ci] || '#888';
-          return `<div style="background:var(--bg);padding:10px 12px;border-radius:10px;border:1px solid var(--border);display:flex;align-items:flex-start;gap:8px;">
+          return `<div class="sub-lec" style="display:flex;align-items:flex-start;gap:8px;">
             <div style="width:6px;height:6px;border-radius:50%;background:${cColor};flex-shrink:0;margin-top:6px;"></div>
             <div style="display:flex;flex-direction:column;flex:1;gap:4px;">
               <div style="font-size:12px;font-weight:600;color:var(--txt);line-height:1.5;">${l.t}</div>
@@ -1100,7 +1099,7 @@ function renderFinishedList(state) {
           const ci = SUBJECTS.indexOf(l.s);
           const cColor = SUBJ_COLORS[ci] || '#888';
           const pctColor = PCT_COLORS[l.pct] || 'var(--green)';
-          return `<div style="background:var(--bg);padding:10px 12px;border-radius:10px;border:1px solid var(--border);display:flex;align-items:flex-start;gap:8px;">
+          return `<div class="sub-lec" style="display:flex;align-items:flex-start;gap:8px;">
             <div style="width:6px;height:6px;border-radius:50%;background:${cColor};flex-shrink:0;margin-top:6px;"></div>
             <div style="display:flex;flex-direction:column;flex:1;gap:4px;">
               <div style="font-size:12px;font-weight:600;color:var(--txt);line-height:1.5;">${l.t}</div>
