@@ -89,8 +89,49 @@ const Wellness = (() => {
 
 
 // ── CHECK-IN MODAL ──
+// Called after login. Waits for Firebase user data to load before deciding
+// whether to show the modal (prevents re-asking on a second device same day).
 function showCheckinModal() {
+  // If already checked in (from localStorage / cached Firebase data), don't show
   if (Wellness.hasCheckedInToday()) return;
+
+  const uid = typeof store !== 'undefined' ? store.get().currentUser : null;
+
+  // If Firebase is ready, do a ONE-TIME direct read from Firebase before showing
+  // This handles the case where the user checked in on another device today
+  if (uid !== null && window._fbReady && window._fbDb && window._fbSDK) {
+    const { ref } = window._fbSDK;
+    const { get } = window.firebase_database || {};
+    if (get) {
+      get(ref(window._fbDb, `users/${uid}/checkins/${LS.today()}`)).then(snap => {
+        const cloudCheckin = snap.val();
+        if (cloudCheckin) {
+          // Already checked in from another device today — save locally and skip modal
+          LS.set('checkin_' + LS.today(), cloudCheckin);
+          return;
+        }
+        // Not checked in anywhere → show the modal
+        _renderCheckinModal();
+      }).catch(() => {
+        // Firebase read failed → fall back to showing the modal
+        _renderCheckinModal();
+      });
+      return; // wait for the async get() above
+    }
+  }
+
+  // Firebase not ready yet — wait up to 3 seconds for it, then show anyway
+  let waited = 0;
+  const poll = setInterval(() => {
+    waited += 300;
+    if (Wellness.hasCheckedInToday()) { clearInterval(poll); return; } // synced in time
+    if (waited >= 3000) { clearInterval(poll); _renderCheckinModal(); } // give up waiting
+    else if (window._fbReady) { clearInterval(poll); showCheckinModal(); } // retry now ready
+  }, 300);
+}
+
+function _renderCheckinModal() {
+  if (Wellness.hasCheckedInToday()) return; // double-check
   const overlay = document.createElement('div');
   overlay.id = 'checkinModal';
   overlay.className = 'modal-overlay show';
@@ -129,6 +170,7 @@ function showCheckinModal() {
 
   document.body.appendChild(overlay);
 }
+
 
 // ── WELLNESS DASHBOARD RENDERER ──
 function renderWellnessWidget() {
