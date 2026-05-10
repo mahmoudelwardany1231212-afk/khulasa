@@ -54,6 +54,7 @@ const store = {
   // Writes go ONLY to Firebase. onValue() is the only thing that updates the store.
 
   _pendingWrites: [], // Write queue for calls before Firebase is ready
+  _pendingUserWrites: [], // User-data write queue (badges, themes, checkins...)
 
   save(userId, lectureId, pct) {
     // Mirror to localStorage as fast read-cache
@@ -85,19 +86,28 @@ const store = {
     } catch(e) { console.error('[Firebase: Write Error]', e); }
   },
 
-  // ── Global helper: write arbitrary key-value into users/{userId} ──
-  // Called by gamification.js, wellness.js, pomodoro.js
-  // Can handle nested paths like 'checkins/2026-05-10' via update()
   writeUserData(userId, updates) {
-    if (!window._fbReady || !window._fbDb) return;
-    if (userId === null || userId === undefined) return;
+    if (!window._fbReady || !window._fbDb) {
+      // Queue the write — will flush when Firebase connects
+      this._pendingUserWrites.push({ userId, updates });
+      return;
+    }
+    this._doWriteUserData(userId, updates);
+  },
+
+  _doWriteUserData(userId, updates) {
     try {
       const { ref, update } = window._fbSDK;
-      // Flatten paths so nested keys like 'checkins/2026-05-10' work correctly
-      const flat = {};
-      Object.entries(updates).forEach(([k, v]) => { flat[k] = v; });
-      update(ref(window._fbDb, `users/${userId}`), flat);
+      update(ref(window._fbDb, `users/${userId}`), updates);
+      if (DEBUG_MODE) console.log('[Firebase: UserData Written]', userId, updates);
     } catch(e) { console.error('[Firebase: UserData Write Error]', e); }
+  },
+
+  _flushPendingUserWrites() {
+    const queue = [...this._pendingUserWrites];
+    this._pendingUserWrites = [];
+    queue.forEach(w => this._doWriteUserData(w.userId, w.updates));
+    if (queue.length) console.log(`[Firebase: Flushed ${queue.length} pending user-data writes]`);
   },
 
   _removeFromCloud(userId, lectureId) {
@@ -186,7 +196,7 @@ const store = {
         // Without this, Firebase may connect to the wrong (default US) database.
         const db = getDatabase(app, FIREBASE_CONFIG.databaseURL);
         window._fbDb  = db;
-        window._fbSDK = { ref, set, update, remove };
+        window._fbSDK = { ref, set, update, remove, onValue }; // onValue added for _watchUserData
         window._fbReady = true;
 
         this._showSyncBanner();
@@ -209,6 +219,12 @@ const store = {
 
           // Flush any writes that were queued before Firebase connected
           this._flushPendingWrites();
+          this._flushPendingUserWrites(); // flush queued user-data writes
+
+          // If user is already logged in when Firebase connects, start watching their data
+          if (this.state.currentUser !== null && typeof _watchUserData === 'function') {
+            _watchUserData(this.state.currentUser);
+          }
 
           this.notify();
         });
