@@ -665,6 +665,12 @@ function selectPct(pctVal) {
     setTimeout(() => showMeme(finalCtx, pctVal, caption), 3600);
   }
 
+  // ── GAMIFICATION XP HOOK ──
+  if (typeof Gamification !== 'undefined' && pctVal > 0) {
+    const xpKey = pctVal >= 100 ? 'lecture_100' : pctVal >= 75 ? 'lecture_75' : pctVal >= 50 ? 'lecture_50' : 'lecture_25';
+    Gamification.addXP(Gamification.XP_TABLE[xpKey] || 10, xpKey);
+  }
+
   setTimeout(() => {
     let tIdx;
     do { tIdx = Math.floor(Math.random() * MOTIVATIONAL_TOASTS.length); } while(tIdx === lastToastIdx);
@@ -717,13 +723,187 @@ function setQuizFilter(v) {
 function switchTab(tab) {
   if(DEBUG_MODE) console.log('[Router] Switching to tab:', tab);
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t.dataset.tab === tab));
-  document.getElementById('pageLectures').classList.toggle('hide', tab !== 'lectures');
-  document.getElementById('pageLeaderboard').classList.toggle('hide', tab !== 'leaderboard');
-  const pageBuy = document.getElementById('pageBuy');
-  if (pageBuy) pageBuy.classList.toggle('hide', tab !== 'buy');
-  const pageFinished = document.getElementById('pageFinished');
-  if (pageFinished) pageFinished.classList.toggle('hide', tab !== 'finished');
-  // No render calls here! Pure state-driven CSS decoupling.
+  const pages = ['Lectures','Leaderboard','Buy','Finished','Pomodoro','Tasks','Analytics','Gamification','Notes','Social','Profile'];
+  pages.forEach(p => {
+    const el = document.getElementById('page' + p);
+    if (el) el.classList.toggle('hide', tab !== p.toLowerCase());
+  });
+  // Render new pages on demand
+  if (tab === 'pomodoro' && typeof renderPomodoroPage === 'function') renderPomodoroPage();
+  if (tab === 'tasks' && typeof renderTasksPage === 'function') renderTasksPage();
+  if (tab === 'analytics' && typeof renderAnalyticsPage === 'function') renderAnalyticsPage();
+  if (tab === 'gamification' && typeof Gamification !== 'undefined') { Gamification.recheckBadges(); if (typeof renderGamificationPage === 'function') renderGamificationPage(); }
+  if (tab === 'notes' && typeof renderNotesPage === 'function') renderNotesPage();
+  if (tab === 'social' && typeof renderSocialPage === 'function') renderSocialPage();
+  if (tab === 'finished') { if (typeof renderWellnessWidget === 'function') renderWellnessWidget(); }
+  if (tab === 'profile') renderProfilePage();
+
+  // Update bottom nav highlights
+  document.querySelectorAll('.bnav-item[data-bnav]').forEach(b => b.classList.toggle('on', b.dataset.bnav === tab));
+  // Update sidebar highlights
+  document.querySelectorAll('.sidebar-nav-item[data-nav]').forEach(n => n.classList.toggle('on', n.dataset.nav === tab));
+}
+
+// ── NAVIGATION (Sidebar + Bottom Nav) ──
+function navTo(tab) {
+  closeSidebar();
+  switchTab(tab);
+}
+
+function openSidebar() {
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('sidebarOverlay').classList.add('open');
+  _updateSidebarProfile();
+}
+
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('open');
+}
+
+function _updateSidebarProfile() {
+  const el = document.getElementById('sidebarProfile');
+  if (!el || typeof store === 'undefined') return;
+  const s = store.get();
+  if (s.currentUser === null) return;
+  const m = MEMBERS[s.currentUser];
+  const p = s.progress[s.currentUser] || {};
+  const done = LECTURES.filter(l => p[l.id] !== undefined && parseFloat(p[l.id]) > 0).length;
+  const pct = Math.round((done / LECTURES.length) * 100);
+  const lvl = typeof Gamification !== 'undefined' ? Gamification.getLevel() : { emoji: '📖', name: 'طالب', color: '#00E5FF' };
+  const xp = typeof Gamification !== 'undefined' ? Gamification.getXP() : 0;
+
+  el.innerHTML = `
+    <div style="font-size:36px;margin-bottom:4px">${m.emoji}</div>
+    <div style="font-size:14px;font-weight:900;color:var(--ink);margin-bottom:2px">${m.name}</div>
+    <div style="font-size:10px;color:${m.color};font-weight:700;margin-bottom:6px">${m.role}</div>
+    <div style="display:flex;gap:8px;justify-content:center;">
+      <div style="text-align:center"><div style="font-size:14px;font-weight:900;color:var(--accent-blue)">${pct}%</div><div style="font-size:7px;color:var(--ink-muted);font-weight:700">إكتمال</div></div>
+      <div style="text-align:center"><div style="font-size:14px;font-weight:900;color:${lvl.color}">${lvl.emoji}</div><div style="font-size:7px;color:var(--ink-muted);font-weight:700">${lvl.name}</div></div>
+      <div style="text-align:center"><div style="font-size:14px;font-weight:900;color:#FFB300">${xp}</div><div style="font-size:7px;color:var(--ink-muted);font-weight:700">XP</div></div>
+    </div>`;
+}
+
+// ── PROFILE PAGE ──
+function renderProfilePage() {
+  const c = document.getElementById('pageProfile');
+  if (!c || typeof store === 'undefined') return;
+  const s = store.get();
+  if (s.currentUser === null) return;
+  const m = MEMBERS[s.currentUser];
+  const p = s.progress[s.currentUser] || {};
+  const totalLecs = LECTURES.length;
+  const done = LECTURES.filter(l => p[l.id] !== undefined && parseFloat(p[l.id]) > 0).length;
+  const perfect = LECTURES.filter(l => parseFloat(p[l.id]) === 100).length;
+  const weak = LECTURES.filter(l => { const v = parseFloat(p[l.id]); return v > 0 && v <= 50; }).length;
+  const pct = Math.round((done / totalLecs) * 100);
+  const lvl = typeof Gamification !== 'undefined' ? Gamification.getLevel() : { emoji: '📖', name: 'طالب', color: '#00E5FF' };
+  const xp = typeof Gamification !== 'undefined' ? Gamification.getXP() : 0;
+  const badges = typeof Gamification !== 'undefined' ? Gamification.getUnlockedBadges() : [];
+  const streak = typeof Wellness !== 'undefined' ? Wellness.getStreak() : 0;
+  const bookmarks = typeof Notes !== 'undefined' ? Notes.getBookmarks().length : 0;
+  const notesCount = typeof Notes !== 'undefined' ? Notes.getAllNotedLectures().length : 0;
+  const pomoToday = typeof PomodoroModule !== 'undefined' ? PomodoroModule.getTodayMinutes() : 0;
+
+  // Per-subject progress
+  const subjStats = SUBJECTS.map((subj, si) => {
+    const subjLecs = LECTURES.filter(l => l.s === subj);
+    const subjDone = subjLecs.filter(l => p[l.id] !== undefined && parseFloat(p[l.id]) > 0).length;
+    return { subj, short: SUBJ_SHORT[subj] || subj, done: subjDone, total: subjLecs.length, pct: Math.round(subjDone / subjLecs.length * 100), color: SUBJ_COLORS[si] || '#888' };
+  });
+
+  // Rank among team — uses same scoring as leaderboard (weighted grade score)
+  const ranks = MEMBERS.map((mm, i) => {
+    const pp = s.progress[i] || {};
+    let totalScore = 0;
+    SUBJECTS.forEach(subj => {
+      const subjLecs = LECTURES.filter(l => l.s === subj);
+      const subjectGrade = parseFloat(subjLecs[0]?.g) || 100;
+      subjLecs.forEach(l => {
+        const val = pp[l.id];
+        if (val !== undefined && val !== null) {
+          totalScore += (subjectGrade / subjLecs.length) * ((parseFloat(val) || 0) / 100);
+        }
+      });
+    });
+    return { i, totalScore };
+  }).sort((a, b) => b.totalScore - a.totalScore);
+  const rank = ranks.findIndex(r => r.i === s.currentUser) + 1;
+
+  c.innerHTML = `<div style="padding:var(--spacing-md);max-width:500px;margin:0 auto;">
+    <!-- Avatar Card -->
+    <div style="text-align:center;padding:20px;background:linear-gradient(135deg,${m.color}10,transparent);border:1px solid ${m.color}30;clip-path:polygon(12px 0,100% 0,calc(100% - 12px) 100%,0 100%);margin-bottom:14px;">
+      <div style="font-size:48px;margin-bottom:6px">${m.emoji}</div>
+      <div style="font-size:20px;font-weight:900;color:var(--ink)">${m.name}</div>
+      <div style="font-size:11px;color:${m.color};font-weight:700;margin-bottom:4px">${m.role} — ${m.roleAr}</div>
+      <div style="display:inline-flex;gap:4px;align-items:center;padding:4px 12px;background:${lvl.color}15;border:1px solid ${lvl.color}40;clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%);">
+        <span style="font-size:16px">${lvl.emoji}</span>
+        <span style="font-size:12px;font-weight:900;color:${lvl.color}">${lvl.name}</span>
+        <span style="font-size:10px;color:var(--ink-muted)">• ${xp} XP</span>
+      </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px;">
+      <div style="background:var(--surface-1);border:1px solid var(--hairline);padding:10px 6px;clip-path:polygon(4px 0,100% 0,calc(100% - 4px) 100%,0 100%);text-align:center;">
+        <div style="font-size:18px;font-weight:900;color:var(--accent-blue)">${done}</div>
+        <div style="font-size:7px;color:var(--ink-muted);font-weight:700">خلصانة</div>
+      </div>
+      <div style="background:var(--surface-1);border:1px solid var(--hairline);padding:10px 6px;clip-path:polygon(4px 0,100% 0,calc(100% - 4px) 100%,0 100%);text-align:center;">
+        <div style="font-size:18px;font-weight:900;color:var(--semantic-success)">${perfect}</div>
+        <div style="font-size:7px;color:var(--ink-muted);font-weight:700">100%</div>
+      </div>
+      <div style="background:var(--surface-1);border:1px solid var(--hairline);padding:10px 6px;clip-path:polygon(4px 0,100% 0,calc(100% - 4px) 100%,0 100%);text-align:center;">
+        <div style="font-size:18px;font-weight:900;color:#FFB300">🔥 ${streak}</div>
+        <div style="font-size:7px;color:var(--ink-muted);font-weight:700">streak</div>
+      </div>
+      <div style="background:var(--surface-1);border:1px solid var(--hairline);padding:10px 6px;clip-path:polygon(4px 0,100% 0,calc(100% - 4px) 100%,0 100%);text-align:center;">
+        <div style="font-size:18px;font-weight:900;color:${rank <= 2 ? '#FFB300' : 'var(--ink-muted)'}">#${rank}</div>
+        <div style="font-size:7px;color:var(--ink-muted);font-weight:700">الترتيب</div>
+      </div>
+    </div>
+
+    <!-- Overall Progress -->
+    <div style="background:var(--surface-1);border:1px solid var(--hairline);padding:12px;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+        <span style="font-size:11px;font-weight:800;color:var(--ink)">التقدم الإجمالي</span>
+        <span style="font-size:13px;font-weight:900;color:var(--accent-blue)">${pct}%</span>
+      </div>
+      <div style="height:8px;background:var(--surface-2);border-radius:4px;overflow:hidden">
+        <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,var(--accent-blue),var(--semantic-success));border-radius:4px;transition:width .5s"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:9px;color:var(--ink-muted)">
+        <span>${done}/${totalLecs} محاضرة</span>
+        <span>${weak > 0 ? '⚠️ ' + weak + ' ضعيفة' : '💪 لا توجد ضعيفة'}</span>
+      </div>
+    </div>
+
+    <!-- Subject Breakdown -->
+    <div style="font-size:11px;font-weight:800;color:var(--ink);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">📚 تقدم المواد</div>
+    ${subjStats.map(ss => `
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--surface-1);border:1px solid var(--hairline);clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%);margin-bottom:4px;">
+        <div style="font-size:10px;font-weight:800;color:${ss.color};width:50px">${ss.short}</div>
+        <div style="flex:1;height:5px;background:var(--surface-2);border-radius:3px;overflow:hidden">
+          <div style="height:100%;width:${ss.pct}%;background:${ss.color};border-radius:3px"></div>
+        </div>
+        <div style="font-size:10px;font-weight:900;color:var(--ink-muted);width:42px;text-align:left">${ss.done}/${ss.total}</div>
+      </div>
+    `).join('')}
+
+    <!-- Activity Summary -->
+    <div style="background:var(--surface-1);border:1px solid var(--hairline);padding:12px;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);margin:14px 0;">
+      <div style="font-size:11px;font-weight:800;color:var(--ink);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">📋 ملخص النشاط</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:11px;">
+        <div style="color:var(--ink-muted)">🏅 إنجازات: <span style="color:var(--accent-blue);font-weight:800">${badges.length}</span></div>
+        <div style="color:var(--ink-muted)">⭐ محفوظات: <span style="color:#FFB300;font-weight:800">${bookmarks}</span></div>
+        <div style="color:var(--ink-muted)">📝 ملاحظات: <span style="color:var(--semantic-success);font-weight:800">${notesCount}</span></div>
+        <div style="color:var(--ink-muted)">🍅 اليوم: <span style="color:var(--semantic-danger);font-weight:800">${pomoToday} د</span></div>
+      </div>
+    </div>
+
+    <!-- Logout -->
+    <button onclick="logout()" style="width:100%;padding:12px;background:rgba(255,0,60,0.08);color:var(--semantic-danger);border:1px solid rgba(255,0,60,0.2);font-size:13px;font-weight:800;cursor:pointer;clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%);font-family:'Cairo',sans-serif;margin-top:8px">🚪 تسجيل خروج</button>
+  </div>`;
 }
 
 // ── 2. REACTIVE UI BINDING ─────────────────────────────
@@ -758,6 +938,15 @@ store.subscribe((state) => {
   renderLeaderboard(state);
   if (typeof renderBuyList === 'function') renderBuyList(state);
   if (typeof renderFinishedList === 'function') renderFinishedList(state);
+  if (typeof renderSocialPage === 'function') renderSocialPage();
+});
+
+// ── INIT NEW MODULES ──
+window.addEventListener('DOMContentLoaded', () => {
+  // Daily check-in
+  setTimeout(() => { if (typeof showCheckinModal === 'function' && typeof Wellness !== 'undefined' && !Wellness.hasCheckedInToday()) showCheckinModal(); }, 2000);
+  // Theme
+  if (typeof Gamification !== 'undefined') Gamification.initTheme();
 });
 
 function renderHeader(state) {
@@ -837,13 +1026,14 @@ function renderLectures(state) {
     const compPct = isDone ? p[l.id] : null; 
     const ci = SUBJECTS.indexOf(l.s);
     const color = isDone ? PCT_COLORS[compPct] : (SUBJ_COLORS[ci] || '#888');
+    const hasBookmark = typeof Notes !== 'undefined' && Notes.isBookmarked(l.id);
+    const hasNote = typeof Notes !== 'undefined' && Notes.getNote(l.id);
     
-    // Removed sequential animation delays completely. Rely on basic CSS fade for performance.
     return `<div class="lec ${isDone ? 'done' : ''}" onclick="toggleLecture(${l.id})" style="${isDone ? `border-color:${color}66` : ''}">
       ${isDone ? `<div style="position:absolute;top:0;left:0;right:0;height:3px;background:${color}"></div>` : ''}
       <div class="lec-check" style="--pct:${isDone ? compPct : 0};${isDone ? `border-color:${color};` : ''}"></div>
       <div class="lec-info">
-        <div class="lec-title">${l.t}</div>
+        <div class="lec-title">${l.t}${hasNote ? ' <span style="font-size:10px;opacity:0.5" title="عليها ملاحظة">📝</span>' : ''}</div>
         <div class="lec-meta">
           <span class="lec-tag" style="background:${SUBJ_COLORS[ci]}15;color:${SUBJ_COLORS[ci]}">${SUBJ_SHORT[l.s] || l.s}</span>
           <span class="lec-tag lt-quiz">${l.q}</span>
@@ -851,6 +1041,8 @@ function renderLectures(state) {
           ${l.u2 ? `<a href="${l.u2}" target="_blank" onclick="event.stopPropagation()" class="lec-tag lt-link lt-link2">🔗 البديل</a>` : ''}
           ${l.u3 ? `<a href="${l.u3}" target="_blank" onclick="event.stopPropagation()" class="lec-tag lt-link lt-link3" style="background:rgba(255,165,0,0.15);color:#ff9800;border:1px solid rgba(255,165,0,0.3)">🔗 بديل 2</a>` : ''}
           ${l.u4 ? `<a href="${l.u4}" target="_blank" onclick="event.stopPropagation()" class="lec-tag lt-link lt-link4" style="background:rgba(255,165,0,0.15);color:#ff9800;border:1px solid rgba(255,165,0,0.3)">🔗 بديل 3</a>` : ''}
+          <span onclick="event.stopPropagation();if(typeof Notes!=='undefined'){Notes.toggleBookmark(${l.id});store.notify()}" class="lec-tag" style="cursor:pointer;background:${hasBookmark ? 'rgba(255,179,0,0.15)' : 'transparent'};color:${hasBookmark ? '#FFB300' : 'var(--ink-muted)'};border:1px solid ${hasBookmark ? 'rgba(255,179,0,0.3)' : 'var(--hairline)'}">${hasBookmark ? '⭐' : '☆'}</span>
+          <span onclick="event.stopPropagation();_openLecNote(${l.id})" class="lec-tag" style="cursor:pointer;color:var(--ink-muted);border:1px solid var(--hairline)">📝</span>
         </div>
       </div>
     </div>`;
@@ -1036,15 +1228,15 @@ function renderBuyList(state) {
   
   c.innerHTML = data.map(d => {
     return `<div class="lb-card" style="border-color:${d.m.color}60;margin-bottom:12px;padding:12px;">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:10px;position:relative;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;border-bottom:1px solid var(--hairline);padding-bottom:10px;position:relative;">
         <div class="lb-av" style="background:${d.m.color}20;width:34px;height:34px;font-size:16px;">${d.m.emoji}</div>
         
         <div style="display:flex;flex-direction:column;flex:1;">
           <div class="lb-nm" style="color:${d.m.color};font-size:14px;">${d.m.name}</div>
-          <div style="font-size:11px;color:var(--rose);font-weight:700;">${d.missingLecs.length} محاضرة</div>
+          <div style="font-size:11px;color:var(--semantic-danger);font-weight:700;">${d.missingLecs.length} محاضرة</div>
         </div>
 
-        <button onclick="copyBuyList(${d.idx})" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:var(--txt);border-radius:8px;padding:6px 12px;font-size:11px;cursor:pointer;font-family:'Cairo',sans-serif;font-weight:600;display:flex;align-items:center;gap:4px;transition:background 0.2s;">
+        <button onclick="copyBuyList(${d.idx})" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:var(--ink);border-radius:8px;padding:6px 12px;font-size:11px;cursor:pointer;font-family:'Cairo',sans-serif;font-weight:600;display:flex;align-items:center;gap:4px;transition:background 0.2s;">
           <span>📋</span> نسخ
         </button>
       </div>
@@ -1056,10 +1248,10 @@ function renderBuyList(state) {
           return `<div class="sub-lec" style="display:flex;align-items:flex-start;gap:8px;">
             <div style="width:6px;height:6px;border-radius:50%;background:${cColor};flex-shrink:0;margin-top:6px;"></div>
             <div style="display:flex;flex-direction:column;flex:1;gap:4px;">
-              <div style="font-size:12px;font-weight:600;color:var(--txt);line-height:1.5;">${l.t}</div>
+              <div style="font-size:12px;font-weight:600;color:var(--ink);line-height:1.5;">${l.t}</div>
               <div style="display:flex;align-items:center;gap:6px;">
                 <div style="font-size:9px;color:${cColor};background:${cColor}15;padding:1px 6px;border-radius:6px;font-family:'Inter',sans-serif;">${SUBJ_SHORT[l.s] || l.s}</div>
-                ${d.idx === state.currentUser ? `<button onclick="event.stopPropagation();markAsBought(${d.idx}, ${l.id})" style="background:rgba(0,214,143,0.08);border:1px solid rgba(0,214,143,0.25);color:var(--green);font-size:10px;cursor:pointer;font-weight:800;padding:5px 12px;border-radius:8px;font-family:'Cairo',sans-serif;white-space:nowrap;transition:all 0.2s;">تم الشراء ✅</button>` : ''}
+                ${d.idx === state.currentUser ? `<button onclick="event.stopPropagation();markAsBought(${d.idx}, ${l.id})" style="background:rgba(0,214,143,0.08);border:1px solid rgba(0,214,143,0.25);color:var(--semantic-success);font-size:10px;cursor:pointer;font-weight:800;padding:5px 12px;border-radius:8px;font-family:'Cairo',sans-serif;white-space:nowrap;transition:all 0.2s;">تم الشراء ✅</button>` : ''}
               </div>
             </div>
           </div>`;
@@ -1067,50 +1259,197 @@ function renderBuyList(state) {
       </div>
     </div>`;
   }).join('');
+}
+
+// ── FINISHED LIST — Lecture-Centric View (Multi-Select Filter) ─────
+// Filter state: shared=true/false, subjects=Set of subject names
+// Both can be active at the same time → intersection
+window._finishedState = { shared: true, subjects: new Set() };
+
+function _toggleFinShared() {
+  window._finishedState.shared = !window._finishedState.shared;
+  store.notify();
+}
+
+function _toggleFinSubject(subj) {
+  const s = window._finishedState.subjects;
+  if (s.has(subj)) s.delete(subj); else s.add(subj);
+  store.notify();
+}
+
+function _clearFinSubjects() {
+  window._finishedState.subjects.clear();
+  store.notify();
 }
 
 function renderFinishedList(state) {
   const c = document.getElementById('finishedCards');
   if (!c) return;
-  const data = MEMBERS.map((m, i) => {
-    const p = state.progress[i] || {};
-    const finishedLecs = LECTURES.filter(l => p[l.id] !== undefined && parseFloat(p[l.id]) > 0).map(l => ({ ...l, pct: parseFloat(p[l.id]) }));
-    return { m, finishedLecs, idx: i, doneCount: finishedLecs.length };
-  }).filter(d => d.doneCount > 0).sort((a, b) => b.doneCount - a.doneCount); // Sort by who finished more
-  
-  if (!data.length) {
-    c.innerHTML = '<div style="text-align:center;padding:40px;color:var(--txt3)">مافيش حد خلص محاضرات لسه</div>';
-    return;
-  }
-  
-  c.innerHTML = data.map(d => {
-    return `<div class="lb-card" style="border-color:${d.m.color}60;margin-bottom:12px;padding:12px;">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:10px;position:relative;">
-        <div class="lb-av" style="background:${d.m.color}20;width:34px;height:34px;font-size:16px;">${d.m.emoji}</div>
-        
-        <div style="display:flex;flex-direction:column;flex:1;">
-          <div class="lb-nm" style="color:${d.m.color};font-size:14px;">${d.m.name}</div>
-          <div style="font-size:11px;color:var(--green);font-weight:700;">${d.doneCount} محاضرة خلصانة</div>
-        </div>
-      </div>
 
-      <div style="display:flex;flex-direction:column;gap:8px;">
-        ${d.finishedLecs.map(l => {
-          const ci = SUBJECTS.indexOf(l.s);
-          const cColor = SUBJ_COLORS[ci] || '#888';
-          const pctColor = PCT_COLORS[l.pct] || 'var(--green)';
-          return `<div class="sub-lec" style="display:flex;align-items:flex-start;gap:8px;">
-            <div style="width:6px;height:6px;border-radius:50%;background:${cColor};flex-shrink:0;margin-top:6px;"></div>
-            <div style="display:flex;flex-direction:column;flex:1;gap:4px;">
-              <div style="font-size:12px;font-weight:600;color:var(--txt);line-height:1.5;">${l.t}</div>
-              <div style="display:flex;align-items:center;gap:6px;">
-                <div style="font-size:9px;color:${cColor};background:${cColor}15;padding:1px 6px;border-radius:6px;font-family:'Inter',sans-serif;">${SUBJ_SHORT[l.s] || l.s}</div>
-                <div style="font-size:10px;color:${pctColor};font-weight:800;font-family:'Inter',sans-serif;background:${pctColor}22;padding:2px 8px;border-radius:6px;">${l.pct}%</div>
-              </div>
-            </div>
-          </div>`;
-        }).join('')}
-      </div>
+  const { shared, subjects } = window._finishedState;
+
+  // ── Build lecture map: id → { lec, studiedBy[] }
+  const lecMap = {};
+  LECTURES.forEach(l => { lecMap[l.id] = { lec: l, studiedBy: [] }; });
+  MEMBERS.forEach((m, i) => {
+    const p = state.progress[i] || {};
+    LECTURES.forEach(l => {
+      const val = p[l.id];
+      if (val !== undefined && parseFloat(val) > 0)
+        lecMap[l.id].studiedBy.push({ idx: i, m, pct: parseFloat(val) });
+    });
+  });
+
+  // ── Base: only lectures at least one person studied
+  let entries = Object.values(lecMap).filter(e => e.studiedBy.length > 0);
+
+  // ── Apply "مشتركة" toggle
+  if (shared) entries = entries.filter(e => e.studiedBy.length > 1);
+
+  // ── Apply subject multi-select (OR logic inside subjects)
+  if (subjects.size > 0) entries = entries.filter(e => subjects.has(e.lec.s));
+
+  // ── Sort: most shared first, then alphabetical
+  entries.sort((a, b) => b.studiedBy.length - a.studiedBy.length || a.lec.t.localeCompare(b.lec.t));
+
+  // ── Counts for badge labels
+  const allEntries    = Object.values(lecMap).filter(e => e.studiedBy.length > 0);
+  const totalStudied  = allEntries.length;
+  const sharedCount   = allEntries.filter(e => e.studiedBy.length > 1).length;
+  const allSubjects   = [...new Set(allEntries.map(e => e.lec.s))];
+
+  // ── Member stats
+  const memberStats = MEMBERS.map((m, i) => {
+    const p = state.progress[i] || {};
+    const done = LECTURES.filter(l => p[l.id] !== undefined && parseFloat(p[l.id]) > 0).length;
+    return { m, done };
+  });
+
+  let html = '';
+
+  // ── Stats Bar ──
+  html += `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">`;
+  memberStats.forEach(ms => {
+    const pct = Math.round((ms.done / LECTURES.length) * 100);
+    html += `<div style="flex:1;min-width:70px;background:${ms.m.color}12;border:1px solid ${ms.m.color}40;padding:8px 6px;clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%);text-align:center;">
+      <div style="font-size:15px">${ms.m.emoji}</div>
+      <div style="font-size:9px;font-weight:800;color:${ms.m.color};text-transform:uppercase;letter-spacing:1px;margin-top:2px;line-height:1.2">${ms.m.name.split(' ')[0]}</div>
+      <div style="font-size:14px;font-weight:900;color:var(--ink)">${ms.done}</div>
+      <div style="height:3px;background:${ms.m.color}25;margin-top:4px;border-radius:2px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${ms.m.color}"></div></div>
     </div>`;
-  }).join('');
+  });
+  html += `</div>`;
+
+  // ── Filter Row 1: Shared toggle + Reset ──
+  const sharedBg  = shared ? 'var(--accent-blue)' : 'var(--surface-1)';
+  const sharedClr = shared ? '#000' : 'var(--ink-muted)';
+  const sharedBrd = shared ? 'var(--accent-blue)' : 'var(--hairline)';
+  const sharedGlw = shared ? '0 0 12px rgba(0,229,255,0.35)' : 'none';
+
+  const hasSubjFilter = subjects.size > 0;
+  const activeCount = entries.length;
+
+  html += `<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap;">
+    <div onclick="_toggleFinShared()" style="
+      flex-shrink:0;padding:7px 14px;font-size:11px;font-weight:800;cursor:pointer;
+      text-transform:uppercase;letter-spacing:1px;white-space:nowrap;
+      clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%);
+      background:${sharedBg};color:${sharedClr};border:1px solid ${sharedBrd};
+      box-shadow:${sharedGlw};transition:all .2s;
+    ">🔗 ${shared ? '✓ ' : ''}مشتركة فقط</div>
+
+    <div style="flex:1;min-width:0;font-size:10px;color:var(--ink-muted);text-align:left;letter-spacing:1px;font-weight:700;text-transform:uppercase;padding-right:4px">
+      ${activeCount} محضرة${subjects.size > 0 ? ` — ${subjects.size} مادة مختارة` : ''}
+    </div>
+
+    ${hasSubjFilter ? `<div onclick="_clearFinSubjects()" style="
+      flex-shrink:0;padding:5px 10px;font-size:10px;font-weight:800;cursor:pointer;
+      color:var(--semantic-danger);border:1px solid rgba(255,0,60,0.3);
+      background:rgba(255,0,60,0.05);clip-path:polygon(4px 0,100% 0,calc(100% - 4px) 100%,0 100%);
+      text-transform:uppercase;letter-spacing:1px;transition:all .2s;
+    ">✕ مسح المواد</div>` : ''}
+  </div>`;
+
+  // ── Filter Row 2: Subject multi-chips ──
+  html += `<div style="display:flex;gap:4px;overflow-x:auto;padding-bottom:6px;margin-bottom:14px;scrollbar-width:none;">`;
+  allSubjects.forEach(s => {
+    const isOn = subjects.has(s);
+    const ci   = SUBJECTS.indexOf(s);
+    const col  = SUBJ_COLORS[ci] || '#888';
+    const cnt  = allEntries.filter(e => e.lec.s === s).length;
+    // when shared is on, show count of shared-only for this subject
+    const sharedCnt = allEntries.filter(e => e.lec.s === s && e.studiedBy.length > 1).length;
+    const displayCnt = shared ? sharedCnt : cnt;
+    html += `<div onclick="_toggleFinSubject('${s}')" style="
+      flex-shrink:0;padding:5px 11px;font-size:11px;font-weight:800;cursor:pointer;
+      text-transform:uppercase;letter-spacing:1px;white-space:nowrap;
+      clip-path:polygon(5px 0,100% 0,calc(100% - 5px) 100%,0 100%);
+      background:${isOn ? col + '22' : 'var(--surface-1)'};
+      color:${isOn ? col : 'var(--ink-muted)'};
+      border:1px solid ${isOn ? col : 'var(--hairline)'};
+      box-shadow:${isOn ? `0 0 10px ${col}40` : 'none'};
+      transition:all .2s;
+    ">${isOn ? '✓ ' : ''}${SUBJ_SHORT[s] || s} <span style="opacity:0.7;font-size:9px">(${displayCnt})</span></div>`;
+  });
+  html += `</div>`;
+
+  // ── Lecture Cards ──
+  if (!entries.length) {
+    html += `<div style="text-align:center;padding:50px 20px;color:var(--ink-muted);">
+      <div style="font-size:40px;margin-bottom:12px">🔍</div>
+      <div style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1px">مافيش محضرات بالفلتر ده</div>
+      <div style="font-size:11px;margin-top:8px;opacity:0.6">${shared && subjects.size > 0 ? 'جرب تشيل فلتر المشتركة أو تغير المادة' : shared ? 'مافيش محضرات مشتركة لسه' : 'جرب فلتر تاني'}</div>
+    </div>`;
+  } else {
+    entries.forEach(e => {
+      const l = e.lec;
+      const ci = SUBJECTS.indexOf(l.s);
+      const cColor = SUBJ_COLORS[ci] || '#888';
+      const isShared  = e.studiedBy.length > 1;
+      const allStudied = e.studiedBy.length === MEMBERS.length;
+      const glowColor  = allStudied ? '#FFB300' : isShared ? 'var(--accent-blue)' : cColor;
+
+      html += `<div style="
+        background:linear-gradient(145deg,${glowColor}08,var(--surface-1));
+        border:1px solid ${glowColor}${isShared ? '50' : '25'};
+        border-right:4px solid ${glowColor};
+        padding:10px 12px;margin-bottom:8px;
+        clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%);
+        position:relative;transition:all .2s;
+      ">
+        ${isShared ? `<div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,${glowColor},transparent);opacity:0.5"></div>` : ''}
+        <div style="display:flex;align-items:flex-start;gap:10px;">
+          <div style="width:8px;height:8px;border-radius:50%;background:${cColor};flex-shrink:0;margin-top:5px;box-shadow:0 0 6px ${cColor}80"></div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:12px;font-weight:700;color:var(--ink);line-height:1.5;margin-bottom:6px;">${l.t}</div>
+            <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:8px;">
+              <span style="font-size:9px;color:${cColor};background:${cColor}15;padding:2px 7px;clip-path:polygon(4px 0,100% 0,calc(100% - 4px) 100%,0 100%);font-weight:800;letter-spacing:1px;text-transform:uppercase">${SUBJ_SHORT[l.s] || l.s}</span>
+              <span style="font-size:9px;color:var(--ink-muted);background:rgba(255,255,255,0.05);padding:2px 7px;clip-path:polygon(4px 0,100% 0,calc(100% - 4px) 100%,0 100%);font-weight:700">${l.q}</span>
+              ${allStudied ? `<span style="font-size:9px;color:#FFB300;background:rgba(255,179,0,0.1);padding:2px 8px;clip-path:polygon(4px 0,100% 0,calc(100% - 4px) 100%,0 100%);font-weight:900;letter-spacing:1px">👑 الكل ذاكرها</span>` : ''}
+            </div>
+            <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
+              ${e.studiedBy.map(sb => {
+                const pc = PCT_COLORS[sb.pct] || 'var(--semantic-success)';
+                return `<div style="display:flex;align-items:center;gap:3px;background:${sb.m.color}12;border:1px solid ${sb.m.color}35;padding:3px 8px;clip-path:polygon(5px 0,100% 0,calc(100% - 5px) 100%,0 100%);">
+                  <span style="font-size:12px">${sb.m.emoji}</span>
+                  <span style="font-size:10px;font-weight:800;color:${sb.m.color};text-transform:uppercase;letter-spacing:0.5px">${sb.m.name.split(' ')[0]}</span>
+                  <span style="font-size:10px;font-weight:900;color:${pc};font-family:'Inter',sans-serif">${sb.pct}%</span>
+                </div>`;
+              }).join('')}
+              ${MEMBERS.map((m, mi) => {
+                if (e.studiedBy.some(sb => sb.idx === mi)) return '';
+                return `<div style="display:flex;align-items:center;gap:3px;background:rgba(255,255,255,0.02);border:1px dashed rgba(255,255,255,0.1);padding:3px 8px;clip-path:polygon(5px 0,100% 0,calc(100% - 5px) 100%,0 100%);opacity:0.35;">
+                  <span style="font-size:12px">${m.emoji}</span>
+                  <span style="font-size:10px;color:var(--ink-muted);text-transform:uppercase">${m.name.split(' ')[0]}</span>
+                </div>`;
+              }).join('')}
+            </div>
+          </div>
+        </div>
+      </div>`;
+    });
+  }
+
+  c.innerHTML = html;
 }
+
