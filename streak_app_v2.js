@@ -85,6 +85,21 @@ const store = {
     } catch(e) { console.error('[Firebase: Write Error]', e); }
   },
 
+  // ── Global helper: write arbitrary key-value into users/{userId} ──
+  // Called by gamification.js, wellness.js, pomodoro.js
+  // Can handle nested paths like 'checkins/2026-05-10' via update()
+  writeUserData(userId, updates) {
+    if (!window._fbReady || !window._fbDb) return;
+    if (userId === null || userId === undefined) return;
+    try {
+      const { ref, update } = window._fbSDK;
+      // Flatten paths so nested keys like 'checkins/2026-05-10' work correctly
+      const flat = {};
+      Object.entries(updates).forEach(([k, v]) => { flat[k] = v; });
+      update(ref(window._fbDb, `users/${userId}`), flat);
+    } catch(e) { console.error('[Firebase: UserData Write Error]', e); }
+  },
+
   _removeFromCloud(userId, lectureId) {
     try {
       const { ref, remove } = window._fbSDK;
@@ -528,10 +543,60 @@ function _doLogin(confirmedUser) {
   store.set({ currentUser: confirmedUser });
   showToast(`أهلاً بك يا ${MEMBERS[confirmedUser].name} 💪`, 'success');
   _watchSession(confirmedUser);
+  _watchUserData(confirmedUser); // ── Load user data from Firebase
   if (typeof showMeme === 'function') {
     setTimeout(() => showMeme('login', 0, `أهلاً يا ${MEMBERS[confirmedUser].name}! جاهز تذاكر؟ 💪`), 400);
   }
 }
+
+// ── Subscribe to user-specific data in Firebase (badges, themes, checkins, etc.) ──
+let _userDataUnsubscribe = null;
+
+function _watchUserData(userId) {
+  if (!window._fbReady || !window._fbDb) {
+    // Firebase not ready yet — wait for it
+    window.addEventListener('firebase-ready', () => _watchUserData(userId), { once: true });
+    return;
+  }
+  const { ref } = window._fbSDK;
+  const { onValue: fbOnValue } = window.firebase_database;
+  if (!fbOnValue) return;
+
+  if (_userDataUnsubscribe) { _userDataUnsubscribe(); _userDataUnsubscribe = null; }
+
+  _userDataUnsubscribe = fbOnValue(ref(window._fbDb, `users/${userId}`), (snap) => {
+    const data = snap.val();
+    if (!data) return;
+
+    // Sync cloud → localStorage (cloud wins)
+    if (Array.isArray(data.badges)) LS.set('badges', data.badges);
+    if (typeof data.xp_spent === 'number') LS.set('xp_spent', data.xp_spent);
+    if (Array.isArray(data.unlocked_themes)) LS.set('unlocked_themes', data.unlocked_themes);
+    if (typeof data.streak_freeze_available === 'number') LS.set('streak_freeze_available', data.streak_freeze_available);
+    if (Array.isArray(data.streak_freezes_used)) LS.set('streak_freezes_used', data.streak_freezes_used);
+    if (Array.isArray(data.pomo_sessions)) LS.set('pomo_sessions', data.pomo_sessions);
+    if (Array.isArray(data.custom_tasks)) LS.set('custom_tasks', data.custom_tasks);
+
+    // Sync check-ins
+    if (data.checkins && typeof data.checkins === 'object') {
+      Object.entries(data.checkins).forEach(([date, ci]) => LS.set('checkin_' + date, ci));
+    }
+
+    // Apply active theme
+    if (data.active_theme) {
+      LS.set('active_theme', data.active_theme);
+      if (typeof Gamification !== 'undefined') Gamification.applyTheme(data.active_theme);
+    }
+
+    // Recheck badges in case new ones arrived
+    if (typeof Gamification !== 'undefined') setTimeout(() => Gamification.recheckBadges(), 100);
+  }, { onlyOnce: false });
+}
+
+// Global write helper used by gamification.js, wellness.js, pomodoro.js
+window._writeUserData = function(userId, updates) {
+  store.writeUserData(userId, updates);
+};
 
 async function checkPin() {
   const input = document.getElementById('pinInput');
@@ -696,12 +761,21 @@ function selectPct(pctVal) {
 }
 
 function logout() {
+  // Stop Pomodoro if running (save the session first)
+  if (typeof PomodoroModule !== 'undefined') {
+    const ps = PomodoroModule.getState();
+    if (ps.running || ps.mode === 'paused') PomodoroModule.stop(true);
+  }
   localStorage.removeItem('streak_user');
-  // Detach Firebase listener to prevent memory leak
+  // Detach Firebase listeners
   if (typeof window._fbUnsubscribe === 'function') {
     window._fbUnsubscribe();
     window._fbUnsubscribe = null;
     window._fbReady = false;
+  }
+  if (typeof _userDataUnsubscribe === 'function') {
+    _userDataUnsubscribe();
+    _userDataUnsubscribe = null;
   }
   store.set({ currentUser: null });
   document.getElementById('mainApp').classList.add('hide');

@@ -38,9 +38,19 @@ const Wellness = (() => {
   function useFreeze() {
     const available = getFreezeCount();
     if (available <= 0) return false;
-    LS.set('streak_freeze_available', available - 1);
+    const newAvailable = available - 1;
+    LS.set('streak_freeze_available', newAvailable);
     const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
-    LS.update('streak_freezes_used', arr => { arr.push(yesterday.toISOString().split('T')[0]); return arr; }, []);
+    const yesterdayStr = yesterday.toISOString().split('T')[0];
+    LS.update('streak_freezes_used', arr => { arr.push(yesterdayStr); return arr; }, []);
+    // ── Firebase sync ──
+    const uid = typeof store !== 'undefined' ? store.get().currentUser : null;
+    if (uid !== null && typeof window._writeUserData === 'function') {
+      window._writeUserData(uid, {
+        streak_freeze_available: newAvailable,
+        streak_freezes_used: LS.get('streak_freezes_used', [])
+      });
+    }
     return true;
   }
 
@@ -66,6 +76,11 @@ const Wellness = (() => {
     const data = { mood, focus, date: LS.today(), timestamp: Date.now() };
     setCheckin(data);
     if (typeof Gamification !== 'undefined') Gamification.addXP(10, 'daily_checkin');
+    // ── Firebase sync ──
+    const uid = typeof store !== 'undefined' ? store.get().currentUser : null;
+    if (uid !== null && typeof window._writeUserData === 'function') {
+      window._writeUserData(uid, { ['checkins/' + LS.today()]: data });
+    }
     return data;
   }
 

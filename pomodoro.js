@@ -1,17 +1,72 @@
 /**
  * pomodoro.js — Pomodoro Timer, Stopwatch, Session History
- * Storage: LS.get/set('pomodoro_sessions'), LS.get/set('pomodoro_prefs')
+ * FIXED: Timestamp-based timer (survives screen lock & tab switch)
+ * FIXED: State persisted in localStorage → restored on page load/logout
+ * FIXED: Page Visibility API re-syncs time when tab becomes visible again
  */
 
 const PomodoroModule = (() => {
   let _timer = null;
-  let _state = { mode: 'idle', seconds: 0, target: 25 * 60, type: 'pomodoro', running: false, startedAt: null };
+  let _state = {
+    mode: 'idle',         // 'idle' | 'running' | 'paused' | 'done'
+    seconds: 0,           // calculated from timestamps
+    target: 25 * 60,
+    type: 'pomodoro',
+    running: false,
+    startedAt: null,      // epoch ms when timer last started/resumed
+    pausedTotalMs: 0,     // total ms spent in paused state
+    pausedAt: null        // epoch ms when current pause began
+  };
   let _onTick = null;
 
   const DEFAULTS = { workMin: 25, breakMin: 5, longBreakMin: 15, sessionsBeforeLong: 4 };
 
   function getPrefs() { return LS.get('pomo_prefs', DEFAULTS); }
   function setPrefs(p) { LS.set('pomo_prefs', p); }
+
+  // ── Calculate elapsed seconds from timestamps (screen-lock safe) ──
+  function _calcSeconds() {
+    if (!_state.startedAt) return _state.seconds;
+    const pausedMs = (_state.pausedTotalMs || 0);
+    return Math.floor((Date.now() - _state.startedAt - pausedMs) / 1000);
+  }
+
+  // ── Persist running state to localStorage ──
+  function _persistState() {
+    try {
+      const uid = typeof store !== 'undefined' ? store.get().currentUser : null;
+      localStorage.setItem('_pomo_state', JSON.stringify({ ..._state, _savedUserId: uid }));
+    } catch(e) {}
+  }
+
+  function _clearPersistedState() {
+    try { localStorage.removeItem('_pomo_state'); } catch(e) {}
+  }
+
+  // ── Restore timer state on page load (survives logout/refresh) ──
+  function _restoreState() {
+    try {
+      const raw = localStorage.getItem('_pomo_state');
+      if (!raw) return;
+      const saved = JSON.parse(raw);
+
+      // Only restore if it was actually running
+      if (!saved.running || !saved.startedAt || saved.mode !== 'running') return;
+
+      const pausedMs = saved.pausedTotalMs || 0;
+      const elapsed = Math.floor((Date.now() - saved.startedAt - pausedMs) / 1000);
+
+      // If a finite timer already finished while we were away, don't restore
+      if (saved.type !== 'stopwatch' && elapsed >= saved.target) {
+        _clearPersistedState();
+        return;
+      }
+
+      _state = { ...saved, seconds: elapsed };
+      _timer = setInterval(_tick, 1000);
+      _notify();
+    } catch(e) {}
+  }
 
   function start(type = 'pomodoro') {
     const p = getPrefs();
@@ -25,6 +80,9 @@ const PomodoroModule = (() => {
     _state.running = true;
     _state.mode = 'running';
     _state.startedAt = Date.now();
+    _state.pausedTotalMs = 0;
+    _state.pausedAt = null;
+    _persistState();
     _timer = setInterval(_tick, 1000);
     _notify();
   }
@@ -32,8 +90,19 @@ const PomodoroModule = (() => {
   function pause() {
     _state.running = !_state.running;
     _state.mode = _state.running ? 'running' : 'paused';
-    if (_state.running) _timer = setInterval(_tick, 1000);
-    else clearInterval(_timer);
+    if (_state.running) {
+      // Resuming: account for paused duration
+      if (_state.pausedAt) {
+        _state.pausedTotalMs = (_state.pausedTotalMs || 0) + (Date.now() - _state.pausedAt);
+        _state.pausedAt = null;
+      }
+      _timer = setInterval(_tick, 1000);
+    } else {
+      // Pausing: record when pause started
+      _state.pausedAt = Date.now();
+      clearInterval(_timer);
+    }
+    _persistState();
     _notify();
   }
 
@@ -42,16 +111,31 @@ const PomodoroModule = (() => {
     if (save && _state.seconds > 30) {
       _saveSession();
     }
-    _state = { mode: 'idle', seconds: 0, target: 25 * 60, type: 'pomodoro', running: false, startedAt: null };
+    _state = {
+      mode: 'idle', seconds: 0, target: 25 * 60,
+      type: 'pomodoro', running: false,
+      startedAt: null, pausedTotalMs: 0, pausedAt: null
+    };
+    _clearPersistedState();
     _notify();
   }
 
   function _tick() {
-    _state.seconds++;
+    // Timestamp-based: immune to setInterval drift & screen lock
+    if (_state.startedAt) {
+      _state.seconds = Math.floor(
+        (Date.now() - _state.startedAt - (_state.pausedTotalMs || 0)) / 1000
+      );
+    } else {
+      _state.seconds++;
+    }
+
     if (_state.type !== 'stopwatch' && _state.seconds >= _state.target) {
       _onComplete();
+    } else {
+      _persistState();
+      _notify();
     }
-    _notify();
   }
 
   function _onComplete() {
@@ -59,9 +143,12 @@ const PomodoroModule = (() => {
     _state.mode = 'done';
     _state.running = false;
     _saveSession();
+    _clearPersistedState();
     // Browser notification
     if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification('⏰ الخلاصة', { body: _state.type === 'pomodoro' ? 'وقت الراحة!' : 'يلا نرجع للمذاكرة!' });
+      new Notification('⏰ الخلاصة', {
+        body: _state.type === 'pomodoro' ? 'وقت الراحة!' : 'يلا نرجع للمذاكرة!'
+      });
     }
     // Audio beep
     try {
@@ -74,15 +161,24 @@ const PomodoroModule = (() => {
   }
 
   function _saveSession() {
+    const uid = typeof store !== 'undefined' ? store.get().currentUser : null;
     const session = {
       id: LS.uid(),
       type: _state.type,
       duration: _state.seconds,
       date: LS.today(),
       timestamp: _state.startedAt || Date.now(),
-      userId: typeof store !== 'undefined' ? store.get().currentUser : null
+      userId: uid
     };
     LS.push('pomo_sessions', session, 1000);
+
+    // ── Firebase sync: save pomodoro sessions per user ──
+    if (uid !== null && typeof window._writeUserData === 'function') {
+      const all = LS.get('pomo_sessions', []);
+      // Keep last 200 sessions in Firebase (to avoid huge payloads)
+      const recent = all.slice(-200);
+      window._writeUserData(uid, { pomo_sessions: recent });
+    }
 
     // Award XP
     if (typeof Gamification !== 'undefined' && _state.type === 'pomodoro' && _state.seconds >= _state.target * 0.8) {
@@ -106,7 +202,6 @@ const PomodoroModule = (() => {
   }
 
   function getState() { return { ..._state }; }
-
   function onUpdate(fn) { _onTick = fn; }
   function _notify() { if (_onTick) _onTick(_state); }
 
@@ -124,7 +219,32 @@ const PomodoroModule = (() => {
     }
   }
 
-  return { start, pause, stop, getState, getSessions, getTodaySessions, getTodayMinutes, getPrefs, setPrefs, onUpdate, formatTime, requestNotifPermission, DEFAULTS };
+  // ── Page Visibility API: re-sync time when tab becomes active ──
+  // This is the core fix for screen lock / app switcher scenarios
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && _state.running && _state.startedAt) {
+      clearInterval(_timer);
+      const pausedMs = _state.pausedTotalMs || 0;
+      _state.seconds = Math.floor((Date.now() - _state.startedAt - pausedMs) / 1000);
+
+      if (_state.type !== 'stopwatch' && _state.seconds >= _state.target) {
+        _onComplete();
+      } else {
+        _timer = setInterval(_tick, 1000);
+        _notify();
+      }
+    }
+  });
+
+  // Restore any in-progress timer from before page load / logout
+  _restoreState();
+
+  return {
+    start, pause, stop,
+    getState, getSessions, getTodaySessions, getTodayMinutes,
+    getPrefs, setPrefs, onUpdate, formatTime, requestNotifPermission,
+    DEFAULTS
+  };
 })();
 
 

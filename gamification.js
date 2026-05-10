@@ -193,7 +193,13 @@ const Gamification = (() => {
         newBadge = b;
       }
     });
-    LS.set('badges', [...unlocked]);
+    const badgeArr = [...unlocked];
+    LS.set('badges', badgeArr);
+    // ── Firebase sync ──
+    const uid = typeof store !== 'undefined' ? store.get().currentUser : null;
+    if (uid !== null && typeof window._writeUserData === 'function') {
+      window._writeUserData(uid, { badges: badgeArr });
+    }
     if (newBadge && typeof showToast === 'function') {
       setTimeout(() => showToast(`${newBadge.emoji} بادج جديد: ${newBadge.name}!`, 'epic'), 500);
     }
@@ -208,13 +214,20 @@ const Gamification = (() => {
   function unlockTheme(id) {
     const theme = THEMES.find(t => t.id === id);
     if (!theme) return false;
-    // Themes cost XP but we can't "subtract" dynamic XP.
-    // Use a "spent XP" ledger instead.
     const spent = LS.get('xp_spent', 0);
     const available = computeXP() - spent;
     if (available < theme.cost) return false;
-    LS.set('xp_spent', spent + theme.cost);
+    const newSpent = spent + theme.cost;
+    LS.set('xp_spent', newSpent);
     LS.update('unlocked_themes', arr => { if (!arr.includes(id)) arr.push(id); return arr; }, ['default']);
+    // ── Firebase sync ──
+    const uid = typeof store !== 'undefined' ? store.get().currentUser : null;
+    if (uid !== null && typeof window._writeUserData === 'function') {
+      window._writeUserData(uid, {
+        xp_spent: newSpent,
+        unlocked_themes: LS.get('unlocked_themes', ['default'])
+      });
+    }
     return true;
   }
   function getAvailableXP() { return computeXP() - LS.get('xp_spent', 0); }
@@ -230,6 +243,11 @@ const Gamification = (() => {
        '--teal','--txt3','--txt2','--bg-header','--bg-nav','--bg-element','--bg-card','--bg-sidebar'
       ].forEach(k => document.documentElement.style.removeProperty(k));
       document.documentElement.removeAttribute('data-theme');
+    }
+    // ── Firebase sync ──
+    const uid = typeof store !== 'undefined' ? store.get().currentUser : null;
+    if (uid !== null && typeof window._writeUserData === 'function') {
+      window._writeUserData(uid, { active_theme: id });
     }
   }
   function initTheme() { applyTheme(getActiveTheme()); recheckBadges(); }
