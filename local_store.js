@@ -19,14 +19,56 @@ const LS = {
     } catch { return fallback; }
   },
 
-  set(key, value, ttlMs = 0) {
+  set(key, value, ttlMs = 0, noSync = false) {
     try {
       const data = ttlMs > 0 ? { v: value, _ttl: Date.now() + ttlMs } : value;
       localStorage.setItem(this._p + key, JSON.stringify(data));
+      
+      // Auto-sync to Firebase if applicable
+      if (!noSync && typeof store !== 'undefined' && store.state && store.state.currentUser !== null) {
+        const uid = store.state.currentUser;
+        if (typeof window._writeUserData === 'function') {
+          let fbKey = key;
+          if (key.startsWith('note_')) fbKey = `notes/${key.substring(5)}`;
+          else if (key.startsWith('checkin_')) fbKey = `checkins/${key.substring(8)}`;
+          
+          const syncKeys = [
+            'badges', 'xp_spent', 'unlocked_themes', 'streak_freeze_available', 
+            'streak_freezes_used', 'pomo_sessions', 'custom_tasks', 'bookmarks', 
+            'stickies', 'active_theme'
+          ];
+          
+          if (syncKeys.includes(key) || key.startsWith('note_') || key.startsWith('checkin_')) {
+            window._writeUserData(uid, { [fbKey]: value });
+          }
+        }
+      }
     } catch (e) { console.warn('[LS] Write failed:', key, e); }
   },
 
-  del(key) { localStorage.removeItem(this._p + key); },
+  del(key, noSync = false) { 
+    localStorage.removeItem(this._p + key); 
+    
+    // Auto-remove from Firebase if applicable
+    if (!noSync && typeof store !== 'undefined' && store.state && store.state.currentUser !== null) {
+      const uid = store.state.currentUser;
+      if (typeof window._writeUserData === 'function') {
+        let fbKey = key;
+        if (key.startsWith('note_')) fbKey = `notes/${key.substring(5)}`;
+        else if (key.startsWith('checkin_')) fbKey = `checkins/${key.substring(8)}`;
+        
+        const syncKeys = [
+          'badges', 'xp_spent', 'unlocked_themes', 'streak_freeze_available', 
+          'streak_freezes_used', 'pomo_sessions', 'custom_tasks', 'bookmarks', 
+          'stickies', 'active_theme'
+        ];
+        
+        if (syncKeys.includes(key) || key.startsWith('note_') || key.startsWith('checkin_')) {
+          window._writeUserData(uid, { [fbKey]: null });
+        }
+      }
+    }
+  },
 
   update(key, fn, fallback = {}) {
     const cur = this.get(key, fallback);

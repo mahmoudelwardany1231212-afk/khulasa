@@ -585,36 +585,36 @@ function _watchUserData(userId) {
     if (!data) return;
 
     // Sync cloud → localStorage (cloud wins)
-    if (Array.isArray(data.badges)) LS.set('badges', data.badges);
-    if (typeof data.xp_spent === 'number') LS.set('xp_spent', data.xp_spent);
-    if (Array.isArray(data.unlocked_themes)) LS.set('unlocked_themes', data.unlocked_themes);
-    if (typeof data.streak_freeze_available === 'number') LS.set('streak_freeze_available', data.streak_freeze_available);
-    if (Array.isArray(data.streak_freezes_used)) LS.set('streak_freezes_used', data.streak_freezes_used);
-    if (Array.isArray(data.pomo_sessions)) LS.set('pomo_sessions', data.pomo_sessions);
-    if (Array.isArray(data.custom_tasks)) LS.set('custom_tasks', data.custom_tasks);
+    if (Array.isArray(data.badges)) LS.set('badges', data.badges, 0, true);
+    if (typeof data.xp_spent === 'number') LS.set('xp_spent', data.xp_spent, 0, true);
+    if (Array.isArray(data.unlocked_themes)) LS.set('unlocked_themes', data.unlocked_themes, 0, true);
+    if (typeof data.streak_freeze_available === 'number') LS.set('streak_freeze_available', data.streak_freeze_available, 0, true);
+    if (Array.isArray(data.streak_freezes_used)) LS.set('streak_freezes_used', data.streak_freezes_used, 0, true);
+    if (Array.isArray(data.pomo_sessions)) LS.set('pomo_sessions', data.pomo_sessions, 0, true);
+    if (Array.isArray(data.custom_tasks)) LS.set('custom_tasks', data.custom_tasks, 0, true);
 
     // Sync bookmarks
-    if (Array.isArray(data.bookmarks)) LS.set('bookmarks', data.bookmarks);
+    if (Array.isArray(data.bookmarks)) LS.set('bookmarks', data.bookmarks, 0, true);
 
     // Sync sticky notes
-    if (Array.isArray(data.stickies)) LS.set('stickies', data.stickies);
+    if (Array.isArray(data.stickies)) LS.set('stickies', data.stickies, 0, true);
 
     // Sync per-lecture notes (stored as notes/{lecId})
     if (data.notes && typeof data.notes === 'object') {
       Object.entries(data.notes).forEach(([lecId, text]) => {
-        if (text) LS.set('note_' + lecId, text);
-        else LS.del('note_' + lecId);
+        if (text) LS.set('note_' + lecId, text, 0, true);
+        else LS.del('note_' + lecId, true);
       });
     }
 
     // Sync check-ins
     if (data.checkins && typeof data.checkins === 'object') {
-      Object.entries(data.checkins).forEach(([date, ci]) => LS.set('checkin_' + date, ci));
+      Object.entries(data.checkins).forEach(([date, ci]) => LS.set('checkin_' + date, ci, 0, true));
     }
 
     // Apply active theme
     if (data.active_theme) {
-      LS.set('active_theme', data.active_theme);
+      LS.set('active_theme', data.active_theme, 0, true);
       if (typeof Gamification !== 'undefined') Gamification.applyTheme(data.active_theme);
     }
 
