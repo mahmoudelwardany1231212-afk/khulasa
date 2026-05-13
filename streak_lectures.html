@@ -2718,7 +2718,7 @@
 
         <!-- Per-Subject Rotating Countdown -->
         <div class="subj-cd-strip">
-          <div class="subj-cd-label">⏳ الامتحان القادم</div>
+          <div class="subj-cd-label" id="subj-cd-label">⏳ الامتحان القادم</div>
           <div class="subj-cd-name" id="subj-cd-name">---</div>
           <div class="subj-cd-date" id="subj-cd-date">---</div>
           <div class="subj-cd-timer">
@@ -2845,7 +2845,7 @@
         { name: 'Operative',        date: '21 / 6',  iso: '2026-06-21T10:00:00+03:00' },
       ];
 
-      /* ─── Build subject-carousel dots ────────────────────────────── */
+      /* ─── Build subject dots ──────────────────────────────────────── */
       (function buildDots() {
         const dotsEl = document.getElementById('subj-cd-dots');
         EXAM_SCHEDULE.forEach((_, i) => {
@@ -2856,31 +2856,29 @@
         });
       })();
 
-      /* ─── Subject Countdown State ─────────────────────────────────── */
-      let _subjIdx   = 0;          // which exam is currently shown
-      let _subjCycle = true;       // auto-rotate?
+      /* ─── Subject Countdown — Smart Auto-Advance Logic ───────────── */
+      // Each exam runs 10:00 AM → 1:30 PM (+3:00)
+      // Exam end = same date at 13:30
+      function _examEnd(isoStart) {
+        const d = new Date(isoStart);
+        d.setHours(13, 30, 0, 0);
+        return d;
+      }
 
+      // Returns the index of the currently "active" exam:
+      // - If exam end hasn't passed → this is the active one
+      // - If all done → last index
       function _getActiveSubjIdx() {
-        // Find the first future exam; if all passed, show last
         const now = Date.now();
         for (let i = 0; i < EXAM_SCHEDULE.length; i++) {
-          if (new Date(EXAM_SCHEDULE[i].iso) > now) return i;
+          if (_examEnd(EXAM_SCHEDULE[i].iso) > now) return i;
         }
         return EXAM_SCHEDULE.length - 1;
       }
 
-      function _showSubjAt(idx, animate) {
-        const exam = EXAM_SCHEDULE[idx];
-        const nameEl = document.getElementById('subj-cd-name');
-        const dateEl = document.getElementById('subj-cd-date');
-        if (animate) {
-          nameEl.classList.remove('subj-cd-anim');
-          void nameEl.offsetWidth;
-          nameEl.classList.add('subj-cd-anim');
-        }
-        nameEl.textContent = exam.name;
-        dateEl.textContent = '📅 ' + exam.date + '  ·  10:00 AM';
-        // update dots
+      let _subjIdx = _getActiveSubjIdx();
+
+      function _updateDots(idx) {
         EXAM_SCHEDULE.forEach((_, i) => {
           const dot = document.getElementById('scd-dot-' + i);
           if (dot) dot.className = 'subj-cd-dot' + (i === idx ? ' active' : '');
@@ -2888,35 +2886,59 @@
       }
 
       function _updateSubjTimer() {
-        const exam = EXAM_SCHEDULE[_subjIdx];
-        const diff = new Date(exam.iso) - Date.now();
-        if (diff <= 0) {
+        // Re-calculate active exam every tick (auto-advances after 13:30)
+        const activeIdx = _getActiveSubjIdx();
+        if (activeIdx !== _subjIdx) {
+          // Exam just ended → switch to next
+          _subjIdx = activeIdx;
+          const nameEl = document.getElementById('subj-cd-name');
+          nameEl.classList.remove('subj-cd-anim');
+          void nameEl.offsetWidth;
+          nameEl.classList.add('subj-cd-anim');
+        }
+
+        const exam   = EXAM_SCHEDULE[_subjIdx];
+        const now    = Date.now();
+        const start  = new Date(exam.iso).getTime();
+        const end    = _examEnd(exam.iso).getTime();
+
+        // Update name + date display
+        document.getElementById('subj-cd-name').textContent = exam.name;
+        _updateDots(_subjIdx);
+
+        if (now < start) {
+          // ── Phase 1: before exam starts ──
+          document.getElementById('subj-cd-label').textContent = '⏳ حتى بداية الامتحان';
+          document.getElementById('subj-cd-date').textContent  = '📅 ' + exam.date + '  ·  10:00 AM';
+          const diff = start - now;
+          document.getElementById('scd-days').textContent  = Math.floor(diff / 86400000).toString().padStart(2,'0');
+          document.getElementById('scd-hours').textContent = (Math.floor(diff / 3600000) % 24).toString().padStart(2,'0');
+          document.getElementById('scd-mins').textContent  = (Math.floor(diff / 60000)  % 60).toString().padStart(2,'0');
+          document.getElementById('scd-secs').textContent  = (Math.floor(diff / 1000)   % 60).toString().padStart(2,'0');
+
+        } else if (now >= start && now < end) {
+          // ── Phase 2: exam in progress — count to end ──
+          document.getElementById('subj-cd-label').textContent = '🔴 الامتحان جاري — ينتهي الساعة 1:30';
+          document.getElementById('subj-cd-date').textContent  = '📅 ' + exam.date + '  ·  10:00 → 1:30 PM';
+          const diff = end - now;
+          document.getElementById('scd-days').textContent  = '00';
+          document.getElementById('scd-hours').textContent = (Math.floor(diff / 3600000) % 24).toString().padStart(2,'0');
+          document.getElementById('scd-mins').textContent  = (Math.floor(diff / 60000)  % 60).toString().padStart(2,'0');
+          document.getElementById('scd-secs').textContent  = (Math.floor(diff / 1000)   % 60).toString().padStart(2,'0');
+
+        } else {
+          // ── Phase 3: all exams done ──
+          document.getElementById('subj-cd-label').textContent = '✅ كل الامتحانات خلصت';
+          document.getElementById('subj-cd-date').textContent  = '🎉 مبروك!';
           document.getElementById('scd-days').textContent  = '00';
           document.getElementById('scd-hours').textContent = '00';
           document.getElementById('scd-mins').textContent  = '00';
           document.getElementById('scd-secs').textContent  = '00';
-          return;
         }
-        document.getElementById('scd-days').textContent  = Math.floor(diff / 86400000).toString().padStart(2,'0');
-        document.getElementById('scd-hours').textContent = (Math.floor(diff / 3600000) % 24).toString().padStart(2,'0');
-        document.getElementById('scd-mins').textContent  = (Math.floor(diff / 60000)  % 60).toString().padStart(2,'0');
-        document.getElementById('scd-secs').textContent  = (Math.floor(diff / 1000)   % 60).toString().padStart(2,'0');
       }
 
-      // Auto-rotate every 5 seconds, skip past exams
-      let _rotateTimer = null;
-      function _startRotation() {
-        _rotateTimer = setInterval(() => {
-          if (!_subjCycle) return;
-          _subjIdx = (_subjIdx + 1) % EXAM_SCHEDULE.length;
-          _showSubjAt(_subjIdx, true);
-        }, 5000);
-      }
-
-      // Initial: show the next upcoming exam
-      _subjIdx = _getActiveSubjIdx();
-      _showSubjAt(_subjIdx, false);
-      _startRotation();
+      // Render immediately
+      _updateSubjTimer();
 
       /* ─── Main Liberation-Day Countdown ──────────────────────────── */
       function updateCountdown() {
