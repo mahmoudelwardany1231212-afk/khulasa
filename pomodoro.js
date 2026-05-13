@@ -337,9 +337,6 @@ function renderPomodoroPage() {
       <!-- Presence Panel (Who's Focusing) -->
       <div id="pomoPresencePanel"></div>
 
-      <!-- Music Player -->
-      <div id="pomoMusicPlayer"></div>
-
       <!-- Recent Sessions -->
       ${todaySessions.length > 0 ? `
         <div style="font-size:11px;font-weight:800;color:var(--ink);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">📋 جلسات اليوم</div>
@@ -354,8 +351,6 @@ function renderPomodoroPage() {
     </div>`;
 
   c.innerHTML = html;
-  // Re-render music UI (preserves playing state across timer ticks)
-  if (typeof PomoMusic !== 'undefined') PomoMusic.renderMusicUI();
   // Re-render presence panel
   if (typeof PresenceModule !== 'undefined') PresenceModule.renderPresencePanel(document.getElementById('pomoPresencePanel'));
 }
@@ -464,93 +459,4 @@ PomodoroModule.onUpdate(st => {
   if (st.mode === 'running') PomoCanvas.show(st.type);
   else PomoCanvas.hide();
 });
-
-// ══════════════════════════════════════════════════════
-// FOCUS MUSIC PLAYER
-// ══════════════════════════════════════════════════════
-const PomoMusic = (() => {
-  const TRACKS = [
-    { id: 'lofi',    label: '🎵 Lo-Fi Hip Hop',      ytId: 'jfKfPfyJRdk' },
-    { id: 'nature',  label: '🌧️ Rain & Nature',      ytId: 'q76bMs-NwRk' },
-    { id: 'deep',    label: '🧠 Deep Focus',          ytId: 'WPni755-Krg' },
-    { id: 'coffee',  label: '☕ Coffee Shop',         ytId: '5qap5aO4i9A' },
-    { id: 'alpha',   label: '🌊 Alpha Waves',         ytId: 'Dm2lGP6EbHw' },
-  ];
-
-  let currentTrack = null;
-  let volume = 40;
-  let iframe = null;
-  let playing = false;
-
-  function getContainer() { return document.getElementById('pomoMusicPlayer'); }
-
-  function buildIframe(ytId) {
-    // Remove old iframe
-    const old = document.getElementById('pomoYTFrame');
-    if (old) old.remove();
-    iframe = document.createElement('iframe');
-    iframe.id = 'pomoYTFrame';
-    // volume param isn't standard in YouTube iframe embed but we keep it just in case; YouTube JS API is normally needed for volume control.
-    iframe.src = `https://www.youtube.com/embed/${ytId}?autoplay=1&loop=1&playlist=${ytId}&controls=0&mute=0`;
-    iframe.setAttribute('allow', 'autoplay');
-    Object.assign(iframe.style, {
-      width: '1px', height: '1px', border: 'none', position: 'absolute', opacity: '0.01', pointerEvents: 'none'
-    });
-    document.body.appendChild(iframe);
-    playing = true;
-  }
-
-  function play(trackId) {
-    const t = TRACKS.find(x => x.id === trackId) || TRACKS[0];
-    currentTrack = t.id;
-    buildIframe(t.ytId);
-    renderMusicUI();
-  }
-
-  function stop() {
-    const f = document.getElementById('pomoYTFrame');
-    if (f) f.remove();
-    iframe = null; playing = false; currentTrack = null;
-    renderMusicUI();
-  }
-
-  function renderMusicUI() {
-    const el = getContainer();
-    if (!el) return;
-    el.innerHTML = `
-      <div style="background:var(--surface-1);border:1px solid var(--hairline);padding:12px;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);margin-bottom:16px;">
-        <div style="font-size:11px;font-weight:800;color:var(--ink);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">🎧 موسيقى التركيز</div>
-        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">
-          ${TRACKS.map(t => `
-            <button onclick="PomoMusic.play('${t.id}')"
-              style="padding:6px 10px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid ${currentTrack===t.id?'var(--accent-blue)':'var(--hairline)'};background:${currentTrack===t.id?'rgba(0,229,255,0.12)':'var(--surface-2)'};color:${currentTrack===t.id?'var(--accent-blue)':'var(--ink-muted)'};font-family:'Cairo',sans-serif;clip-path:polygon(5px 0,100% 0,calc(100% - 5px) 100%,0 100%);transition:all .2s">
-              ${t.label}
-            </button>`).join('')}
-        </div>
-        ${playing ? `
-          <div style="display:flex;align-items:center;gap:8px;">
-            <span style="font-size:10px;color:var(--semantic-success);animation:pulse 1.5s infinite;font-weight:700">▶ يشغل</span>
-            <input type="range" min="0" max="100" value="${volume}" oninput="PomoMusic.setVol(+this.value)"
-              style="flex:1;accent-color:var(--accent-blue);height:3px;cursor:pointer">
-            <button onclick="PomoMusic.stop()"
-              style="padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid var(--semantic-danger);background:transparent;color:var(--semantic-danger);font-family:'Cairo',sans-serif;clip-path:polygon(5px 0,100% 0,calc(100% - 5px) 100%,0 100%)">
-              ⏹ إيقاف
-            </button>
-          </div>` : ''}
-      </div>`;
-  }
-
-  function setVol(v) {
-    volume = v;
-    // Reload iframe with new volume by replacing src
-    if (iframe) {
-      const t = TRACKS.find(x => x.id === currentTrack);
-      if (t) iframe.src = `https://www.youtube.com/embed/${t.ytId}?autoplay=1&loop=1&playlist=${t.ytId}&controls=0&volume=${v}`;
-    }
-  }
-
-  function init() { renderMusicUI(); }
-
-  return { play, stop, setVol, init, renderMusicUI };
-})();
 
