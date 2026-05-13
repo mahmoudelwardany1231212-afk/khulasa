@@ -1018,8 +1018,8 @@ function renderProfilePage() {
         <span>ظهورك لزملائك أثناء التركيز (Pomodoro)</span>
         <label style="position:relative;display:inline-block;width:34px;height:20px;">
           <input type="checkbox" style="opacity:0;width:0;height:0;" ${typeof PresenceModule !== 'undefined' && PresenceModule.isVisible() ? 'checked' : ''} onchange="if(typeof PresenceModule!=='undefined') PresenceModule.setVisible(this.checked)">
-          <span style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background-color:var(--surface-2);transition:.4s;border-radius:20px;border:1px solid var(--hairline);"></span>
-          <span style="position:absolute;content:'';height:14px;width:14px;left:3px;bottom:2px;background-color:var(--ink-muted);transition:.4s;border-radius:50%;" class="slider-dot"></span>
+          <span class="slider-bg"></span>
+          <span class="slider-dot"></span>
         </label>
       </div>
     </div>
@@ -1028,8 +1028,10 @@ function renderProfilePage() {
     <button onclick="logout()" style="width:100%;padding:12px;background:rgba(255,0,60,0.08);color:var(--semantic-danger);border:1px solid rgba(255,0,60,0.2);font-size:13px;font-weight:800;cursor:pointer;clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%);font-family:'Cairo',sans-serif;margin-top:8px">🚪 تسجيل خروج</button>
   </div>
   <style>
-    input:checked + span { background-color: rgba(0, 255, 136, 0.2); border-color: var(--semantic-success); }
-    input:checked ~ .slider-dot { transform: translateX(14px); background-color: var(--semantic-success); }
+    .slider-bg { position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background-color:var(--surface-2);transition:.4s;border-radius:20px;border:1px solid var(--hairline); }
+    .slider-dot { position:absolute;content:'';height:14px;width:14px;left:2px;bottom:2px;background-color:var(--ink-muted);transition:.4s;border-radius:50%; }
+    input:checked ~ .slider-bg { background-color: rgba(0, 255, 136, 0.15) !important; border-color: var(--semantic-success) !important; }
+    input:checked ~ .slider-dot { transform: translateX(14px); background-color: var(--semantic-success) !important; }
   </style>
   `;
 }

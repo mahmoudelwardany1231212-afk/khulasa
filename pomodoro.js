@@ -363,11 +363,11 @@ function renderPomodoroPage() {
 // Auto-update: render UI + canvas + music (single combined callback)
 
 // ══════════════════════════════════════════════════════
-// POMO BACKGROUND CANVAS — Animated Particle Pattern
+// POMO BACKGROUND CANVAS — Racing Speed Lines (SpaceX / Aerospace Theme)
 // ══════════════════════════════════════════════════════
 const PomoCanvas = (() => {
-  let canvas, ctx, raf, particles = [], active = false;
-  const PARTICLE_COUNT = 55;
+  let canvas, ctx, raf, lines = [], active = false;
+  const LINE_COUNT = 70;
 
   function init() {
     if (canvas) return;
@@ -391,22 +391,22 @@ const PomoCanvas = (() => {
     canvas.height = window.innerHeight;
   }
 
-  function makeParticle(color) {
+  function makeLine(color) {
     return {
       x: Math.random() * window.innerWidth,
       y: Math.random() * window.innerHeight,
-      r: Math.random() * 1.8 + 0.4,
-      vx: (Math.random() - 0.5) * 0.4,
-      vy: (Math.random() - 0.5) * 0.4,
-      alpha: Math.random() * 0.5 + 0.1,
+      length: Math.random() * 150 + 50,
+      speed: Math.random() * 12 + 4,
+      alpha: Math.random() * 0.3 + 0.05,
+      thickness: Math.random() * 1.5 + 0.5,
       color
     };
   }
 
   function getColor(type) {
-    if (type === 'pomodoro') return '255,60,80';
-    if (type === 'break' || type === 'longbreak') return '0,255,136';
-    return '0,229,255';
+    if (type === 'pomodoro') return '255,60,80'; // Racing Red
+    if (type === 'break' || type === 'longbreak') return '0,255,136'; // Success Green
+    return '0,229,255'; // Aerospace Blue
   }
 
   function draw() {
@@ -415,35 +415,27 @@ const PomoCanvas = (() => {
     const st = PomodoroModule.getState();
     const col = getColor(st.type);
 
-    particles.forEach(p => {
-      p.x += p.vx; p.y += p.vy;
-      if (p.x < 0) p.x = canvas.width;
-      if (p.x > canvas.width) p.x = 0;
-      if (p.y < 0) p.y = canvas.height;
-      if (p.y > canvas.height) p.y = 0;
+    lines.forEach(p => {
+      p.x -= p.speed; // move leftwards simulating forward speed
+      if (p.x + p.length < 0) {
+        p.x = canvas.width;
+        p.y = Math.random() * canvas.height;
+        p.speed = Math.random() * 12 + 4; // randomize speed on reset
+      }
 
       ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(${col},${p.alpha})`;
-      ctx.fill();
-    });
+      // Gradient for speed line effect
+      const grad = ctx.createLinearGradient(p.x, p.y, p.x + p.length, p.y);
+      grad.addColorStop(0, `rgba(${col}, 0)`);
+      grad.addColorStop(0.5, `rgba(${col}, ${p.alpha})`);
+      grad.addColorStop(1, `rgba(${col}, 0)`);
 
-    // Draw connecting lines between nearby particles
-    for (let i = 0; i < particles.length; i++) {
-      for (let j = i + 1; j < particles.length; j++) {
-        const dx = particles[i].x - particles[j].x;
-        const dy = particles[i].y - particles[j].y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < 110) {
-          ctx.beginPath();
-          ctx.moveTo(particles[i].x, particles[i].y);
-          ctx.lineTo(particles[j].x, particles[j].y);
-          ctx.strokeStyle = `rgba(${col},${0.08 * (1 - dist / 110)})`;
-          ctx.lineWidth = 0.5;
-          ctx.stroke();
-        }
-      }
-    }
+      ctx.moveTo(p.x, p.y);
+      ctx.lineTo(p.x + p.length, p.y);
+      ctx.strokeStyle = grad;
+      ctx.lineWidth = p.thickness;
+      ctx.stroke();
+    });
 
     raf = requestAnimationFrame(draw);
   }
@@ -451,9 +443,9 @@ const PomoCanvas = (() => {
   function show(type) {
     init();
     const col = getColor(type);
-    particles = Array.from({ length: PARTICLE_COUNT }, () => makeParticle(col));
+    lines = Array.from({ length: LINE_COUNT }, () => makeLine(col));
     active = true;
-    canvas.style.opacity = '0.8';
+    canvas.style.opacity = '1';
     if (!raf) draw();
   }
 
@@ -498,9 +490,11 @@ const PomoMusic = (() => {
     if (old) old.remove();
     iframe = document.createElement('iframe');
     iframe.id = 'pomoYTFrame';
-    iframe.src = `https://www.youtube.com/embed/${ytId}?autoplay=1&loop=1&playlist=${ytId}&controls=0&mute=0&volume=${volume}`;
+    // volume param isn't standard in YouTube iframe embed but we keep it just in case; YouTube JS API is normally needed for volume control.
+    iframe.src = `https://www.youtube.com/embed/${ytId}?autoplay=1&loop=1&playlist=${ytId}&controls=0&mute=0`;
+    iframe.setAttribute('allow', 'autoplay');
     Object.assign(iframe.style, {
-      width: '0', height: '0', border: 'none', position: 'absolute', opacity: '0', pointerEvents: 'none'
+      width: '1px', height: '1px', border: 'none', position: 'absolute', opacity: '0.01', pointerEvents: 'none'
     });
     document.body.appendChild(iframe);
     playing = true;
