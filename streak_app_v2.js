@@ -1011,9 +1011,27 @@ function renderProfilePage() {
       </div>
     </div>
 
+    <!-- Settings -->
+    <div style="background:var(--surface-1);border:1px solid var(--hairline);padding:12px;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);margin:14px 0;">
+      <div style="font-size:11px;font-weight:800;color:var(--ink);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">⚙️ الخصوصية</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--ink-muted);">
+        <span>ظهورك لزملائك أثناء التركيز (Pomodoro)</span>
+        <label style="position:relative;display:inline-block;width:34px;height:20px;">
+          <input type="checkbox" style="opacity:0;width:0;height:0;" ${typeof PresenceModule !== 'undefined' && PresenceModule.isVisible() ? 'checked' : ''} onchange="if(typeof PresenceModule!=='undefined') PresenceModule.setVisible(this.checked)">
+          <span style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background-color:var(--surface-2);transition:.4s;border-radius:20px;border:1px solid var(--hairline);"></span>
+          <span style="position:absolute;content:'';height:14px;width:14px;left:3px;bottom:2px;background-color:var(--ink-muted);transition:.4s;border-radius:50%;" class="slider-dot"></span>
+        </label>
+      </div>
+    </div>
+
     <!-- Logout -->
     <button onclick="logout()" style="width:100%;padding:12px;background:rgba(255,0,60,0.08);color:var(--semantic-danger);border:1px solid rgba(255,0,60,0.2);font-size:13px;font-weight:800;cursor:pointer;clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%);font-family:'Cairo',sans-serif;margin-top:8px">🚪 تسجيل خروج</button>
-  </div>`;
+  </div>
+  <style>
+    input:checked + span { background-color: rgba(0, 255, 136, 0.2); border-color: var(--semantic-success); }
+    input:checked ~ .slider-dot { transform: translateX(14px); background-color: var(--semantic-success); }
+  </style>
+  `;
 }
 
 // ── 2. REACTIVE UI BINDING ─────────────────────────────
