@@ -54,7 +54,6 @@ const store = {
   // Writes go ONLY to Firebase. onValue() is the only thing that updates the store.
 
   _pendingWrites: [], // Write queue for calls before Firebase is ready
-  _pendingUserWrites: [], // User-data write queue (badges, themes, checkins...)
 
   save(userId, lectureId, pct) {
     // Mirror to localStorage as fast read-cache
@@ -84,30 +83,6 @@ const store = {
       update(ref(window._fbDb, `progress/${userId}`), payload);
       this._updateSyncBadge(); // show ✅ after successful cloud write
     } catch(e) { console.error('[Firebase: Write Error]', e); }
-  },
-
-  writeUserData(userId, updates) {
-    if (!window._fbReady || !window._fbDb) {
-      // Queue the write — will flush when Firebase connects
-      this._pendingUserWrites.push({ userId, updates });
-      return;
-    }
-    this._doWriteUserData(userId, updates);
-  },
-
-  _doWriteUserData(userId, updates) {
-    try {
-      const { ref, update } = window._fbSDK;
-      update(ref(window._fbDb, `users/${userId}`), updates);
-      if (DEBUG_MODE) console.log('[Firebase: UserData Written]', userId, updates);
-    } catch(e) { console.error('[Firebase: UserData Write Error]', e); }
-  },
-
-  _flushPendingUserWrites() {
-    const queue = [...this._pendingUserWrites];
-    this._pendingUserWrites = [];
-    queue.forEach(w => this._doWriteUserData(w.userId, w.updates));
-    if (queue.length) console.log(`[Firebase: Flushed ${queue.length} pending user-data writes]`);
   },
 
   _removeFromCloud(userId, lectureId) {
@@ -196,7 +171,7 @@ const store = {
         // Without this, Firebase may connect to the wrong (default US) database.
         const db = getDatabase(app, FIREBASE_CONFIG.databaseURL);
         window._fbDb  = db;
-        window._fbSDK = { ref, set, update, remove, onValue }; // onValue added for _watchUserData
+        window._fbSDK = { ref, set, update, remove };
         window._fbReady = true;
 
         this._showSyncBanner();
@@ -219,12 +194,6 @@ const store = {
 
           // Flush any writes that were queued before Firebase connected
           this._flushPendingWrites();
-          this._flushPendingUserWrites(); // flush queued user-data writes
-
-          // If user is already logged in when Firebase connects, start watching their data
-          if (this.state.currentUser !== null && typeof _watchUserData === 'function') {
-            _watchUserData(this.state.currentUser);
-          }
 
           this.notify();
         });
@@ -559,80 +528,10 @@ function _doLogin(confirmedUser) {
   store.set({ currentUser: confirmedUser });
   showToast(`أهلاً بك يا ${MEMBERS[confirmedUser].name} 💪`, 'success');
   _watchSession(confirmedUser);
-  _watchUserData(confirmedUser); // ── Load user data from Firebase
   if (typeof showMeme === 'function') {
     setTimeout(() => showMeme('login', 0, `أهلاً يا ${MEMBERS[confirmedUser].name}! جاهز تذاكر؟ 💪`), 400);
   }
 }
-
-// ── Subscribe to user-specific data in Firebase (badges, themes, checkins, etc.) ──
-let _userDataUnsubscribe = null;
-
-function _watchUserData(userId) {
-  if (!window._fbReady || !window._fbDb) {
-    // Firebase not ready yet — wait for it
-    window.addEventListener('firebase-ready', () => _watchUserData(userId), { once: true });
-    return;
-  }
-  const { ref } = window._fbSDK;
-  const { onValue: fbOnValue } = window.firebase_database;
-  if (!fbOnValue) return;
-
-  if (_userDataUnsubscribe) { _userDataUnsubscribe(); _userDataUnsubscribe = null; }
-
-  _userDataUnsubscribe = fbOnValue(ref(window._fbDb, `users/${userId}`), (snap) => {
-    const data = snap.val();
-    if (!data) return;
-
-    // Sync cloud → localStorage (cloud wins)
-    if (Array.isArray(data.badges)) LS.set('badges', data.badges, 0, true);
-    if (typeof data.xp_spent === 'number') LS.set('xp_spent', data.xp_spent, 0, true);
-    if (Array.isArray(data.unlocked_themes)) LS.set('unlocked_themes', data.unlocked_themes, 0, true);
-    if (typeof data.streak_freeze_available === 'number') LS.set('streak_freeze_available', data.streak_freeze_available, 0, true);
-    if (Array.isArray(data.streak_freezes_used)) LS.set('streak_freezes_used', data.streak_freezes_used, 0, true);
-    if (Array.isArray(data.pomo_sessions)) LS.set('pomo_sessions', data.pomo_sessions, 0, true);
-    if (Array.isArray(data.custom_tasks)) LS.set('custom_tasks', data.custom_tasks, 0, true);
-
-    // Sync bookmarks
-    if (Array.isArray(data.bookmarks)) LS.set('bookmarks', data.bookmarks, 0, true);
-
-    // Sync sticky notes
-    if (Array.isArray(data.stickies)) LS.set('stickies', data.stickies, 0, true);
-
-    // Sync per-lecture notes (stored as notes/{lecId})
-    if (data.notes && typeof data.notes === 'object') {
-      Object.entries(data.notes).forEach(([lecId, text]) => {
-        if (text) LS.set('note_' + lecId, text, 0, true);
-        else LS.del('note_' + lecId, true);
-      });
-    }
-
-    // Sync check-ins
-    if (data.checkins && typeof data.checkins === 'object') {
-      Object.entries(data.checkins).forEach(([date, ci]) => LS.set('checkin_' + date, ci, 0, true));
-    }
-
-    // Apply active theme
-    if (data.active_theme) {
-      LS.set('active_theme', data.active_theme, 0, true);
-      if (typeof Gamification !== 'undefined') Gamification.applyTheme(data.active_theme);
-    }
-
-    // Recheck badges in case new ones arrived
-    if (typeof Gamification !== 'undefined') setTimeout(() => Gamification.recheckBadges(), 100);
-
-    // Re-render notes page if open
-    if (typeof renderNotesPage === 'function') {
-      const np = document.getElementById('pageNotes');
-      if (np && !np.classList.contains('hide')) renderNotesPage();
-    }
-  }, { onlyOnce: false });
-}
-
-// Global write helper used by gamification.js, wellness.js, pomodoro.js
-window._writeUserData = function(userId, updates) {
-  store.writeUserData(userId, updates);
-};
 
 async function checkPin() {
   const input = document.getElementById('pinInput');
@@ -797,21 +696,12 @@ function selectPct(pctVal) {
 }
 
 function logout() {
-  // Stop Pomodoro if running (save the session first)
-  if (typeof PomodoroModule !== 'undefined') {
-    const ps = PomodoroModule.getState();
-    if (ps.running || ps.mode === 'paused') PomodoroModule.stop(true);
-  }
   localStorage.removeItem('streak_user');
-  // Detach Firebase listeners
+  // Detach Firebase listener to prevent memory leak
   if (typeof window._fbUnsubscribe === 'function') {
     window._fbUnsubscribe();
     window._fbUnsubscribe = null;
     window._fbReady = false;
-  }
-  if (typeof _userDataUnsubscribe === 'function') {
-    _userDataUnsubscribe();
-    _userDataUnsubscribe = null;
   }
   store.set({ currentUser: null });
   document.getElementById('mainApp').classList.add('hide');
@@ -922,22 +812,11 @@ function renderProfilePage() {
     return { subj, short: SUBJ_SHORT[subj] || subj, done: subjDone, total: subjLecs.length, pct: Math.round(subjDone / subjLecs.length * 100), color: SUBJ_COLORS[si] || '#888' };
   });
 
-  // Rank among team — uses same scoring as leaderboard (weighted grade score)
+  // Rank among team
   const ranks = MEMBERS.map((mm, i) => {
     const pp = s.progress[i] || {};
-    let totalScore = 0;
-    SUBJECTS.forEach(subj => {
-      const subjLecs = LECTURES.filter(l => l.s === subj);
-      const subjectGrade = parseFloat(subjLecs[0]?.g) || 100;
-      subjLecs.forEach(l => {
-        const val = pp[l.id];
-        if (val !== undefined && val !== null) {
-          totalScore += (subjectGrade / subjLecs.length) * ((parseFloat(val) || 0) / 100);
-        }
-      });
-    });
-    return { i, totalScore };
-  }).sort((a, b) => b.totalScore - a.totalScore);
+    return { i, done: LECTURES.filter(l => pp[l.id] !== undefined && parseFloat(pp[l.id]) > 0).length };
+  }).sort((a, b) => b.done - a.done);
   const rank = ranks.findIndex(r => r.i === s.currentUser) + 1;
 
   c.innerHTML = `<div style="padding:var(--spacing-md);max-width:500px;margin:0 auto;">
@@ -1011,29 +890,9 @@ function renderProfilePage() {
       </div>
     </div>
 
-    <!-- Settings -->
-    <div style="background:var(--surface-1);border:1px solid var(--hairline);padding:12px;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);margin:14px 0;">
-      <div style="font-size:11px;font-weight:800;color:var(--ink);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">⚙️ الخصوصية</div>
-      <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--ink-muted);">
-        <span>ظهورك لزملائك أثناء التركيز (Pomodoro)</span>
-        <label style="position:relative;display:inline-block;width:34px;height:20px;">
-          <input type="checkbox" style="opacity:0;width:0;height:0;" ${typeof PresenceModule !== 'undefined' && PresenceModule.isVisible() ? 'checked' : ''} onchange="if(typeof PresenceModule!=='undefined') PresenceModule.setVisible(this.checked)">
-          <span class="slider-bg"></span>
-          <span class="slider-dot"></span>
-        </label>
-      </div>
-    </div>
-
     <!-- Logout -->
     <button onclick="logout()" style="width:100%;padding:12px;background:rgba(255,0,60,0.08);color:var(--semantic-danger);border:1px solid rgba(255,0,60,0.2);font-size:13px;font-weight:800;cursor:pointer;clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%);font-family:'Cairo',sans-serif;margin-top:8px">🚪 تسجيل خروج</button>
-  </div>
-  <style>
-    .slider-bg { position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background-color:var(--surface-2);transition:.4s;border-radius:20px;border:1px solid var(--hairline); }
-    .slider-dot { position:absolute;content:'';height:14px;width:14px;left:2px;bottom:2px;background-color:var(--ink-muted);transition:.4s;border-radius:50%; }
-    input:checked ~ .slider-bg { background-color: rgba(0, 255, 136, 0.15) !important; border-color: var(--semantic-success) !important; }
-    input:checked ~ .slider-dot { transform: translateX(14px); background-color: var(--semantic-success) !important; }
-  </style>
-  `;
+  </div>`;
 }
 
 // ── 2. REACTIVE UI BINDING ─────────────────────────────
@@ -1359,15 +1218,15 @@ function renderBuyList(state) {
   
   c.innerHTML = data.map(d => {
     return `<div class="lb-card" style="border-color:${d.m.color}60;margin-bottom:12px;padding:12px;">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;border-bottom:1px solid var(--hairline);padding-bottom:10px;position:relative;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:10px;position:relative;">
         <div class="lb-av" style="background:${d.m.color}20;width:34px;height:34px;font-size:16px;">${d.m.emoji}</div>
         
         <div style="display:flex;flex-direction:column;flex:1;">
           <div class="lb-nm" style="color:${d.m.color};font-size:14px;">${d.m.name}</div>
-          <div style="font-size:11px;color:var(--semantic-danger);font-weight:700;">${d.missingLecs.length} محاضرة</div>
+          <div style="font-size:11px;color:var(--rose);font-weight:700;">${d.missingLecs.length} محاضرة</div>
         </div>
 
-        <button onclick="copyBuyList(${d.idx})" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:var(--ink);border-radius:8px;padding:6px 12px;font-size:11px;cursor:pointer;font-family:'Cairo',sans-serif;font-weight:600;display:flex;align-items:center;gap:4px;transition:background 0.2s;">
+        <button onclick="copyBuyList(${d.idx})" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:var(--txt);border-radius:8px;padding:6px 12px;font-size:11px;cursor:pointer;font-family:'Cairo',sans-serif;font-weight:600;display:flex;align-items:center;gap:4px;transition:background 0.2s;">
           <span>📋</span> نسخ
         </button>
       </div>
@@ -1379,10 +1238,10 @@ function renderBuyList(state) {
           return `<div class="sub-lec" style="display:flex;align-items:flex-start;gap:8px;">
             <div style="width:6px;height:6px;border-radius:50%;background:${cColor};flex-shrink:0;margin-top:6px;"></div>
             <div style="display:flex;flex-direction:column;flex:1;gap:4px;">
-              <div style="font-size:12px;font-weight:600;color:var(--ink);line-height:1.5;">${l.t}</div>
+              <div style="font-size:12px;font-weight:600;color:var(--txt);line-height:1.5;">${l.t}</div>
               <div style="display:flex;align-items:center;gap:6px;">
                 <div style="font-size:9px;color:${cColor};background:${cColor}15;padding:1px 6px;border-radius:6px;font-family:'Inter',sans-serif;">${SUBJ_SHORT[l.s] || l.s}</div>
-                ${d.idx === state.currentUser ? `<button onclick="event.stopPropagation();markAsBought(${d.idx}, ${l.id})" style="background:rgba(0,214,143,0.08);border:1px solid rgba(0,214,143,0.25);color:var(--semantic-success);font-size:10px;cursor:pointer;font-weight:800;padding:5px 12px;border-radius:8px;font-family:'Cairo',sans-serif;white-space:nowrap;transition:all 0.2s;">تم الشراء ✅</button>` : ''}
+                ${d.idx === state.currentUser ? `<button onclick="event.stopPropagation();markAsBought(${d.idx}, ${l.id})" style="background:rgba(0,214,143,0.08);border:1px solid rgba(0,214,143,0.25);color:var(--green);font-size:10px;cursor:pointer;font-weight:800;padding:5px 12px;border-radius:8px;font-family:'Cairo',sans-serif;white-space:nowrap;transition:all 0.2s;">تم الشراء ✅</button>` : ''}
               </div>
             </div>
           </div>`;
@@ -1541,7 +1400,7 @@ function renderFinishedList(state) {
       const glowColor  = allStudied ? '#FFB300' : isShared ? 'var(--accent-blue)' : cColor;
 
       html += `<div style="
-        background:linear-gradient(145deg,${glowColor}08,var(--surface-1));
+        background:linear-gradient(145deg,${glowColor}08,#050812);
         border:1px solid ${glowColor}${isShared ? '50' : '25'};
         border-right:4px solid ${glowColor};
         padding:10px 12px;margin-bottom:8px;

@@ -10,8 +10,9 @@
     rel="stylesheet" crossorigin="anonymous">
   <style>
     :root {
-      /* Premium Dark Navy Palette */
+      /* Premium Dark Navy Palette - Retained */
       --canvas: #03050B;
+      /* Slightly darker to simulate a dark surgery/car interior */
       --surface-1: #0A1024;
       --surface-2: #121C3A;
 
@@ -27,33 +28,17 @@
       --hairline: #19254D;
       --hairline-soft: #0E152E;
 
-      /* Semantic colors (also used as named aliases) */
-      --semantic-success: #00FF88;
-      --semantic-danger: #FF003C;
-      --green: #00FF88;
-      --teal: #00C9D4;
-      --gold: #FFB300;
-      --rose: #FF4D8D;
-      --txt3: #8A99B5;
-      --txt2: #c0c8d8;
-      --charcoal: #1c2036;
-      --slate: #4a5568;
-      --brand-coral: #FF6B6B;
-
-      /* Theme-adaptive backgrounds (overridden per theme) */
-      --bg-header: rgba(5, 8, 20, 0.95);
-      --bg-nav: rgba(5, 8, 20, 0.97);
-      --bg-element: #000000;
-      --bg-card: #050812;
-      --bg-sidebar: #000000;
-
-      /* Modern Gradients */
+      /* Modern Gradients replacing the old ones */
       --gradient-violet: linear-gradient(135deg, #0055FF 0%, #00E5FF 100%);
       --gradient-magenta: linear-gradient(135deg, #FF007A 0%, #7928CA 100%);
       --gradient-orange: linear-gradient(135deg, #FFB300 0%, #FF5100 100%);
       --gradient-coral: linear-gradient(135deg, #FF3366 0%, #FF9933 100%);
 
-      /* Spacing */
+      --semantic-success: #00FF88;
+      --semantic-danger: #FF003C;
+      /* Race car brake light / Medical emergency */
+
+      /* Adjusted Spacing */
       --spacing-xxs: 4px;
       --spacing-xs: 6px;
       --spacing-sm: 10px;
@@ -63,7 +48,7 @@
       --spacing-xxl: 32px;
       --spacing-section: 64px;
 
-      /* Radius */
+      /* Aggressive/aerodynamic radius instead of round */
       --radius-xs: 2px;
       --radius-sm: 4px;
       --radius-md: 6px;
@@ -71,7 +56,9 @@
       --radius-xl: 12px;
       --radius-xxl: 16px;
       --radius-pill: 0px;
+      /* Removing pill shape for more aggressive angles */
       --radius-full: 9999px;
+      /* Only for specific dials */
     }
 
     /* Base and Reset */
@@ -346,7 +333,7 @@
       position: sticky;
       top: 0;
       z-index: 100;
-      background: var(--bg-header);
+      background: rgba(5, 8, 20, 0.95);
       backdrop-filter: blur(20px);
       padding: var(--spacing-sm) var(--spacing-md);
       display: flex;
@@ -420,7 +407,7 @@
       left: 0;
       right: 0;
       height: 58px;
-      background: var(--bg-nav);
+      background: rgba(5, 8, 20, 0.97);
       backdrop-filter: blur(20px);
       border-top: 2px solid var(--accent-blue);
       display: flex;
@@ -714,7 +701,7 @@
     }
 
     .lec {
-      background: linear-gradient(145deg, var(--surface-1), var(--bg-card));
+      background: linear-gradient(145deg, var(--surface-1), #050812);
       padding: var(--spacing-md);
       display: flex;
       align-items: flex-start;
@@ -722,9 +709,10 @@
       cursor: pointer;
       position: relative;
       transition: all .2s;
-      box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.3);
+      box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.5);
       border: 1px solid var(--hairline);
       clip-path: polygon(15px 0, 100% 0, calc(100% - 15px) 100%, 0 100%);
+      /* Aerodynamic Skew */
       border-left: 4px solid var(--hairline-soft);
     }
 
@@ -737,7 +725,7 @@
     /* Done State */
     .lec.done {
       border-left: 4px solid var(--semantic-success);
-      background: linear-gradient(145deg, rgba(0, 255, 136, 0.05), var(--bg-card));
+      background: linear-gradient(145deg, rgba(0, 255, 136, 0.05), #050812);
     }
 
     .lec.done::before {
@@ -757,7 +745,7 @@
       height: 32px;
       border-radius: 50%;
       border: 2px solid var(--hairline);
-      background: radial-gradient(circle, var(--bg-card) 40%, transparent 80%);
+      background: radial-gradient(circle, #050812 40%, transparent 80%);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -767,7 +755,7 @@
       color: transparent;
       position: relative;
       transform: rotate(-45deg);
-      box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.4);
+      box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.8);
     }
 
     .lec-check::after {
@@ -816,10 +804,11 @@
 
     .lec-title {
       font-size: 13px;
-      font-weight: 600;
+      font-weight: 700;
       color: var(--ink);
       line-height: 1.4;
-      letter-spacing: 0.3px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
     .lec-meta {
@@ -833,7 +822,7 @@
       font-size: 9px;
       padding: 4px 10px;
       font-weight: 900;
-      background: var(--bg-element);
+      background: #000;
       color: var(--ink-muted);
       border: 1px solid var(--hairline);
       text-transform: uppercase;
@@ -914,7 +903,7 @@
     }
 
     .lb-card {
-      background: linear-gradient(145deg, var(--surface-1), var(--surface-2));
+      background: linear-gradient(145deg, var(--surface-1), #050812);
       padding: var(--spacing-md);
       box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.5);
       border: 1px solid var(--hairline);
@@ -966,7 +955,7 @@
     .lb-av {
       width: 38px;
       height: 38px;
-      background: var(--bg-element);
+      background: #000;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -1000,7 +989,7 @@
 
     .lb-bar-wrap {
       height: 6px;
-      background: var(--bg-element);
+      background: #000;
       overflow: hidden;
       margin-bottom: var(--spacing-xs);
       border: 1px solid var(--hairline-soft);
@@ -1026,7 +1015,7 @@
       display: flex;
       justify-content: space-between;
       padding: 4px 8px;
-      background: var(--surface-2);
+      background: rgba(0, 0, 0, 0.5);
       border: 1px solid var(--hairline);
       text-transform: uppercase;
       clip-path: polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%);
@@ -1050,7 +1039,7 @@
       padding: 10px 14px;
       padding-right: 40px;
       border: 1px solid var(--accent-blue);
-      background: var(--bg-element);
+      background: #000;
       color: var(--ink);
       font-family: 'Inter', 'Cairo', sans-serif;
       font-size: 13px;
@@ -1065,9 +1054,9 @@
     }
 
     .search-input:focus {
-      background: var(--bg-card);
-      border-color: var(--ink);
-      box-shadow: 0 0 15px rgba(0, 229, 255, 0.3), inset 0 2px 4px rgba(0, 0, 0, 0.3);
+      background: #050812;
+      border-color: #fff;
+      box-shadow: 0 0 15px rgba(0, 229, 255, 0.3), inset 0 2px 4px rgba(0, 0, 0, 0.5);
     }
 
     .search-input::placeholder {
@@ -1104,12 +1093,13 @@
     }
 
     #pageFinished {
-      background: var(--surface-1);
+      background: #001f24;
       background-image:
-        linear-gradient(color-mix(in srgb, var(--accent-blue) 5%, transparent) 1px, transparent 1px),
-        linear-gradient(90deg, color-mix(in srgb, var(--accent-blue) 5%, transparent) 1px, transparent 1px);
+        linear-gradient(rgba(0, 255, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 255, 255, 0.05) 1px, transparent 1px);
       background-size: 20px 20px;
-      border: 1px solid var(--hairline);
+      box-shadow: inset 0 0 30px rgba(0, 255, 255, 0.2);
+      border: 1px solid var(--accent-blue);
       padding: var(--spacing-md);
       margin-top: 10px;
       border-radius: 4px;
@@ -1268,7 +1258,7 @@
     }
 
     .modal-box {
-      background: linear-gradient(145deg, var(--surface-1), var(--bg-card));
+      background: linear-gradient(145deg, var(--surface-1), #000);
       width: 90%;
       max-width: 360px;
       padding: var(--spacing-lg);
@@ -1371,7 +1361,7 @@
       left: 12px;
       width: 30px;
       height: 30px;
-      background: var(--bg-element);
+      background: #000;
       border: 1px solid var(--accent-blue);
       display: flex;
       align-items: center;
@@ -1704,108 +1694,6 @@
       letter-spacing: 1px;
     }
 
-    /* Subject Countdown Strip */
-    .subj-cd-strip {
-      width: 100%;
-      z-index: 1;
-      border-top: 1px dashed rgba(255, 0, 60, 0.3);
-      padding-top: var(--spacing-sm);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .subj-cd-label {
-      font-size: 9px;
-      font-weight: 800;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: var(--ink-muted);
-    }
-
-    .subj-cd-name {
-      font-size: 14px;
-      font-weight: 900;
-      color: var(--accent-blue);
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      text-shadow: 0 0 8px rgba(0, 229, 255, 0.5);
-      transition: opacity 0.4s;
-    }
-
-    .subj-cd-date {
-      font-size: 10px;
-      color: var(--ink-muted);
-      letter-spacing: 1px;
-      margin-bottom: 4px;
-    }
-
-    .subj-cd-timer {
-      display: flex;
-      gap: var(--spacing-xs);
-      direction: ltr;
-      justify-content: center;
-    }
-
-    .subj-cd-box {
-      background: rgba(0, 229, 255, 0.05);
-      border-bottom: 2px solid var(--accent-blue);
-      padding: 6px 0;
-      width: 48px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      clip-path: polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%);
-    }
-
-    .subj-cd-box span {
-      font-size: 18px;
-      font-weight: 900;
-      color: var(--accent-blue);
-      line-height: 1.0;
-      text-shadow: 0 0 5px rgba(0, 229, 255, 0.6);
-    }
-
-    .subj-cd-box small {
-      font-size: 8px;
-      color: var(--accent-blue);
-      margin-top: 3px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      opacity: 0.7;
-    }
-
-    .subj-cd-dots {
-      display: flex;
-      gap: 5px;
-      margin-top: 4px;
-    }
-
-    .subj-cd-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: var(--hairline);
-      transition: background 0.4s, transform 0.4s;
-    }
-
-    .subj-cd-dot.active {
-      background: var(--accent-blue);
-      transform: scale(1.3);
-      box-shadow: 0 0 6px rgba(0, 229, 255, 0.7);
-    }
-
-    @keyframes subj-fade-in {
-      from { opacity: 0; transform: translateY(6px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    .subj-cd-anim {
-      animation: subj-fade-in 0.4s ease;
-    }
-
     /* BOTTOM NAV */
     .bnav {
       position: fixed;
@@ -2045,481 +1933,6 @@
         color: #00E5FF !important;
       }
     }
-    /* ─────────────────────────────────────────────────────────────
-   SPACEX DESIGN SYSTEM OVERRIDES
-   Pure black · White ink · Industrial D-DIN/Inter · Ghost-pill CTAs
-   No gradients · No glows · No decorative shadows · No clip-paths
-   ───────────────────────────────────────────────────────────── */
-
-    /* === CANVAS === */
-    [data-theme="spacex"] body {
-      background-color: #000 !important;
-      background-image: none !important;
-      font-family: 'Inter', 'Arial Narrow', Arial, Verdana, sans-serif !important;
-      letter-spacing: 0.32px !important;
-    }
-
-    [data-theme="spacex"] body::after { display: none !important; }
-
-    /* === HEADER / NAV === */
-    [data-theme="spacex"] .app-header {
-      background: rgba(0,0,0,0.96) !important;
-      border-bottom: 1px solid #3a3a3f !important;
-      box-shadow: none !important;
-      clip-path: none !important;
-    }
-
-    [data-theme="spacex"] .ah-name {
-      font-size: 13px !important;
-      font-weight: 700 !important;
-      letter-spacing: 1.17px !important;
-      text-transform: uppercase !important;
-      color: #ffffff !important;
-    }
-
-    [data-theme="spacex"] .ah-stat {
-      font-size: 11px !important;
-      color: #5a5a5f !important;
-      letter-spacing: 0.96px !important;
-      text-transform: uppercase !important;
-    }
-
-    [data-theme="spacex"] .ah-pct {
-      background: transparent !important;
-      border: 1px solid #ffffff !important;
-      color: #ffffff !important;
-      clip-path: none !important;
-      border-radius: 32px !important;
-      font-size: 12px !important;
-      letter-spacing: 1.17px !important;
-      text-shadow: none !important;
-    }
-
-    [data-theme="spacex"] .ah-back,
-    [data-theme="spacex"] .ah-menu {
-      background: transparent !important;
-      border: 1px solid #3a3a3f !important;
-      clip-path: none !important;
-      border-radius: 4px !important;
-      color: #ffffff !important;
-    }
-
-    [data-theme="spacex"] .ah-back:hover,
-    [data-theme="spacex"] .ah-menu:hover {
-      background: #111 !important;
-      border-color: #ffffff !important;
-    }
-
-    /* === BOTTOM NAV === */
-    [data-theme="spacex"] .bottom-nav {
-      background: rgba(0,0,0,0.98) !important;
-      border-top: 1px solid #3a3a3f !important;
-      box-shadow: none !important;
-    }
-
-    [data-theme="spacex"] .bnav-item {
-      letter-spacing: 0.96px !important;
-      text-transform: uppercase !important;
-      font-size: 8px !important;
-    }
-
-    [data-theme="spacex"] .bnav-item.on { color: #ffffff !important; }
-    [data-theme="spacex"] .bnav-item.on::after { background: #ffffff !important; box-shadow: none !important; }
-
-    /* === SIDEBAR === */
-    [data-theme="spacex"] .sidebar {
-      background: #000 !important;
-      border-left: 1px solid #3a3a3f !important;
-      box-shadow: none !important;
-    }
-
-    [data-theme="spacex"] .sidebar-nav-item {
-      font-size: 11px !important;
-      letter-spacing: 1.17px !important;
-      text-transform: uppercase !important;
-      border-bottom: 1px solid #3a3a3f !important;
-    }
-
-    [data-theme="spacex"] .sidebar-nav-item:hover,
-    [data-theme="spacex"] .sidebar-nav-item.on {
-      color: #ffffff !important;
-      background: #0a0a0a !important;
-    }
-
-    /* === USER SELECT === */
-    [data-theme="spacex"] .user-select {
-      background: #000 !important;
-    }
-
-    [data-theme="spacex"] .us-title {
-      background: transparent !important;
-      border: 1px solid #ffffff !important;
-      border-radius: 32px !important;
-      clip-path: none !important;
-      text-shadow: none !important;
-      font-size: 18px !important;
-      letter-spacing: 1.6px !important;
-      padding: 14px 32px !important;
-    }
-
-    [data-theme="spacex"] .us-sub {
-      color: #5a5a5f !important;
-      letter-spacing: 0.96px !important;
-    }
-
-    [data-theme="spacex"] .us-card {
-      background: #0a0a0a !important;
-      border: 1px solid #3a3a3f !important;
-      clip-path: none !important;
-      border-radius: 4px !important;
-      box-shadow: none !important;
-      border-left: 1px solid #3a3a3f !important;
-    }
-
-    [data-theme="spacex"] .us-card:hover,
-    [data-theme="spacex"] .us-card:active {
-      background: #111 !important;
-      border: 1px solid #ffffff !important;
-      transform: none !important;
-      box-shadow: none !important;
-    }
-
-    [data-theme="spacex"] .us-av {
-      border: 1px solid #3a3a3f !important;
-      clip-path: none !important;
-      border-radius: 4px !important;
-      animation: none !important;
-    }
-
-    [data-theme="spacex"] .us-card .nm {
-      font-size: 13px !important;
-      letter-spacing: 1.17px !important;
-    }
-
-    [data-theme="spacex"] .us-card .rl {
-      color: #5a5a5f !important;
-      letter-spacing: 0.96px !important;
-    }
-
-    /* === LECTURE CARDS === */
-    [data-theme="spacex"] .lec {
-      background: #0a0a0a !important;
-      border: 1px solid #3a3a3f !important;
-      border-left: 2px solid #3a3a3f !important;
-      clip-path: none !important;
-      border-radius: 4px !important;
-      box-shadow: none !important;
-      animation: none !important;
-    }
-
-    [data-theme="spacex"] .lec:hover {
-      background: #111 !important;
-      border-color: #ffffff !important;
-      border-left-color: #ffffff !important;
-      transform: none !important;
-      box-shadow: none !important;
-    }
-
-    [data-theme="spacex"] .lec.done {
-      background: #0a0a0a !important;
-      border-left: 2px solid #ffffff !important;
-    }
-
-    [data-theme="spacex"] .lec-title {
-      color: #ffffff !important;
-      text-transform: uppercase !important;
-      letter-spacing: 0.96px !important;
-      font-weight: 700 !important;
-    }
-
-    [data-theme="spacex"] .lec-check {
-      background: #111 !important;
-      border: 1px solid #3a3a3f !important;
-      clip-path: none !important;
-      border-radius: 4px !important;
-      transform: none !important;
-      box-shadow: none !important;
-    }
-
-    [data-theme="spacex"] .lec-check::after {
-      background: #5a5a5f !important;
-    }
-
-    [data-theme="spacex"] .lec.done .lec-check::after {
-      background: #ffffff !important;
-      box-shadow: none !important;
-    }
-
-    [data-theme="spacex"] .lec-check::before {
-      background: #3a3a3f !important;
-    }
-
-    [data-theme="spacex"] .lec.done .lec-check::before {
-      background: #ffffff !important;
-    }
-
-    [data-theme="spacex"] .lec-tag {
-      background: #111 !important;
-      border: 1px solid #3a3a3f !important;
-      clip-path: none !important;
-      border-radius: 32px !important;
-      letter-spacing: 0.96px !important;
-      color: #5a5a5f !important;
-    }
-
-    [data-theme="spacex"] .lt-quiz { color: #f0f0fa !important; border-color: #5a5a5f !important; }
-    [data-theme="spacex"] .lt-link, [data-theme="spacex"] .lt-link2 {
-      background: transparent !important;
-      border: 1px solid #3a3a3f !important;
-      border-radius: 32px !important;
-      color: #ffffff !important;
-    }
-
-    /* === FILTERS / CHIPS === */
-    [data-theme="spacex"] .chip {
-      background: transparent !important;
-      border: 1px solid #3a3a3f !important;
-      clip-path: none !important;
-      border-radius: 32px !important;
-      color: #5a5a5f !important;
-      letter-spacing: 0.96px !important;
-    }
-
-    [data-theme="spacex"] .chip.on {
-      background: #ffffff !important;
-      color: #000000 !important;
-      border-color: #ffffff !important;
-      box-shadow: none !important;
-    }
-
-    /* === SEARCH === */
-    [data-theme="spacex"] .search-input {
-      background: #0a0a0a !important;
-      border: 1px solid #3a3a3f !important;
-      clip-path: none !important;
-      border-radius: 4px !important;
-      color: #ffffff !important;
-      letter-spacing: 0.96px !important;
-    }
-
-    [data-theme="spacex"] .search-input:focus {
-      border-color: #ffffff !important;
-      box-shadow: none !important;
-    }
-
-    /* === PROGRESS BARS === */
-    [data-theme="spacex"] .sp-bar { border-radius: 0 !important; clip-path: none !important; border: none !important; background: #111 !important; }
-    [data-theme="spacex"] .sp-fill { background: #ffffff !important; box-shadow: none !important; }
-    [data-theme="spacex"] .sp-fill::after { display: none !important; }
-    [data-theme="spacex"] .sp-nm { color: #f0f0fa !important; letter-spacing: 0.96px !important; }
-    [data-theme="spacex"] .sp-nm::before { background: #ffffff !important; }
-    [data-theme="spacex"] .sp-pct { color: #ffffff !important; text-shadow: none !important; }
-
-    /* === LEVEL BANNER === */
-    [data-theme="spacex"] .level-banner {
-      background: #0a0a0a !important;
-      border: 1px solid #3a3a3f !important;
-      border-left: 2px solid #ffffff !important;
-      clip-path: none !important;
-      border-radius: 4px !important;
-      box-shadow: none !important;
-    }
-
-    [data-theme="spacex"] .level-banner .lb-phrase {
-      letter-spacing: 1.17px !important;
-      color: #ffffff !important;
-    }
-
-    [data-theme="spacex"] .level-banner .lb-level {
-      color: #5a5a5f !important;
-      letter-spacing: 0.96px !important;
-    }
-
-    /* === COUNTDOWN === */
-    [data-theme="spacex"] .countdown-widget {
-      background: #0a0a0a !important;
-      border: 1px solid #3a3a3f !important;
-      clip-path: none !important;
-      border-radius: 4px !important;
-      box-shadow: none !important;
-    }
-
-    [data-theme="spacex"] .countdown-widget::before { display: none !important; }
-    [data-theme="spacex"] .cd-title { color: #ffffff !important; text-shadow: none !important; animation: none !important; letter-spacing: 1.6px !important; }
-    [data-theme="spacex"] .cd-box { border-bottom: 1px solid #ffffff !important; clip-path: none !important; }
-    [data-theme="spacex"] .cd-box span { text-shadow: none !important; color: #ffffff !important; }
-    [data-theme="spacex"] .cd-box small { color: #5a5a5f !important; letter-spacing: 0.96px !important; }
-
-    /* === LEADERBOARD === */
-    [data-theme="spacex"] #pageLeaderboard {
-      background: #000 !important;
-      background-image: none !important;
-      border-top: 1px solid #3a3a3f !important;
-    }
-
-    [data-theme="spacex"] .lb-title {
-      letter-spacing: 1.6px !important;
-      text-shadow: none !important;
-    }
-
-    [data-theme="spacex"] .lb-card {
-      background: #0a0a0a !important;
-      border: 1px solid #3a3a3f !important;
-      border-left: 2px solid #3a3a3f !important;
-      clip-path: none !important;
-      border-radius: 4px !important;
-      box-shadow: none !important;
-    }
-
-    [data-theme="spacex"] .lb-card.r1 { border-left-color: #ffffff !important; background: #0a0a0a !important; }
-    [data-theme="spacex"] .lb-card.r2 { border-left-color: #5a5a5f !important; }
-    [data-theme="spacex"] .lb-card.r3 { border-left-color: #3a3a3f !important; }
-
-    [data-theme="spacex"] .lb-av {
-      background: #111 !important;
-      border: 1px solid #3a3a3f !important;
-      clip-path: none !important;
-      border-radius: 4px !important;
-    }
-
-    [data-theme="spacex"] .lb-total .n { color: #ffffff !important; text-shadow: none !important; font-style: normal !important; }
-    [data-theme="spacex"] .lb-bar-fill { background: #ffffff !important; box-shadow: none !important; }
-    [data-theme="spacex"] .lb-bar-wrap { border: 1px solid #3a3a3f !important; clip-path: none !important; border-radius: 0 !important; }
-    [data-theme="spacex"] .lb-subj { clip-path: none !important; border-radius: 2px !important; }
-
-    /* === MODALS === */
-    [data-theme="spacex"] .modal-box {
-      background: #0a0a0a !important;
-      border: 1px solid #3a3a3f !important;
-      clip-path: none !important;
-      border-radius: 8px !important;
-      box-shadow: none !important;
-    }
-
-    [data-theme="spacex"] .m-title {
-      letter-spacing: 1.6px !important;
-      text-shadow: none !important;
-    }
-
-    [data-theme="spacex"] .m-close {
-      background: #111 !important;
-      border: 1px solid #3a3a3f !important;
-      clip-path: none !important;
-      border-radius: 4px !important;
-    }
-
-    [data-theme="spacex"] .pct-btn {
-      background: #0a0a0a !important;
-      border: 1px solid #3a3a3f !important;
-      clip-path: none !important;
-      border-radius: 32px !important;
-      letter-spacing: 0.96px !important;
-    }
-
-    [data-theme="spacex"] .pct-btn:hover {
-      background: #111 !important;
-      border-color: #ffffff !important;
-      box-shadow: none !important;
-      transform: none !important;
-    }
-
-    /* === PIN INPUT === */
-    [data-theme="spacex"] .pin-input {
-      background: #0a0a0a !important;
-      border: 1px solid #3a3a3f !important;
-      clip-path: none !important;
-      border-radius: 4px !important;
-      color: #ffffff !important;
-      box-shadow: none !important;
-    }
-
-    /* === TOAST === */
-    [data-theme="spacex"] .toast {
-      background: #ffffff !important;
-      color: #000000 !important;
-      clip-path: none !important;
-      border-radius: 32px !important;
-      box-shadow: none !important;
-      letter-spacing: 1.17px !important;
-    }
-
-    /* === FINISHED PAGE === */
-    [data-theme="spacex"] #pageFinished {
-      background: #000 !important;
-      background-image: none !important;
-      border: 1px solid #3a3a3f !important;
-    }
-
-    [data-theme="spacex"] #pageFinished h2 {
-      text-shadow: none !important;
-      letter-spacing: 1.6px !important;
-      border-bottom-color: #3a3a3f !important;
-    }
-
-
-    [data-theme="vodafone"] body,
-    [data-theme="vodafone"] body::before {
-      background-image: none !important;
-    }
-
-    [data-theme="vodafone"] body::after {
-      display: none !important;
-    }
-
-    [data-theme="vodafone"] .sidebar {
-      background: var(--bg-sidebar) !important;
-    }
-
-    [data-theme="vodafone"] #pageLeaderboard {
-      background: var(--surface-1) !important;
-      background-image: none !important;
-      border-top: 2px dashed var(--accent-blue) !important;
-    }
-
-    [data-theme="vodafone"] #pageLeaderboard .lb-title {
-      color: var(--accent-blue) !important;
-      text-shadow: none !important;
-      border-bottom-color: var(--accent-blue) !important;
-    }
-
-    [data-theme="vodafone"] .lec-title {
-      color: var(--ink) !important;
-    }
-
-    [data-theme="vodafone"] .us-card {
-      background: linear-gradient(90deg, var(--surface-1), var(--surface-2)) !important;
-    }
-
-    [data-theme="vodafone"] .countdown-widget {
-      background: linear-gradient(135deg, var(--surface-1), var(--surface-2)) !important;
-    }
-
-    [data-theme="vodafone"] .lec-check::after {
-      background: var(--ink-muted) !important;
-    }
-
-    [data-theme="vodafone"] .lec.done .lec-check::after {
-      background: var(--semantic-success) !important;
-    }
-
-    [data-theme="vodafone"] .level-banner {
-      background: linear-gradient(90deg, var(--surface-1), var(--surface-2)) !important;
-    }
-
-    [data-theme="vodafone"] .sidebar-nav-item:hover,
-    [data-theme="vodafone"] .sidebar-nav-item.on {
-      color: var(--accent-blue) !important;
-      background: rgba(230, 0, 0, 0.06) !important;
-    }
-
-    [data-theme="vodafone"] .bnav-item.on {
-      color: var(--accent-blue) !important;
-    }
-
-    [data-theme="vodafone"] .bnav-item.on::after {
-      background: var(--accent-blue) !important;
-    }
-
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
@@ -2715,20 +2128,6 @@
           <div class="cd-box"><span id="cd-mins">--</span><small>دقيقة</small></div>
           <div class="cd-box"><span id="cd-secs">--</span><small>ثانية</small></div>
         </div>
-
-        <!-- Per-Subject Rotating Countdown -->
-        <div class="subj-cd-strip">
-          <div class="subj-cd-label" id="subj-cd-label">⏳ الامتحان القادم</div>
-          <div class="subj-cd-name" id="subj-cd-name">---</div>
-          <div class="subj-cd-date" id="subj-cd-date">---</div>
-          <div class="subj-cd-timer">
-            <div class="subj-cd-box"><span id="scd-days">--</span><small>يوم</small></div>
-            <div class="subj-cd-box"><span id="scd-hours">--</span><small>ساعة</small></div>
-            <div class="subj-cd-box"><span id="scd-mins">--</span><small>دقيقة</small></div>
-            <div class="subj-cd-box"><span id="scd-secs">--</span><small>ثانية</small></div>
-          </div>
-          <div class="subj-cd-dots" id="subj-cd-dots"></div>
-        </div>
       </div>
 
       <div class="subj-progress" id="subjProgress"></div>
@@ -2822,128 +2221,21 @@
     </script>
 
     <!-- App Scripts -->
-    <script src="local_store.js?v=24"></script>
-    <script src="firebase_config.js?v=24"></script>
-    <script src="streak_data.js?v=24"></script>
-    <script src="meme_system.js?v=24"></script>
-    <script src="gamification.js?v=24"></script>
-    <script src="streak_app_v2.js?v=24"></script>
-    <script src="pomodoro.js?v=24"></script>
-    <script src="presence.js?v=24"></script>
-    <script src="wellness.js?v=24"></script>
-    <script src="tasks.js?v=24"></script>
-    <script src="analytics.js?v=24"></script>
-    <script src="notes.js?v=24"></script>
-    <script src="social.js?v=24"></script>
+    <script src="local_store.js?v=22"></script>
+    <script src="firebase_config.js?v=22"></script>
+    <script src="streak_data.js?v=22"></script>
+    <script src="meme_system.js?v=22"></script>
+    <script src="gamification.js?v=22"></script>
+    <script src="streak_app_v2.js?v=22"></script>
+    <script src="pomodoro.js?v=22"></script>
+    <script src="wellness.js?v=22"></script>
+    <script src="tasks.js?v=22"></script>
+    <script src="analytics.js?v=22"></script>
+    <script src="notes.js?v=22"></script>
+    <script src="social.js?v=22"></script>
     <script>
-      /* ─── Exam Schedule ─────────────────────────────────────────── */
-      const EXAM_SCHEDULE = [
-        { name: 'Perio & Medicine', date: '21 / 5',  iso: '2026-05-21T10:00:00+03:00' },
-        { name: 'Oral Surgery',     date: '31 / 5',  iso: '2026-05-31T10:00:00+03:00' },
-        { name: 'Prosthesis',       date: '6 / 6',   iso: '2026-06-06T10:00:00+03:00' },
-        { name: 'Crown',            date: '11 / 6',  iso: '2026-06-11T10:00:00+03:00' },
-        { name: 'Endodontics',      date: '16 / 6',  iso: '2026-06-16T10:00:00+03:00' },
-        { name: 'Operative',        date: '21 / 6',  iso: '2026-06-21T10:00:00+03:00' },
-      ];
-
-      /* ─── Build subject dots ──────────────────────────────────────── */
-      (function buildDots() {
-        const dotsEl = document.getElementById('subj-cd-dots');
-        EXAM_SCHEDULE.forEach((_, i) => {
-          const d = document.createElement('div');
-          d.className = 'subj-cd-dot';
-          d.id = 'scd-dot-' + i;
-          dotsEl.appendChild(d);
-        });
-      })();
-
-      /* ─── Subject Countdown — Smart Auto-Advance Logic ───────────── */
-      // Each exam runs 10:00 AM → 1:30 PM (+3:00)
-      // Exam end = same date at 13:30
-      function _examEnd(isoStart) {
-        const d = new Date(isoStart);
-        d.setHours(13, 30, 0, 0);
-        return d;
-      }
-
-      // Returns the index of the currently "active" exam:
-      // - If exam end hasn't passed → this is the active one
-      // - If all done → last index
-      function _getActiveSubjIdx() {
-        const now = Date.now();
-        for (let i = 0; i < EXAM_SCHEDULE.length; i++) {
-          if (_examEnd(EXAM_SCHEDULE[i].iso) > now) return i;
-        }
-        return EXAM_SCHEDULE.length - 1;
-      }
-
-      let _subjIdx = _getActiveSubjIdx();
-
-      function _updateDots(idx) {
-        EXAM_SCHEDULE.forEach((_, i) => {
-          const dot = document.getElementById('scd-dot-' + i);
-          if (dot) dot.className = 'subj-cd-dot' + (i === idx ? ' active' : '');
-        });
-      }
-
-      function _updateSubjTimer() {
-        // Re-calculate active exam every tick (auto-advances after 13:30)
-        const activeIdx = _getActiveSubjIdx();
-        if (activeIdx !== _subjIdx) {
-          // Exam just ended → switch to next
-          _subjIdx = activeIdx;
-          const nameEl = document.getElementById('subj-cd-name');
-          nameEl.classList.remove('subj-cd-anim');
-          void nameEl.offsetWidth;
-          nameEl.classList.add('subj-cd-anim');
-        }
-
-        const exam   = EXAM_SCHEDULE[_subjIdx];
-        const now    = Date.now();
-        const start  = new Date(exam.iso).getTime();
-        const end    = _examEnd(exam.iso).getTime();
-
-        // Update name + date display
-        document.getElementById('subj-cd-name').textContent = exam.name;
-        _updateDots(_subjIdx);
-
-        if (now < start) {
-          // ── Phase 1: before exam starts ──
-          document.getElementById('subj-cd-label').textContent = '⏳ حتى بداية الامتحان';
-          document.getElementById('subj-cd-date').textContent  = '📅 ' + exam.date + '  ·  10:00 AM';
-          const diff = start - now;
-          document.getElementById('scd-days').textContent  = Math.floor(diff / 86400000).toString().padStart(2,'0');
-          document.getElementById('scd-hours').textContent = (Math.floor(diff / 3600000) % 24).toString().padStart(2,'0');
-          document.getElementById('scd-mins').textContent  = (Math.floor(diff / 60000)  % 60).toString().padStart(2,'0');
-          document.getElementById('scd-secs').textContent  = (Math.floor(diff / 1000)   % 60).toString().padStart(2,'0');
-
-        } else if (now >= start && now < end) {
-          // ── Phase 2: exam in progress — count to end ──
-          document.getElementById('subj-cd-label').textContent = '🔴 الامتحان جاري — ينتهي الساعة 1:30';
-          document.getElementById('subj-cd-date').textContent  = '📅 ' + exam.date + '  ·  10:00 → 1:30 PM';
-          const diff = end - now;
-          document.getElementById('scd-days').textContent  = '00';
-          document.getElementById('scd-hours').textContent = (Math.floor(diff / 3600000) % 24).toString().padStart(2,'0');
-          document.getElementById('scd-mins').textContent  = (Math.floor(diff / 60000)  % 60).toString().padStart(2,'0');
-          document.getElementById('scd-secs').textContent  = (Math.floor(diff / 1000)   % 60).toString().padStart(2,'0');
-
-        } else {
-          // ── Phase 3: all exams done ──
-          document.getElementById('subj-cd-label').textContent = '✅ كل الامتحانات خلصت';
-          document.getElementById('subj-cd-date').textContent  = '🎉 مبروك!';
-          document.getElementById('scd-days').textContent  = '00';
-          document.getElementById('scd-hours').textContent = '00';
-          document.getElementById('scd-mins').textContent  = '00';
-          document.getElementById('scd-secs').textContent  = '00';
-        }
-      }
-
-      // Render immediately
-      _updateSubjTimer();
-
-      /* ─── Main Liberation-Day Countdown ──────────────────────────── */
       function updateCountdown() {
-        const target = new Date('2026-06-21T10:00:00+03:00'); // = Operative exam = Liberation Day
+        const target = new Date('2026-06-21T00:00:00+02:00'); // Final Graduation Target // Cairo time
         const now = new Date();
         const diff = target - now;
 
@@ -2980,9 +2272,6 @@
         document.getElementById('cd-hours').textContent = h.toString().padStart(2, '0');
         document.getElementById('cd-mins').textContent = m.toString().padStart(2, '0');
         document.getElementById('cd-secs').textContent = s.toString().padStart(2, '0');
-
-        // also tick subject timer
-        _updateSubjTimer();
       }
       setInterval(updateCountdown, 1000);
       updateCountdown();
