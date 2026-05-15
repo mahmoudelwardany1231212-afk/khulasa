@@ -1167,6 +1167,7 @@ function renderLectures(state) {
         <div class="lec-meta">
           <span class="lec-tag" style="background:${SUBJ_COLORS[ci]}15;color:${SUBJ_COLORS[ci]}">${SUBJ_SHORT[l.s] || l.s}</span>
           <span class="lec-tag lt-quiz">${l.q}</span>
+          ${l.m ? `<span class="lec-tag" style="background:var(--semantic-danger, #ff3b30);color:#fff;font-weight:900;border:1px solid #ff3b30;box-shadow:0 0 8px rgba(255,59,48,0.5)">⚠️ مقالي</span>` : ''}
           ${l.u ? `<a href="${l.u}" target="_blank" onclick="event.stopPropagation()" class="lec-tag lt-link">🔗 المحاضرة</a>` : ''}
           ${l.u2 ? `<a href="${l.u2}" target="_blank" onclick="event.stopPropagation()" class="lec-tag lt-link lt-link2">🔗 البديل</a>` : ''}
           ${l.u3 ? `<a href="${l.u3}" target="_blank" onclick="event.stopPropagation()" class="lec-tag lt-link lt-link3" style="background:rgba(255,165,0,0.15);color:#ff9800;border:1px solid rgba(255,165,0,0.3)">🔗 بديل 2</a>` : ''}
