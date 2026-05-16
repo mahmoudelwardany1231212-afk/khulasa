@@ -31,10 +31,11 @@ const Analytics = (() => {
     if (s.currentUser === null) return {};
     const p = s.progress[s.currentUser] || {};
     const totalLecs = LECTURES.length;
-    const done = LECTURES.filter(l => p[l.id] !== undefined && parseFloat(p[l.id]) > 0).length;
     const perfect = LECTURES.filter(l => parseFloat(p[l.id]) === 100).length;
     const weak = LECTURES.filter(l => { const v = parseFloat(p[l.id]); return v > 0 && v <= 50; }).length;
-    const avgPct = done > 0 ? Math.round(LECTURES.reduce((sum, l) => sum + (parseFloat(p[l.id]) || 0), 0) / totalLecs) : 0;
+    const scoreData = typeof window.getUserScore === 'function' ? window.getUserScore(s.currentUser, s.progress) : { scorePct: 0, done: 0 };
+    const avgPct = scoreData.scorePct;
+    const done = scoreData.done;
     const pomoMins = typeof PomodoroModule !== 'undefined' ? PomodoroModule.getTodayMinutes() : 0;
     const streak = typeof Wellness !== 'undefined' ? Wellness.getStreak() : 0;
     const xp = typeof Gamification !== 'undefined' ? Gamification.getXP() : 0;
@@ -65,11 +66,9 @@ const Analytics = (() => {
     if (typeof store === 'undefined' || typeof MEMBERS === 'undefined' || typeof LECTURES === 'undefined') return [];
     const s = store.get();
     return MEMBERS.map((m, i) => {
-      const p = s.progress[i] || {};
-      const done = LECTURES.filter(l => p[l.id] !== undefined && parseFloat(p[l.id]) > 0).length;
-      const pct = Math.round(done / LECTURES.length * 100);
-      return { m, i, done, pct };
-    }).sort((a, b) => b.done - a.done);
+      const scoreData = typeof window.getUserScore === 'function' ? window.getUserScore(i, s.progress) : { scorePct: 0, totalScoreAchieved: 0, done: 0 };
+      return { m, i, done: scoreData.done, pct: scoreData.scorePct, score: scoreData.totalScoreAchieved };
+    }).sort((a, b) => b.score - a.score);
   }
 
   return { getSubjectStats, getOverallStats, getHeatmapData, getTeamComparison };
