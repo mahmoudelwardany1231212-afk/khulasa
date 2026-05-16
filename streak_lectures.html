@@ -8,6 +8,24 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Inter:wght@400;600;700&display=swap"
     rel="stylesheet" crossorigin="anonymous">
+  <script>
+    // Automatic Cache Buster
+    (function() {
+      var CURRENT_VERSION = "v3_notifications_fix_final";
+      var savedVersion = localStorage.getItem('app_cache_version');
+      if (savedVersion !== CURRENT_VERSION) {
+        localStorage.setItem('app_cache_version', CURRENT_VERSION);
+        if ('caches' in window) {
+          caches.keys().then(function(names) {
+            for (let name of names) caches.delete(name);
+          });
+        }
+        var url = new URL(window.location.href);
+        url.searchParams.set('reload', new Date().getTime());
+        window.location.replace(url.href);
+      }
+    })();
+  </script>
   <style>
     :root {
       /* Premium Dark Navy Palette - Retained */
@@ -2027,7 +2045,7 @@
     <div class="sidebar-nav-item" data-nav="gamification" onclick="navTo('gamification')"><span class="nav-emoji">🏅</span> الإنجازات</div>
     <div class="sidebar-nav-item" data-nav="social" onclick="navTo('social')"><span class="nav-emoji">👥</span> الفريق</div>
     <div class="sidebar-section">الاشعارات</div>
-    <div id="sidebarNotifications" style="padding: 0 16px; display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; max-height: 200px; overflow-y: auto; scrollbar-width: none;"></div>
+    <div class="sidebar-nav-item" data-nav="notifications" onclick="navTo('notifications')"><span class="nav-emoji">🔔</span> الإشعارات</div>
     <div class="sidebar-section">الحساب</div>
     <div class="sidebar-nav-item" data-nav="profile" onclick="navTo('profile')"><span class="nav-emoji">👤</span> البروفايل</div>
     <div class="sidebar-nav-item" onclick="logout();closeSidebar()" style="color:var(--semantic-danger)"><span class="nav-emoji">🚪</span> تسجيل خروج</div>
@@ -2055,6 +2073,7 @@
       <div class="tab" data-tab="analytics" onclick="switchTab('analytics')" style="flex-shrink:0">📊 الإحصائيات</div>
       <div class="tab" data-tab="gamification" onclick="switchTab('gamification')" style="flex-shrink:0">🏅 الإنجازات</div>
       <div class="tab" data-tab="notes" onclick="switchTab('notes')" style="flex-shrink:0">📌 ملاحظات</div>
+      <div class="tab" data-tab="notifications" onclick="switchTab('notifications')" style="flex-shrink:0">🔔 الإشعارات</div>
       <div class="tab" data-tab="social" onclick="switchTab('social')" style="flex-shrink:0">👥 الفريق</div>
       <div class="tab" data-tab="buy" onclick="switchTab('buy')" style="flex-shrink:0">💸 الشراء</div>
     </div>
@@ -2179,6 +2198,9 @@
     <!-- NOTES PAGE -->
     <div id="pageNotes" class="hide"></div>
 
+    <!-- NOTIFICATIONS PAGE -->
+    <div id="pageNotifications" class="hide"></div>
+
     <!-- SOCIAL PAGE -->
     <div id="pageSocial" class="hide"></div>
 
@@ -2226,19 +2248,19 @@
     </script>
 
     <!-- App Scripts -->
-    <script src="local_store.js?v=22"></script>
-    <script src="firebase_config.js?v=22"></script>
-    <script src="streak_data.js?v=22"></script>
-    <script src="meme_system.js?v=22"></script>
-    <script src="gamification.js?v=22"></script>
-    <script src="streak_app_v2.js?v=22"></script>
-    <script src="pomodoro.js?v=22"></script>
-    <script src="wellness.js?v=22"></script>
-    <script src="tasks.js?v=22"></script>
-    <script src="analytics.js?v=22"></script>
-    <script src="notes.js?v=22"></script>
-    <script src="notifications.js?v=22"></script>
-    <script src="social.js?v=22"></script>
+    <script src="local_store.js?v=23"></script>
+    <script src="firebase_config.js?v=23"></script>
+    <script src="streak_data.js?v=23"></script>
+    <script src="meme_system.js?v=23"></script>
+    <script src="gamification.js?v=23"></script>
+    <script src="streak_app_v2.js?v=23"></script>
+    <script src="pomodoro.js?v=23"></script>
+    <script src="wellness.js?v=23"></script>
+    <script src="tasks.js?v=23"></script>
+    <script src="analytics.js?v=23"></script>
+    <script src="notes.js?v=23"></script>
+    <script src="notifications.js?v=23"></script>
+    <script src="social.js?v=23"></script>
     <script>
       function updateCountdown() {
         const target = new Date('2026-06-21T00:00:00+02:00'); // Final Graduation Target // Cairo time
