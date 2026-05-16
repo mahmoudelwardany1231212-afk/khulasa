@@ -1,72 +1,17 @@
 /**
  * pomodoro.js — Pomodoro Timer, Stopwatch, Session History
- * FIXED: Timestamp-based timer (survives screen lock & tab switch)
- * FIXED: State persisted in localStorage → restored on page load/logout
- * FIXED: Page Visibility API re-syncs time when tab becomes visible again
+ * Storage: LS.get/set('pomodoro_sessions'), LS.get/set('pomodoro_prefs')
  */
 
 const PomodoroModule = (() => {
   let _timer = null;
-  let _state = {
-    mode: 'idle',         // 'idle' | 'running' | 'paused' | 'done'
-    seconds: 0,           // calculated from timestamps
-    target: 25 * 60,
-    type: 'pomodoro',
-    running: false,
-    startedAt: null,      // epoch ms when timer last started/resumed
-    pausedTotalMs: 0,     // total ms spent in paused state
-    pausedAt: null        // epoch ms when current pause began
-  };
+  let _state = { mode: 'idle', seconds: 0, target: 25 * 60, type: 'pomodoro', running: false, startedAt: null };
   let _onTick = null;
 
   const DEFAULTS = { workMin: 25, breakMin: 5, longBreakMin: 15, sessionsBeforeLong: 4 };
 
   function getPrefs() { return LS.get('pomo_prefs', DEFAULTS); }
   function setPrefs(p) { LS.set('pomo_prefs', p); }
-
-  // ── Calculate elapsed seconds from timestamps (screen-lock safe) ──
-  function _calcSeconds() {
-    if (!_state.startedAt) return _state.seconds;
-    const pausedMs = (_state.pausedTotalMs || 0);
-    return Math.floor((Date.now() - _state.startedAt - pausedMs) / 1000);
-  }
-
-  // ── Persist running state to localStorage ──
-  function _persistState() {
-    try {
-      const uid = typeof store !== 'undefined' ? store.get().currentUser : null;
-      localStorage.setItem('_pomo_state', JSON.stringify({ ..._state, _savedUserId: uid }));
-    } catch(e) {}
-  }
-
-  function _clearPersistedState() {
-    try { localStorage.removeItem('_pomo_state'); } catch(e) {}
-  }
-
-  // ── Restore timer state on page load (survives logout/refresh) ──
-  function _restoreState() {
-    try {
-      const raw = localStorage.getItem('_pomo_state');
-      if (!raw) return;
-      const saved = JSON.parse(raw);
-
-      // Only restore if it was actually running
-      if (!saved.running || !saved.startedAt || saved.mode !== 'running') return;
-
-      const pausedMs = saved.pausedTotalMs || 0;
-      const elapsed = Math.floor((Date.now() - saved.startedAt - pausedMs) / 1000);
-
-      // If a finite timer already finished while we were away, don't restore
-      if (saved.type !== 'stopwatch' && elapsed >= saved.target) {
-        _clearPersistedState();
-        return;
-      }
-
-      _state = { ...saved, seconds: elapsed };
-      _timer = setInterval(_tick, 1000);
-      _notify();
-    } catch(e) {}
-  }
 
   function start(type = 'pomodoro') {
     const p = getPrefs();
@@ -80,9 +25,6 @@ const PomodoroModule = (() => {
     _state.running = true;
     _state.mode = 'running';
     _state.startedAt = Date.now();
-    _state.pausedTotalMs = 0;
-    _state.pausedAt = null;
-    _persistState();
     _timer = setInterval(_tick, 1000);
     _notify();
   }
@@ -90,19 +32,8 @@ const PomodoroModule = (() => {
   function pause() {
     _state.running = !_state.running;
     _state.mode = _state.running ? 'running' : 'paused';
-    if (_state.running) {
-      // Resuming: account for paused duration
-      if (_state.pausedAt) {
-        _state.pausedTotalMs = (_state.pausedTotalMs || 0) + (Date.now() - _state.pausedAt);
-        _state.pausedAt = null;
-      }
-      _timer = setInterval(_tick, 1000);
-    } else {
-      // Pausing: record when pause started
-      _state.pausedAt = Date.now();
-      clearInterval(_timer);
-    }
-    _persistState();
+    if (_state.running) _timer = setInterval(_tick, 1000);
+    else clearInterval(_timer);
     _notify();
   }
 
@@ -111,31 +42,16 @@ const PomodoroModule = (() => {
     if (save && _state.seconds > 30) {
       _saveSession();
     }
-    _state = {
-      mode: 'idle', seconds: 0, target: 25 * 60,
-      type: 'pomodoro', running: false,
-      startedAt: null, pausedTotalMs: 0, pausedAt: null
-    };
-    _clearPersistedState();
+    _state = { mode: 'idle', seconds: 0, target: 25 * 60, type: 'pomodoro', running: false, startedAt: null };
     _notify();
   }
 
   function _tick() {
-    // Timestamp-based: immune to setInterval drift & screen lock
-    if (_state.startedAt) {
-      _state.seconds = Math.floor(
-        (Date.now() - _state.startedAt - (_state.pausedTotalMs || 0)) / 1000
-      );
-    } else {
-      _state.seconds++;
-    }
-
+    _state.seconds++;
     if (_state.type !== 'stopwatch' && _state.seconds >= _state.target) {
       _onComplete();
-    } else {
-      _persistState();
-      _notify();
     }
+    _notify();
   }
 
   function _onComplete() {
@@ -143,12 +59,9 @@ const PomodoroModule = (() => {
     _state.mode = 'done';
     _state.running = false;
     _saveSession();
-    _clearPersistedState();
     // Browser notification
     if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification('⏰ الخلاصة', {
-        body: _state.type === 'pomodoro' ? 'وقت الراحة!' : 'يلا نرجع للمذاكرة!'
-      });
+      new Notification('⏰ الخلاصة', { body: _state.type === 'pomodoro' ? 'وقت الراحة!' : 'يلا نرجع للمذاكرة!' });
     }
     // Audio beep
     try {
@@ -161,28 +74,23 @@ const PomodoroModule = (() => {
   }
 
   function _saveSession() {
-    const uid = typeof store !== 'undefined' ? store.get().currentUser : null;
     const session = {
       id: LS.uid(),
       type: _state.type,
       duration: _state.seconds,
       date: LS.today(),
       timestamp: _state.startedAt || Date.now(),
-      userId: uid
+      userId: typeof store !== 'undefined' ? store.get().currentUser : null
     };
     LS.push('pomo_sessions', session, 1000);
-
-    // ── Firebase sync: save pomodoro sessions per user ──
-    if (uid !== null && typeof window._writeUserData === 'function') {
-      const all = LS.get('pomo_sessions', []);
-      // Keep last 200 sessions in Firebase (to avoid huge payloads)
-      const recent = all.slice(-200);
-      window._writeUserData(uid, { pomo_sessions: recent });
-    }
 
     // Award XP
     if (typeof Gamification !== 'undefined' && _state.type === 'pomodoro' && _state.seconds >= _state.target * 0.8) {
       Gamification.addXP(25, 'pomodoro_complete');
+    }
+
+    if (_state.type === 'pomodoro' && typeof NotificationsSystem !== 'undefined') {
+      NotificationsSystem.pushEvent('pomodoro', null, _state.seconds);
     }
   }
 
@@ -202,6 +110,7 @@ const PomodoroModule = (() => {
   }
 
   function getState() { return { ..._state }; }
+
   function onUpdate(fn) { _onTick = fn; }
   function _notify() { if (_onTick) _onTick(_state); }
 
@@ -219,32 +128,7 @@ const PomodoroModule = (() => {
     }
   }
 
-  // ── Page Visibility API: re-sync time when tab becomes active ──
-  // This is the core fix for screen lock / app switcher scenarios
-  document.addEventListener('visibilitychange', () => {
-    if (!document.hidden && _state.running && _state.startedAt) {
-      clearInterval(_timer);
-      const pausedMs = _state.pausedTotalMs || 0;
-      _state.seconds = Math.floor((Date.now() - _state.startedAt - pausedMs) / 1000);
-
-      if (_state.type !== 'stopwatch' && _state.seconds >= _state.target) {
-        _onComplete();
-      } else {
-        _timer = setInterval(_tick, 1000);
-        _notify();
-      }
-    }
-  });
-
-  // Restore any in-progress timer from before page load / logout
-  _restoreState();
-
-  return {
-    start, pause, stop,
-    getState, getSessions, getTodaySessions, getTodayMinutes,
-    getPrefs, setPrefs, onUpdate, formatTime, requestNotifPermission,
-    DEFAULTS
-  };
+  return { start, pause, stop, getState, getSessions, getTodaySessions, getTodayMinutes, getPrefs, setPrefs, onUpdate, formatTime, requestNotifPermission, DEFAULTS };
 })();
 
 
@@ -334,9 +218,6 @@ function renderPomodoroPage() {
         </div>
       </div>
 
-      <!-- Presence Panel (Who's Focusing) -->
-      <div id="pomoPresencePanel"></div>
-
       <!-- Recent Sessions -->
       ${todaySessions.length > 0 ? `
         <div style="font-size:11px;font-weight:800;color:var(--ink);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">📋 جلسات اليوم</div>
@@ -351,112 +232,7 @@ function renderPomodoroPage() {
     </div>`;
 
   c.innerHTML = html;
-  // Re-render presence panel
-  if (typeof PresenceModule !== 'undefined') PresenceModule.renderPresencePanel(document.getElementById('pomoPresencePanel'));
 }
 
-// Auto-update: render UI + canvas + music (single combined callback)
-
-// ══════════════════════════════════════════════════════
-// POMO BACKGROUND CANVAS — Racing Speed Lines (SpaceX / Aerospace Theme)
-// ══════════════════════════════════════════════════════
-const PomoCanvas = (() => {
-  let canvas, ctx, raf, lines = [], active = false;
-  const LINE_COUNT = 70;
-
-  function init() {
-    if (canvas) return;
-    canvas = document.createElement('canvas');
-    canvas.id = 'pomoCanvas';
-    Object.assign(canvas.style, {
-      position: 'fixed', top: '0', left: '0',
-      width: '100%', height: '100%',
-      pointerEvents: 'none', zIndex: '1',
-      opacity: '0', transition: 'opacity 1.2s ease'
-    });
-    document.body.appendChild(canvas);
-    ctx = canvas.getContext('2d');
-    resize();
-    window.addEventListener('resize', resize);
-  }
-
-  function resize() {
-    if (!canvas) return;
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-  }
-
-  function makeLine(color) {
-    return {
-      x: Math.random() * window.innerWidth,
-      y: Math.random() * window.innerHeight,
-      length: Math.random() * 150 + 50,
-      speed: Math.random() * 12 + 4,
-      alpha: Math.random() * 0.3 + 0.05,
-      thickness: Math.random() * 1.5 + 0.5,
-      color
-    };
-  }
-
-  function getColor(type) {
-    if (type === 'pomodoro') return '255,60,80'; // Racing Red
-    if (type === 'break' || type === 'longbreak') return '0,255,136'; // Success Green
-    return '0,229,255'; // Aerospace Blue
-  }
-
-  function draw() {
-    if (!ctx) return;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    const st = PomodoroModule.getState();
-    const col = getColor(st.type);
-
-    lines.forEach(p => {
-      p.x -= p.speed; // move leftwards simulating forward speed
-      if (p.x + p.length < 0) {
-        p.x = canvas.width;
-        p.y = Math.random() * canvas.height;
-        p.speed = Math.random() * 12 + 4; // randomize speed on reset
-      }
-
-      ctx.beginPath();
-      // Gradient for speed line effect
-      const grad = ctx.createLinearGradient(p.x, p.y, p.x + p.length, p.y);
-      grad.addColorStop(0, `rgba(${col}, 0)`);
-      grad.addColorStop(0.5, `rgba(${col}, ${p.alpha})`);
-      grad.addColorStop(1, `rgba(${col}, 0)`);
-
-      ctx.moveTo(p.x, p.y);
-      ctx.lineTo(p.x + p.length, p.y);
-      ctx.strokeStyle = grad;
-      ctx.lineWidth = p.thickness;
-      ctx.stroke();
-    });
-
-    raf = requestAnimationFrame(draw);
-  }
-
-  function show(type) {
-    init();
-    const col = getColor(type);
-    lines = Array.from({ length: LINE_COUNT }, () => makeLine(col));
-    active = true;
-    canvas.style.opacity = '1';
-    if (!raf) draw();
-  }
-
-  function hide() {
-    active = false;
-    if (canvas) canvas.style.opacity = '0';
-    setTimeout(() => { cancelAnimationFrame(raf); raf = null; }, 1300);
-  }
-
-  return { show, hide };
-})();
-
-// Combined onUpdate: render + canvas animation
-PomodoroModule.onUpdate(st => {
-  renderPomodoroPage();
-  if (st.mode === 'running') PomoCanvas.show(st.type);
-  else PomoCanvas.hide();
-});
-
+// Auto-update timer display
+PomodoroModule.onUpdate(() => { renderPomodoroPage(); });

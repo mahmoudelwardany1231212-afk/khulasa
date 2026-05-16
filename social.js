@@ -3,23 +3,7 @@
  */
 
 const Social = (() => {
-  // Activity Feed — reads from Firebase progress changes
-  function getActivityFeed() {
-    if (typeof store === 'undefined' || typeof MEMBERS === 'undefined' || typeof LECTURES === 'undefined') return [];
-    const s = store.get();
-    const feed = [];
-    MEMBERS.forEach((m, i) => {
-      const p = s.progress[i] || {};
-      Object.entries(p).forEach(([lecId, pct]) => {
-        if (parseFloat(pct) > 0) {
-          const lec = LECTURES.find(l => l.id == lecId);
-          if (lec) feed.push({ user: m, userId: i, lec, pct: parseFloat(pct), lecId: parseInt(lecId) });
-        }
-      });
-    });
-    // Sort by most recent first (we don't have timestamps, so sort by count as proxy)
-    return feed.reverse().slice(0, 30);
-  }
+  // Old Activity Feed removed, handled by new Real-time Notifications system in sidebar
 
   // Team Challenges — automated challenges
   function getTeamChallenges() {
@@ -60,7 +44,7 @@ const Social = (() => {
     });
   }
 
-  return { getActivityFeed, getTeamChallenges, getPresence };
+  return { getTeamChallenges, getPresence };
 })();
 
 
@@ -69,7 +53,6 @@ function renderSocialPage() {
   const c = document.getElementById('pageSocial');
   if (!c) return;
 
-  const feed = Social.getActivityFeed();
   const challenges = Social.getTeamChallenges();
 
   let html = `<div style="padding:var(--spacing-md);">
@@ -101,25 +84,6 @@ function renderSocialPage() {
       `).join('')}
     </div>
 
-    <!-- Activity Feed -->
-    <div style="font-size:12px;font-weight:800;color:var(--ink);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">📡 آخر الأحداث</div>
-    ${feed.length === 0 ? '<div style="text-align:center;padding:30px;color:var(--ink-muted);font-size:11px">مافيش نشاط لسه</div>' : `
-      ${feed.slice(0, 20).map(f => {
-        const ci = typeof SUBJECTS !== 'undefined' ? SUBJECTS.indexOf(f.lec.s) : 0;
-        const col = typeof SUBJ_COLORS !== 'undefined' ? SUBJ_COLORS[ci] || '#888' : '#888';
-        const pctLabel = f.pct === 100 ? '🔥' : f.pct >= 75 ? '⚡' : f.pct >= 50 ? '📖' : '🌱';
-        return `<div style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;background:var(--surface-1);border:1px solid var(--hairline);clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%);margin-bottom:4px;">
-          <div style="font-size:16px;flex-shrink:0;margin-top:2px">${f.user.emoji}</div>
-          <div style="flex:1;min-width:0;">
-            <div style="font-size:10px;color:var(--ink-muted);margin-bottom:2px">
-              <span style="font-weight:800;color:${f.user.color}">${f.user.name.split(' ')[0]}</span> خلص محاضرة بـ ${f.pct}% ${pctLabel}
-            </div>
-            <div style="font-size:11px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${f.lec.t}</div>
-          </div>
-          <span style="font-size:8px;color:${col};background:${col}15;padding:2px 5px;clip-path:polygon(3px 0,100% 0,calc(100% - 3px) 100%,0 100%);font-weight:800;flex-shrink:0">${typeof SUBJ_SHORT !== 'undefined' ? SUBJ_SHORT[f.lec.s] || f.lec.s : f.lec.s}</span>
-        </div>`;
-      }).join('')}
-    `}
   </div>`;
 
   c.innerHTML = html;

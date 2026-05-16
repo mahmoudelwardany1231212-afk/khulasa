@@ -174,6 +174,10 @@ const store = {
         window._fbSDK = { ref, set, update, remove };
         window._fbReady = true;
 
+        if (typeof NotificationsSystem !== 'undefined') {
+          NotificationsSystem.init();
+        }
+
         this._showSyncBanner();
 
         window._fbUnsubscribe = onValue(ref(db, 'progress'), (snapshot) => {
@@ -615,6 +619,9 @@ function toggleLecture(lecId) {
     });
     // Cloud write — onValue will broadcast to every device
     store._removeFromCloud(uid, lecId);
+    if (typeof NotificationsSystem !== 'undefined') {
+      NotificationsSystem.pushEvent('progress', lecId, 0);
+    }
   } else {
     pendingLecId = lecId;
     document.getElementById('pctModal').classList.add('show');
@@ -639,6 +646,9 @@ function selectPct(pctVal) {
   });
   // Cloud write — onValue will confirm and broadcast to all devices
   store.save(currentUser, lecId, pctVal);
+  if (typeof NotificationsSystem !== 'undefined') {
+    NotificationsSystem.pushEvent('progress', lecId, pctVal);
+  }
 
   const p = store.get().progress[store.get().currentUser];
   const done = Object.keys(p).filter(id => LECTURES.some(l => l.id == id) && parseFloat(p[id]) > 0).length;
