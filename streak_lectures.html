@@ -1712,6 +1712,108 @@
       letter-spacing: 1px;
     }
 
+    /* Subject Countdown Strip */
+    .subj-cd-strip {
+      width: 100%;
+      z-index: 1;
+      border-top: 1px dashed rgba(255, 0, 60, 0.3);
+      padding-top: var(--spacing-sm);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .subj-cd-label {
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--ink-muted);
+    }
+
+    .subj-cd-name {
+      font-size: 14px;
+      font-weight: 900;
+      color: var(--accent-blue);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      text-shadow: 0 0 8px rgba(0, 229, 255, 0.5);
+      transition: opacity 0.4s;
+    }
+
+    .subj-cd-date {
+      font-size: 10px;
+      color: var(--ink-muted);
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+    }
+
+    .subj-cd-timer {
+      display: flex;
+      gap: var(--spacing-xs);
+      direction: ltr;
+      justify-content: center;
+    }
+
+    .subj-cd-box {
+      background: rgba(0, 229, 255, 0.05);
+      border-bottom: 2px solid var(--accent-blue);
+      padding: 6px 0;
+      width: 48px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      clip-path: polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%);
+    }
+
+    .subj-cd-box span {
+      font-size: 18px;
+      font-weight: 900;
+      color: var(--accent-blue);
+      line-height: 1.0;
+      text-shadow: 0 0 5px rgba(0, 229, 255, 0.6);
+    }
+
+    .subj-cd-box small {
+      font-size: 8px;
+      color: var(--accent-blue);
+      margin-top: 3px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      opacity: 0.7;
+    }
+
+    .subj-cd-dots {
+      display: flex;
+      gap: 5px;
+      margin-top: 4px;
+    }
+
+    .subj-cd-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--hairline);
+      transition: background 0.4s, transform 0.4s;
+    }
+
+    .subj-cd-dot.active {
+      background: var(--accent-blue);
+      transform: scale(1.3);
+      box-shadow: 0 0 6px rgba(0, 229, 255, 0.7);
+    }
+
+    @keyframes subj-fade-in {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .subj-cd-anim {
+      animation: subj-fade-in 0.4s ease;
+    }
+
     /* BOTTOM NAV */
     .bnav {
       position: fixed;
@@ -2152,6 +2254,20 @@
           <div class="cd-box"><span id="cd-mins">--</span><small>دقيقة</small></div>
           <div class="cd-box"><span id="cd-secs">--</span><small>ثانية</small></div>
         </div>
+
+        <!-- Per-Subject Rotating Countdown -->
+        <div class="subj-cd-strip">
+          <div class="subj-cd-label" id="subj-cd-label">⏳ الامتحان القادم</div>
+          <div class="subj-cd-name" id="subj-cd-name">---</div>
+          <div class="subj-cd-date" id="subj-cd-date">---</div>
+          <div class="subj-cd-timer">
+            <div class="subj-cd-box"><span id="scd-days">--</span><small>يوم</small></div>
+            <div class="subj-cd-box"><span id="scd-hours">--</span><small>ساعة</small></div>
+            <div class="subj-cd-box"><span id="scd-mins">--</span><small>دقيقة</small></div>
+            <div class="subj-cd-box"><span id="scd-secs">--</span><small>ثانية</small></div>
+          </div>
+          <div class="subj-cd-dots" id="subj-cd-dots"></div>
+        </div>
       </div>
 
       <div class="subj-progress" id="subjProgress"></div>
@@ -2262,8 +2378,114 @@
     <script src="notifications.js?v=23"></script>
     <script src="social.js?v=23"></script>
     <script>
+      /* ─── Exam Schedule ─────────────────────────────────────────── */
+      const EXAM_SCHEDULE = [
+        { name: 'Perio & Medicine', date: '21 / 5',  iso: '2026-05-21T10:00:00+03:00' },
+        { name: 'Oral Surgery',     date: '31 / 5',  iso: '2026-05-31T10:00:00+03:00' },
+        { name: 'Prosthesis',       date: '6 / 6',   iso: '2026-06-06T10:00:00+03:00' },
+        { name: 'Crown',            date: '11 / 6',  iso: '2026-06-11T10:00:00+03:00' },
+        { name: 'Endodontics',      date: '16 / 6',  iso: '2026-06-16T10:00:00+03:00' },
+        { name: 'Operative',        date: '21 / 6',  iso: '2026-06-21T10:00:00+03:00' },
+      ];
+
+      /* ─── Build subject dots ──────────────────────────────────────── */
+      (function buildDots() {
+        const dotsEl = document.getElementById('subj-cd-dots');
+        EXAM_SCHEDULE.forEach((_, i) => {
+          const d = document.createElement('div');
+          d.className = 'subj-cd-dot';
+          d.id = 'scd-dot-' + i;
+          dotsEl.appendChild(d);
+        });
+      })();
+
+      /* ─── Subject Countdown — Smart Auto-Advance Logic ───────────── */
+      // Each exam runs 10:00 AM → 1:30 PM (+3:00)
+      // Exam end = same date at 13:30
+      function _examEnd(isoStart) {
+        const d = new Date(isoStart);
+        d.setHours(13, 30, 0, 0);
+        return d;
+      }
+
+      // Returns the index of the currently "active" exam:
+      // - If exam end hasn't passed → this is the active one
+      // - If all done → last index
+      function _getActiveSubjIdx() {
+        const now = Date.now();
+        for (let i = 0; i < EXAM_SCHEDULE.length; i++) {
+          if (_examEnd(EXAM_SCHEDULE[i].iso) > now) return i;
+        }
+        return EXAM_SCHEDULE.length - 1;
+      }
+
+      let _subjIdx = _getActiveSubjIdx();
+
+      function _updateDots(idx) {
+        EXAM_SCHEDULE.forEach((_, i) => {
+          const dot = document.getElementById('scd-dot-' + i);
+          if (dot) dot.className = 'subj-cd-dot' + (i === idx ? ' active' : '');
+        });
+      }
+
+      function _updateSubjTimer() {
+        // Re-calculate active exam every tick (auto-advances after 13:30)
+        const activeIdx = _getActiveSubjIdx();
+        if (activeIdx !== _subjIdx) {
+          // Exam just ended → switch to next
+          _subjIdx = activeIdx;
+          const nameEl = document.getElementById('subj-cd-name');
+          nameEl.classList.remove('subj-cd-anim');
+          void nameEl.offsetWidth;
+          nameEl.classList.add('subj-cd-anim');
+        }
+
+        const exam   = EXAM_SCHEDULE[_subjIdx];
+        const now    = Date.now();
+        const start  = new Date(exam.iso).getTime();
+        const end    = _examEnd(exam.iso).getTime();
+
+        // Update name + date display
+        document.getElementById('subj-cd-name').textContent = exam.name;
+        _updateDots(_subjIdx);
+
+        if (now < start) {
+          // ── Phase 1: before exam starts ──
+          document.getElementById('subj-cd-label').textContent = '⏳ حتى بداية الامتحان';
+          document.getElementById('subj-cd-date').textContent  = '📅 ' + exam.date + '  ·  10:00 AM';
+          const diff = start - now;
+          document.getElementById('scd-days').textContent  = Math.floor(diff / 86400000).toString().padStart(2,'0');
+          document.getElementById('scd-hours').textContent = (Math.floor(diff / 3600000) % 24).toString().padStart(2,'0');
+          document.getElementById('scd-mins').textContent  = (Math.floor(diff / 60000)  % 60).toString().padStart(2,'0');
+          document.getElementById('scd-secs').textContent  = (Math.floor(diff / 1000)   % 60).toString().padStart(2,'0');
+
+        } else if (now >= start && now < end) {
+          // ── Phase 2: exam in progress — count to end ──
+          document.getElementById('subj-cd-label').textContent = '🔴 الامتحان جاري — ينتهي الساعة 1:30';
+          document.getElementById('subj-cd-date').textContent  = '📅 ' + exam.date + '  ·  10:00 → 1:30 PM';
+          const diff = end - now;
+          document.getElementById('scd-days').textContent  = '00';
+          document.getElementById('scd-hours').textContent = (Math.floor(diff / 3600000) % 24).toString().padStart(2,'0');
+          document.getElementById('scd-mins').textContent  = (Math.floor(diff / 60000)  % 60).toString().padStart(2,'0');
+          document.getElementById('scd-secs').textContent  = (Math.floor(diff / 1000)   % 60).toString().padStart(2,'0');
+
+        } else {
+          // ── Phase 3: all exams done ──
+          document.getElementById('subj-cd-label').textContent = '✅ كل الامتحانات خلصت';
+          document.getElementById('subj-cd-date').textContent  = '🎉 مبروك!';
+          document.getElementById('scd-days').textContent  = '00';
+          document.getElementById('scd-hours').textContent = '00';
+          document.getElementById('scd-mins').textContent  = '00';
+          document.getElementById('scd-secs').textContent  = '00';
+        }
+      }
+
+      // Render immediately
+      _updateSubjTimer();
+
+      /* ─── Main Liberation-Day Countdown ──────────────────────────── */
       function updateCountdown() {
-        const target = new Date('2026-06-21T00:00:00+02:00'); // Final Graduation Target // Cairo time
+        const target = new Date('2026-06-21T10:00:00+03:00'); // = Operative exam = Liberation Day
         const now = new Date();
         const diff = target - now;
 
@@ -2300,6 +2522,9 @@
         document.getElementById('cd-hours').textContent = h.toString().padStart(2, '0');
         document.getElementById('cd-mins').textContent = m.toString().padStart(2, '0');
         document.getElementById('cd-secs').textContent = s.toString().padStart(2, '0');
+
+        // also tick subject timer
+        _updateSubjTimer();
       }
       setInterval(updateCountdown, 1000);
       updateCountdown();
