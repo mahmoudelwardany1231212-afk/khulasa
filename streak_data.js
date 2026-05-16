@@ -265,7 +265,9 @@ const QUIZZES = ["كويز 1", "بين كويز 1 و 2", "كويز 2", "بعد �
 
 
 window.getUserScore = function(uid, progressObj) {
-  const p = progressObj || {};
+  // progressObj is the full state.progress map { 0: {...}, 1: {...} }
+  // Extract this specific user's lecture progress
+  const p = (progressObj && progressObj[uid]) || {};
   let totalScoreAchieved = 0;
   let maxPossibleScore = 0;
   const bySubj = {};

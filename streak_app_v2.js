@@ -651,8 +651,9 @@ function selectPct(pctVal) {
   }
 
   const s = store.get();
-  const scoreData = typeof window.getUserScore === 'function' ? window.getUserScore(s.currentUser, s.progress) : { scorePct: 0 };
+  const scoreData = typeof window.getUserScore === 'function' ? window.getUserScore(s.currentUser, s.progress) : { scorePct: 0, done: 0 };
   const progressPct = scoreData.scorePct;
+  const done = scoreData.done;
 
   showToast(PCT_MSGS[pctVal], pctVal >= 75 ? 'success' : pctVal >= 50 ? 'warn' : 'fire');
 
