@@ -35,12 +35,28 @@ const NotificationsSystem = (() => {
   // ── INIT ──
   function init() {
     if (isInitialized) return;
-    if (!window._fbReady || !window._fbDb || !window.firebase_database) {
-      if (!window._fbReady) {
-        window.addEventListener('firebase-ready', () => init(), { once: true });
-      }
+    
+    // _fbDb is set slightly after 'firebase-ready' fires (inside store.boot's onValue callback)
+    // so we poll with retries to handle the race condition.
+    if (!window._fbDb || !window.firebase_database) {
+      let retries = 0;
+      const poll = setInterval(() => {
+        retries++;
+        if (window._fbDb && window.firebase_database) {
+          clearInterval(poll);
+          _connect();
+        } else if (retries > 30) { // give up after ~3 seconds
+          clearInterval(poll);
+          console.warn('[Notifications] Firebase not ready after 30 retries.');
+        }
+      }, 100);
       return;
     }
+    _connect();
+  }
+
+  function _connect() {
+    if (isInitialized) return;
     
     isInitialized = true;
     const { ref, query, limitToLast, onChildAdded, onChildChanged } = window.firebase_database;

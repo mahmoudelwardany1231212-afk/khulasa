@@ -961,9 +961,12 @@ window.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => { if (typeof showCheckinModal === 'function' && typeof Wellness !== 'undefined' && !Wellness.hasCheckedInToday()) showCheckinModal(); }, 2000);
   // Theme
   if (typeof Gamification !== 'undefined') Gamification.initTheme();
-  // Notifications
-  if (typeof NotificationsSystem !== 'undefined') NotificationsSystem.init();
 });
+
+// Notifications: must start AFTER Firebase is ready (not on DOMContentLoaded)
+window.addEventListener('firebase-ready', () => {
+  if (typeof NotificationsSystem !== 'undefined') NotificationsSystem.init();
+}, { once: true });
 
 function renderHeader(state) {
   const m = MEMBERS[state.currentUser];
