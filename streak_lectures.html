@@ -2675,9 +2675,9 @@
     <!-- Firebase SDK (v9 modular) — fires 'firebase-ready' event when loaded -->
     <script type="module">
       import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
-      import { getDatabase, ref, onValue, get, set, update, remove, runTransaction, push, query, limitToLast, onChildAdded } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js';
+      import { getDatabase, ref, onValue, get, set, update, remove, runTransaction, push, query, limitToLast, onChildAdded, onChildChanged } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js';
       window.firebase_app = { initializeApp, getApps };
-      window.firebase_database = { getDatabase, ref, onValue, get, set, update, remove, runTransaction, push, query, limitToLast, onChildAdded };
+      window.firebase_database = { getDatabase, ref, onValue, get, set, update, remove, runTransaction, push, query, limitToLast, onChildAdded, onChildChanged };
       window.dispatchEvent(new Event('firebase-ready'));
     </script>
 

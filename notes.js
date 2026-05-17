@@ -87,6 +87,11 @@ function _saveLecNote(lecId) {
   Notes.setNote(lecId, text);
   document.getElementById('noteModal').remove();
   store.notify(); // re-render lecture cards to show 📝 indicator
+  
+  if (text && text.trim() && typeof NotificationsSystem !== 'undefined') {
+    NotificationsSystem.pushEvent('note', lecId, text.trim());
+  }
+  
   if (typeof showToast === 'function') showToast('💾 الملاحظة محفوظة', 'success');
 }
 

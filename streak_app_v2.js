@@ -639,6 +639,10 @@ function selectPct(pctVal) {
   });
   // Cloud write — onValue will confirm and broadcast to all devices
   store.save(currentUser, lecId, pctVal);
+  
+  if (typeof NotificationsSystem !== 'undefined') {
+    NotificationsSystem.pushEvent('progress', lecId, pctVal);
+  }
 
   const p = store.get().progress[store.get().currentUser];
   const done = Object.keys(p).filter(id => LECTURES.some(l => l.id == id) && parseFloat(p[id]) > 0).length;
