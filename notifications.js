@@ -36,23 +36,19 @@ const NotificationsSystem = (() => {
   function init() {
     if (isInitialized) return;
     
-    // _fbDb is set slightly after 'firebase-ready' fires (inside store.boot's onValue callback)
-    // so we poll with retries to handle the race condition.
-    if (!window._fbDb || !window.firebase_database) {
-      let retries = 0;
-      const poll = setInterval(() => {
-        retries++;
-        if (window._fbDb && window.firebase_database) {
-          clearInterval(poll);
-          _connect();
-        } else if (retries > 30) { // give up after ~3 seconds
-          clearInterval(poll);
-          console.warn('[Notifications] Firebase not ready after 30 retries.');
-        }
-      }, 100);
-      return;
-    }
-    _connect();
+    // Poll until both Firebase AND the store are fully ready.
+    // _fbDb is set inside store.boot's onValue callback — small delay after firebase-ready.
+    let retries = 0;
+    const poll = setInterval(() => {
+      retries++;
+      if (window._fbDb && window.firebase_database && typeof window.store !== 'undefined') {
+        clearInterval(poll);
+        _connect();
+      } else if (retries > 60) { // give up after ~6 seconds
+        clearInterval(poll);
+        console.warn('[Notifications] Firebase or store not ready after 60 retries.');
+      }
+    }, 100);
   }
 
   function _connect() {
@@ -81,7 +77,8 @@ const NotificationsSystem = (() => {
       }
 
       if (initialLoadDone) {
-        if (!store || store.get().currentUser !== evt.userId) {
+        const _s = window.store;
+        if (!_s || _s.get().currentUser !== evt.userId) {
           playPopSound();
           showAppToast(evt);
         }
@@ -110,9 +107,9 @@ const NotificationsSystem = (() => {
   // ── PUSH EVENT ──
   function pushEvent(type, targetId, value) {
     if (!window._fbReady || !window._fbDb || !window.firebase_database) return;
-    if (typeof store === 'undefined') return;
-    const s = store.get();
-    if (s.currentUser === null) return;
+    if (typeof window.store === 'undefined') return;
+    const s = window.store.get();
+    if (s.currentUser === null || s.currentUser === undefined) return;
     try {
       const { ref, push, set } = window.firebase_database;
       const db = window._fbDb;
@@ -133,9 +130,9 @@ const NotificationsSystem = (() => {
   // ── ADD REACTION ──
   function addReaction(eventId, emoji) {
     if (!window._fbReady || !window._fbDb || !window.firebase_database) return;
-    if (typeof store === 'undefined') return;
-    const s = store.get();
-    if (s.currentUser === null) return;
+    if (typeof window.store === 'undefined') return;
+    const s = window.store.get();
+    if (s.currentUser === null || s.currentUser === undefined) return;
     
     try {
       const { ref, update } = window.firebase_database;

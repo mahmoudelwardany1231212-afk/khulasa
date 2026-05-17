@@ -307,6 +307,8 @@ const store = {
   }
 };
 
+// Expose store globally so other modules (notifications.js, social.js, etc.) can access it
+window.store = store;
 
 // ── CONSTANTS & GAMIFICATION ───────────────────────────
 const SUBJ_COLORS = ['#00C9D4','#F5C842','#FF4D8D','#8B5CF6','#F97316','#06B6D4','#10B981'];
