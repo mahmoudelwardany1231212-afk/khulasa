@@ -258,7 +258,8 @@ const MEMBERS = [
   { name: "عبدالحميد رافت", role: "The Academic", roleAr: "الأكاديمي",  emoji: "📚", color: "#FF4D8D", color2: "#B5005E" },
   { name: "حسن علي",      role: "The Specialist", roleAr: "المختص",    emoji: "🎯", color: "#8B5CF6", color2: "#6D28D9" },
   { name: "جمال",      role: "The Expert", roleAr: "الخبير",    emoji: "✨", color: "#10B981", color2: "#059669" },
-  { name: "محمد ايمن", role: "The Achiever", roleAr: "المتفوق", emoji: "💪", color: "#FF6B35", color2: "#CC4400" }
+  { name: "محمد ايمن", role: "The Achiever", roleAr: "المتفوق", emoji: "💪", color: "#FF6B35", color2: "#CC4400" },
+  { name: "ابو رفاعي", role: "The Legend", roleAr: "الأسطورة", emoji: "🦅", color: "#E91E63", color2: "#AD1457", pin: "7777" }
 ];
 
 const SUBJECTS = [...new Set(LECTURES.map(l => l.s))];
