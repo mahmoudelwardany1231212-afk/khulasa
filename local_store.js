@@ -29,7 +29,7 @@ const LS = {
       const data = ttlMs > 0 ? { v: value, _ttl: Date.now() + ttlMs } : value;
       localStorage.setItem(this._p + key, JSON.stringify(data));
       if (this._fbHook && !this._noSync) {
-        try { this._fbHook(key, value); } catch(e) {}
+        try { this._fbHook(key, value); } catch (e) { }
       }
     } catch (e) { console.warn('[LS] Write failed:', key, e); }
   },
@@ -37,7 +37,7 @@ const LS = {
   del(key) {
     localStorage.removeItem(this._p + key);
     if (this._fbHook && !this._noSync) {
-      try { this._fbHook(key, null); } catch(e) {}
+      try { this._fbHook(key, null); } catch (e) { }
     }
   },
 
