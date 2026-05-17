@@ -727,7 +727,7 @@ function setQuizFilter(v) {
 function switchTab(tab) {
   if(DEBUG_MODE) console.log('[Router] Switching to tab:', tab);
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t.dataset.tab === tab));
-  const pages = ['Lectures','Leaderboard','Buy','Finished','Pomodoro','Tasks','Analytics','Gamification','Notes','Social','Profile'];
+  const pages = ['Lectures','Leaderboard','Buy','Finished','Pomodoro','Tasks','Analytics','Gamification','Notes','Social','Profile','Notifications'];
   pages.forEach(p => {
     const el = document.getElementById('page' + p);
     if (el) el.classList.toggle('hide', tab !== p.toLowerCase());
@@ -739,6 +739,7 @@ function switchTab(tab) {
   if (tab === 'gamification' && typeof Gamification !== 'undefined') { Gamification.recheckBadges(); if (typeof renderGamificationPage === 'function') renderGamificationPage(); }
   if (tab === 'notes' && typeof renderNotesPage === 'function') renderNotesPage();
   if (tab === 'social' && typeof renderSocialPage === 'function') renderSocialPage();
+  if (tab === 'notifications' && typeof NotificationsSystem !== 'undefined') NotificationsSystem.renderPage();
   if (tab === 'finished') { if (typeof renderWellnessWidget === 'function') renderWellnessWidget(); }
   if (tab === 'profile') renderProfilePage();
 
@@ -960,6 +961,8 @@ window.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => { if (typeof showCheckinModal === 'function' && typeof Wellness !== 'undefined' && !Wellness.hasCheckedInToday()) showCheckinModal(); }, 2000);
   // Theme
   if (typeof Gamification !== 'undefined') Gamification.initTheme();
+  // Notifications
+  if (typeof NotificationsSystem !== 'undefined') NotificationsSystem.init();
 });
 
 function renderHeader(state) {
