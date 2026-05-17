@@ -11,7 +11,9 @@
   <script>
     // Automatic Cache Buster
     (function() {
-      var CURRENT_VERSION = "v3_notifications_fix_final";
+      var CURRENT_VERSION = "v5_vodafone_full_fix";
+
+
       var savedVersion = localStorage.getItem('app_cache_version');
       if (savedVersion !== CURRENT_VERSION) {
         localStorage.setItem('app_cache_version', CURRENT_VERSION);
@@ -33,6 +35,23 @@
       /* Slightly darker to simulate a dark surgery/car interior */
       --surface-1: #0A1024;
       --surface-2: #121C3A;
+
+      /* Aliases for backward compatibility with old variable names */
+      --rose: var(--semantic-danger);
+      --green: var(--semantic-success);
+      --gold: #FFB300;
+      --teal: var(--accent-blue);
+      --txt: var(--ink);
+      --txt2: var(--ink-muted);
+      --txt3: var(--ink-muted);
+      --bg: var(--canvas);
+      --card: var(--surface-1);
+      --border: var(--hairline);
+      --navy: var(--canvas);
+      --navy2: var(--surface-1);
+      --teal2: #007A85;
+      --rose2: #B5005E;
+      --gold2: #C49A10;
 
       --primary: #ffffff;
       --primary-pressed: #e6e6e6;
@@ -122,6 +141,176 @@
     .hide {
       display: none !important;
     }
+
+    /* ═══════════════════════════════════════════════════════════════
+       VODAFONE LIGHT THEME OVERRIDES
+       Applied via [data-theme="vodafone"] set by gamification.js
+       Fixes hardcoded dark colors that break the light UI.
+    ═══════════════════════════════════════════════════════════════ */
+
+    /* 1. Body — remove dark grid pattern, use clean light background */
+    [data-theme="vodafone"] body {
+      background-image: none;
+      background-color: #f4f4f4;
+      color: var(--ink);
+    }
+
+    /* 2. Remove CRT scanline overlay (looks awful on white) */
+    [data-theme="vodafone"] body::after {
+      display: none;
+    }
+
+    /* 3. Header — was hardcoded rgba(5,8,20,0.95) */
+    [data-theme="vodafone"] .app-header {
+      background: rgba(255,255,255,0.97) !important;
+      border-bottom-color: #e60000;
+      box-shadow: 0 2px 10px rgba(230,0,0,0.08);
+    }
+
+    /* 4. Bottom nav — was hardcoded rgba(5,8,20,0.97) */
+    [data-theme="vodafone"] .bottom-nav {
+      background: rgba(255,255,255,0.97) !important;
+      border-top-color: #e60000;
+      box-shadow: 0 -2px 10px rgba(230,0,0,0.06);
+    }
+
+    /* 5. Sidebar */
+    [data-theme="vodafone"] .sidebar {
+      background: #fff;
+      box-shadow: -4px 0 20px rgba(0,0,0,0.1);
+    }
+    [data-theme="vodafone"] .sidebar-overlay {
+      background: rgba(0,0,0,0.3);
+    }
+
+    /* 6. Lecture cards — #050812 hardcoded dark */
+    [data-theme="vodafone"] .lec {
+      background: linear-gradient(145deg, #fff, #f5f5f5) !important;
+      box-shadow: 2px 2px 8px rgba(0,0,0,0.08);
+    }
+    [data-theme="vodafone"] .lec:hover {
+      background: linear-gradient(145deg, #f9f9f9, #fff) !important;
+      box-shadow: -2px 4px 12px rgba(230,0,0,0.1);
+    }
+    [data-theme="vodafone"] .lec.done {
+      background: linear-gradient(145deg, rgba(0,214,143,0.05), #f5f5f5) !important;
+    }
+    [data-theme="vodafone"] .lec-check {
+      background: radial-gradient(circle, #f5f5f5 40%, transparent 80%);
+    }
+
+    /* 7. Subject progress bars background */
+    [data-theme="vodafone"] .sp-bar {
+      background: repeating-linear-gradient(90deg, #e8e8e8 0, #e8e8e8 4px, #f4f4f4 4px, #f4f4f4 6px);
+      border-color: #d8d8d8;
+    }
+
+    /* 8. User-select / login cards */
+    [data-theme="vodafone"] .user-select {
+      background: #f4f4f4;
+    }
+    [data-theme="vodafone"] .us-card {
+      background: linear-gradient(90deg, #f0f0f0, #fff);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    [data-theme="vodafone"] .us-card:hover {
+      background: linear-gradient(90deg, #fff, rgba(230,0,0,0.05));
+    }
+    [data-theme="vodafone"] .us-title {
+      background: #f0f0f0;
+      color: #25282b;
+    }
+
+    /* 9. Chips / filter buttons */
+    [data-theme="vodafone"] .chip {
+      background: #fff;
+      border-color: #ddd;
+      color: #555;
+    }
+    [data-theme="vodafone"] .chip.on {
+      background: rgba(230,0,0,0.08);
+      color: #e60000;
+      border-color: #e60000;
+      box-shadow: inset 0 0 8px rgba(230,0,0,0.1);
+    }
+
+    /* 10. Level banner */
+    [data-theme="vodafone"] .level-banner {
+      background: rgba(255,255,255,0.8) !important;
+      border-color: rgba(0,0,0,0.1) !important;
+    }
+
+    /* 11. Modals — was dark by default */
+    [data-theme="vodafone"] .modal-overlay {
+      background: rgba(0,0,0,0.4);
+    }
+    [data-theme="vodafone"] .modal-box {
+      background: #fff !important;
+      border-color: #e0e0e0 !important;
+    }
+    [data-theme="vodafone"] .pct-btn {
+      background: #f5f5f5 !important;
+      color: #25282b !important;
+      border-color: #ddd !important;
+    }
+    [data-theme="vodafone"] .pct-btn:hover {
+      background: rgba(230,0,0,0.08) !important;
+      border-color: #e60000 !important;
+    }
+
+    /* 12. Toast notifications */
+    [data-theme="vodafone"] #toast {
+      background: #fff;
+      color: #25282b;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    }
+
+    /* 13. PIN modal input */
+    [data-theme="vodafone"] #pinInput {
+      background: #f5f5f5;
+      color: #25282b;
+      border-color: #ddd;
+    }
+
+    /* 14. Leaderboard cards */
+    [data-theme="vodafone"] .lb-card {
+      background: linear-gradient(145deg, #fff, #f5f5f5) !important;
+      box-shadow: 2px 4px 12px rgba(0,0,0,0.06) !important;
+    }
+
+    /* 15. Nav items active state color should be Vodafone red */
+    [data-theme="vodafone"] .bnav-item.on {
+      color: #e60000;
+    }
+    [data-theme="vodafone"] .bnav-item.on::after {
+      background: #e60000;
+      box-shadow: 0 0 8px rgba(230,0,0,0.4);
+    }
+    [data-theme="vodafone"] .sidebar-nav-item:hover,
+    [data-theme="vodafone"] .sidebar-nav-item.on {
+      color: #e60000;
+      background: rgba(230,0,0,0.06);
+    }
+    [data-theme="vodafone"] .ah-back:hover,
+    [data-theme="vodafone"] .ah-menu:hover {
+      background: #e60000;
+      color: #fff;
+    }
+    [data-theme="vodafone"] .ah-back,
+    [data-theme="vodafone"] .ah-menu {
+      background: #f5f5f5;
+      border-color: #ddd;
+      color: #25282b;
+    }
+
+    /* 16. Buy list copy button */
+    [data-theme="vodafone"] .lb-card button[onclick*="copyBuyList"] {
+      background: rgba(230,0,0,0.06) !important;
+      border-color: rgba(230,0,0,0.2) !important;
+      color: #e60000 !important;
+    }
+
+
 
     /* ─────────────────────────────────────────────────────────────
    ANIMATIONS
@@ -2057,7 +2246,136 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <!-- VODAFONE LIGHT THEME — HIGH-PRIORITY OVERRIDES (placed last to win cascade) -->
+  <style>
+    /* ═══════════════ VODAFONE OVERRIDE PATCH v2 ═══════════════
+       All rules use !important to beat inline styles & dark-mode defaults.
+    ══════════════════════════════════════════════════════════ */
+
+    /* ── Body background ── */
+    [data-theme="vodafone"] body {
+      background-image: none !important;
+      background-color: #f4f4f4 !important;
+    }
+    [data-theme="vodafone"] body::after { display: none !important; }
+
+    /* ── Countdown widget ── */
+    [data-theme="vodafone"] .countdown-widget {
+      background: linear-gradient(135deg, #fff5f5, #fff0f0) !important;
+      border-color: #e60000 !important;
+      box-shadow: 0 4px 20px rgba(230,0,0,0.12) !important;
+    }
+    [data-theme="vodafone"] .countdown-widget::before {
+      background: repeating-linear-gradient(45deg, rgba(230,0,0,0.04) 0, rgba(230,0,0,0.04) 10px, transparent 10px, transparent 20px) !important;
+    }
+    [data-theme="vodafone"] .cd-box { background: rgba(230,0,0,0.06) !important; }
+    [data-theme="vodafone"] .cd-box span { color: #c00 !important; text-shadow: none !important; }
+    [data-theme="vodafone"] .cd-title { text-shadow: none !important; }
+
+    /* ── Leaderboard cards ── */
+    [data-theme="vodafone"] .lb-card {
+      background: #fff !important;
+      border-color: rgba(0,0,0,0.1) !important;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08) !important;
+    }
+    [data-theme="vodafone"] .lb-card.r1 { border-left-color: #FFB300 !important; }
+    [data-theme="vodafone"] .lb-card.r2 { border-left-color: #b0b0b0 !important; }
+    [data-theme="vodafone"] .lb-card.r3 { border-left-color: #cd7f32 !important; }
+
+    /* Subject score bars inside leaderboard */
+    [data-theme="vodafone"] .lb-subjects {
+      background: #f5f5f5 !important;
+      border-radius: 6px;
+    }
+    [data-theme="vodafone"] .lb-subj {
+      border-bottom-color: #e8e8e8 !important;
+    }
+    [data-theme="vodafone"] .lb-subj span:first-child { color: #555 !important; }
+
+    /* Progress bar track */
+    [data-theme="vodafone"] .lb-bar-wrap {
+      background: #e8e8e8 !important;
+    }
+
+    /* ── Finished/Shared lectures cards (inline bg uses #050812) ── */
+    [data-theme="vodafone"] #finishedCards > div {
+      background: linear-gradient(145deg, #fff, #f7f7f7) !important;
+    }
+
+    /* ── Buy list cards ── */
+    [data-theme="vodafone"] #buyCards .lb-card {
+      background: #fff !important;
+    }
+    [data-theme="vodafone"] #buyCards button {
+      background: rgba(230,0,0,0.06) !important;
+      border-color: rgba(230,0,0,0.2) !important;
+      color: #e60000 !important;
+    }
+
+    /* ── Level banner ── */
+    [data-theme="vodafone"] #levelBanner .level-banner {
+      background: linear-gradient(135deg, rgba(230,0,0,0.05), rgba(230,0,0,0.02)) !important;
+      border-color: rgba(230,0,0,0.2) !important;
+    }
+
+    /* ── Meme box ── */
+    [data-theme="vodafone"] .meme-box {
+      background: #fff !important;
+      background-image: none !important;
+    }
+
+    /* ── Copy button in lb-cards (white-on-white fix) ── */
+    [data-theme="vodafone"] button[style*="rgba(255,255,255,0.08)"],
+    [data-theme="vodafone"] button[style*="rgba(255, 255, 255, 0.08)"] {
+      background: #f5f5f5 !important;
+      border-color: #ddd !important;
+      color: #333 !important;
+    }
+
+    /* ── Subject progress strip on main page ── */
+    [data-theme="vodafone"] .sp-bar {
+      background: #e5e5e5 !important;
+    }
+
+    /* ── Inline style text visibility on dark cards ── */
+    [data-theme="vodafone"] #finishedCards [style*="rgba(255,255,255,0.05)"],
+    [data-theme="vodafone"] #finishedCards [style*="rgba(255, 255, 255, 0.05)"] {
+      background: rgba(0,0,0,0.04) !important;
+    }
+    [data-theme="vodafone"] #finishedCards [style*="rgba(255,255,255,0.02)"],
+    [data-theme="vodafone"] #finishedCards [style*="rgba(255, 255, 255, 0.02)"] {
+      background: rgba(0,0,0,0.03) !important;
+      border-color: rgba(0,0,0,0.12) !important;
+    }
+
+    /* ── Member cards (user select screen) ── */
+    [data-theme="vodafone"] .us-card {
+      background: linear-gradient(90deg, #f0f0f0, #fff) !important;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+    }
+
+    /* ── Wellness / check-in cards ── */
+    [data-theme="vodafone"] #finishedCards,
+    [data-theme="vodafone"] #pageSocial,
+    [data-theme="vodafone"] #pageNotifications,
+    [data-theme="vodafone"] #pageGamification,
+    [data-theme="vodafone"] #pageTasks,
+    [data-theme="vodafone"] #pageAnalytics,
+    [data-theme="vodafone"] #pageNotes,
+    [data-theme="vodafone"] #pagePomodoro {
+      color: var(--ink);
+    }
+
+    /* ── Fix any dark inline background cards across all module pages ── */
+    [data-theme="vodafone"] [style*="background:linear-gradient(145deg"],
+    [data-theme="vodafone"] [style*="background: linear-gradient(145deg"] {
+      filter: none;
+    }
+  </style>
+
 </head>
+
 
 <body>
 
@@ -2364,20 +2682,24 @@
     </script>
 
     <!-- App Scripts -->
-    <script src="local_store.js??v=24"></script>
-    <script src="firebase_config.js??v=24"></script>
-    <script src="streak_data.js??v=24"></script>
-    <script src="meme_system.js??v=24"></script>
-    <script src="gamification.js??v=24"></script>
-    <script src="streak_app_v2.js??v=24"></script>
-    <script src="pomodoro.js??v=24"></script>
-    <script src="wellness.js??v=24"></script>
-    <script src="tasks.js??v=24"></script>
-    <script src="analytics.js??v=24"></script>
-    <script src="notes.js??v=24"></script>
-    <script src="notifications.js??v=24"></script>
-    <script src="social.js??v=24"></script>
+    <script src="local_store.js?v=27"></script>
+    <script src="firebase_config.js?v=27"></script>
+    <script src="streak_data.js?v=27"></script>
+    <script src="meme_system.js?v=27"></script>
+    <script src="gamification.js?v=27"></script>
+    <script src="streak_app_v2.js?v=27"></script>
+    <script src="pomodoro.js?v=27"></script>
+    <script src="wellness.js?v=27"></script>
+    <script src="tasks.js?v=27"></script>
+    <script src="analytics.js?v=27"></script>
+    <script src="notes.js?v=27"></script>
+    <script src="notifications.js?v=27"></script>
+    <script src="presence.js?v=27"></script>
+    <script src="social.js?v=27"></script>
     <script>
+      /* ─── Local PIN fallback (used when Firebase is offline) ────────── */
+      window._localPins = ["4444", "0000", "1111", "3333", "2222", "6666"];
+
       /* ─── Exam Schedule ─────────────────────────────────────────── */
       const EXAM_SCHEDULE = [
         { name: 'Perio & Medicine', date: '21 / 5',  iso: '2026-05-21T10:00:00+03:00' },

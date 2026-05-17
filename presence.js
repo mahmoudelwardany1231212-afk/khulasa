@@ -3,6 +3,7 @@
  * - Writes focus status to Firebase /presence/{userId} when Pomodoro starts
  * - Reads all members' statuses in real-time
  * - Renders "زملاؤك يذاكرون الآن" panel in the Pomodoro page
+ * - Shows browser notifications when a teammate starts studying
  * - Profile toggle to disable broadcasting your own status
  */
 
@@ -68,9 +69,41 @@ const PresenceModule = (() => {
     const rootRef = _sdk().ref(_db(), 'presence');
     _unsubscribeFn = _dbLib().onValue(rootRef, (snap) => {
       const data = snap.val() || {};
+      const oldStatus = _membersStatus;
       _membersStatus = data;
+      
+      // Check for new focusers and send notifications
+      const myId = typeof store !== 'undefined' ? store.get().currentUser : null;
+      for (const uid in data) {
+        if (data[uid] && data[uid].mode === 'focus') {
+          // If this person just started focusing (didn't exist or wasn't focusing before)
+          if (!oldStatus[uid] || oldStatus[uid].mode !== 'focus') {
+            if (parseInt(uid) !== myId && data[uid].startedAt > Date.now() - 60000) { // Only if started within the last minute
+               _notifyTeammateStarted(data[uid].name || 'زميل', data[uid].emoji || '👤');
+            }
+          }
+        }
+      }
+
       _refreshPresenceUI();
     });
+  }
+
+  function _notifyTeammateStarted(name, emoji) {
+    if ('Notification' in window && Notification.permission === 'granted') {
+      const messages = [
+        `دخل كابينة السباق الآن! 🏎️`,
+        `داس بنزين وبدأ جلسة تركيز! 🚀`,
+        `شغل وضع الطيران وبدأ يذاكر! ✈️`,
+        `بقى أونلاين وبدأ يفرم في المنهج! 🔥`,
+        `فتح العداد ومستنيك تحصله! ⏱️`
+      ];
+      const msg = messages[Math.floor(Math.random() * messages.length)];
+      new Notification(`🔥 الخلاصة في المصاصة`, { 
+        body: `${emoji} زميلك ${name} ${msg}`,
+        icon: 'https://cdn-icons-png.flaticon.com/512/3141/3141416.png'
+      });
+    }
   }
 
   function stopListening() {

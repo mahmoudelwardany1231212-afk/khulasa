@@ -38,19 +38,9 @@ const Wellness = (() => {
   function useFreeze() {
     const available = getFreezeCount();
     if (available <= 0) return false;
-    const newAvailable = available - 1;
-    LS.set('streak_freeze_available', newAvailable);
+    LS.set('streak_freeze_available', available - 1);
     const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayStr = yesterday.toISOString().split('T')[0];
-    LS.update('streak_freezes_used', arr => { arr.push(yesterdayStr); return arr; }, []);
-    // ── Firebase sync ──
-    const uid = typeof store !== 'undefined' ? store.get().currentUser : null;
-    if (uid !== null && typeof window._writeUserData === 'function') {
-      window._writeUserData(uid, {
-        streak_freeze_available: newAvailable,
-        streak_freezes_used: LS.get('streak_freezes_used', [])
-      });
-    }
+    LS.update('streak_freezes_used', arr => { arr.push(yesterday.toISOString().split('T')[0]); return arr; }, []);
     return true;
   }
 
@@ -76,11 +66,6 @@ const Wellness = (() => {
     const data = { mood, focus, date: LS.today(), timestamp: Date.now() };
     setCheckin(data);
     if (typeof Gamification !== 'undefined') Gamification.addXP(10, 'daily_checkin');
-    // ── Firebase sync ──
-    const uid = typeof store !== 'undefined' ? store.get().currentUser : null;
-    if (uid !== null && typeof window._writeUserData === 'function') {
-      window._writeUserData(uid, { ['checkins/' + LS.today()]: data });
-    }
     return data;
   }
 
@@ -89,49 +74,8 @@ const Wellness = (() => {
 
 
 // ── CHECK-IN MODAL ──
-// Called after login. Waits for Firebase user data to load before deciding
-// whether to show the modal (prevents re-asking on a second device same day).
 function showCheckinModal() {
-  // If already checked in (from localStorage / cached Firebase data), don't show
   if (Wellness.hasCheckedInToday()) return;
-
-  const uid = typeof store !== 'undefined' ? store.get().currentUser : null;
-
-  // If Firebase is ready, do a ONE-TIME direct read from Firebase before showing
-  // This handles the case where the user checked in on another device today
-  if (uid !== null && window._fbReady && window._fbDb && window._fbSDK) {
-    const { ref } = window._fbSDK;
-    const { get } = window.firebase_database || {};
-    if (get) {
-      get(ref(window._fbDb, `users/${uid}/checkins/${LS.today()}`)).then(snap => {
-        const cloudCheckin = snap.val();
-        if (cloudCheckin) {
-          // Already checked in from another device today — save locally and skip modal
-          LS.set('checkin_' + LS.today(), cloudCheckin);
-          return;
-        }
-        // Not checked in anywhere → show the modal
-        _renderCheckinModal();
-      }).catch(() => {
-        // Firebase read failed → fall back to showing the modal
-        _renderCheckinModal();
-      });
-      return; // wait for the async get() above
-    }
-  }
-
-  // Firebase not ready yet — wait up to 3 seconds for it, then show anyway
-  let waited = 0;
-  const poll = setInterval(() => {
-    waited += 300;
-    if (Wellness.hasCheckedInToday()) { clearInterval(poll); return; } // synced in time
-    if (waited >= 3000) { clearInterval(poll); _renderCheckinModal(); } // give up waiting
-    else if (window._fbReady) { clearInterval(poll); showCheckinModal(); } // retry now ready
-  }, 300);
-}
-
-function _renderCheckinModal() {
-  if (Wellness.hasCheckedInToday()) return; // double-check
   const overlay = document.createElement('div');
   overlay.id = 'checkinModal';
   overlay.className = 'modal-overlay show';
@@ -165,12 +109,11 @@ function _renderCheckinModal() {
         `).join('')}
       </div>
 
-      <button onclick="if(window._checkinMood&&window._checkinFocus){Wellness.doCheckin(window._checkinMood,window._checkinFocus);document.getElementById('checkinModal').remove();if(typeof showToast==='function')showToast('تم التسجيل! يلا بينا 💪','success')}" style="width:100%;padding:14px;background:var(--accent-blue);color:#000;border:none;font-size:14px;font-weight:900;cursor:pointer;clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%);font-family:'Cairo',sans-serif;text-transform:uppercase;letter-spacing:1px">✅ يلا نبدأ اليوم</button>
+      <button onclick="if(window._checkinMood&&window._checkinFocus){Wellness.doCheckin(window._checkinMood,window._checkinFocus);document.getElementById('checkinModal').remove();if(typeof showToast==='function')showToast('تم التسجيل! يلا بينا 💪','success')}" style="width:100%;padding:14px;background:var(--accent-blue);color:var(--ink);border:none;font-size:14px;font-weight:900;cursor:pointer;clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%);font-family:'Cairo',sans-serif;text-transform:uppercase;letter-spacing:1px">✅ يلا نبدأ اليوم</button>
     </div>`;
 
   document.body.appendChild(overlay);
 }
-
 
 // ── WELLNESS DASHBOARD RENDERER ──
 function renderWellnessWidget() {

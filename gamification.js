@@ -41,59 +41,9 @@ const Gamification = (() => {
 
   const THEMES = [
     { id: 'default', name: 'Racing HUD', cost: 0, unlocked: true },
-    { id: 'vodafone', name: 'Vodafone Red', cost: 500, vars: {
-        '--canvas': '#f7f7f7',
-        '--surface-1': '#ececec',
-        '--surface-2': '#e0e0e0',
-        '--accent-blue': '#e60000',
-        '--ink': '#1a1a1a',
-        '--ink-muted': '#5c5c5c',
-        '--hairline': '#cccccc',
-        '--hairline-soft': '#d8d8d8',
-        '--semantic-success': '#007a4d',
-        '--semantic-danger': '#cc0000',
-        '--green': '#007a4d',
-        '--rose': '#cc0000',
-        '--gold': '#c47f00',
-        '--teal': '#006b8f',
-        '--txt3': '#777777',
-        '--txt2': '#444444',
-        '--bg-header': 'rgba(240, 240, 240, 0.97)',
-        '--bg-nav': 'rgba(247, 247, 247, 0.98)',
-        '--bg-element': '#d8d8d8',
-        '--bg-card': '#e8e8e8',
-        '--bg-sidebar': '#f0f0f0',
-    }},
-    { id: 'spotify', name: 'Spotify Green', cost: 800, vars: {
-        '--canvas': '#121212', '--surface-1': '#181818', '--surface-2': '#1f1f1f',
-        '--accent-blue': '#1ed760', '--ink': '#ffffff', '--ink-muted': '#b3b3b3',
-        '--hairline': '#4d4d4d', '--bg-header': 'rgba(18,18,18,0.97)',
-        '--bg-nav': 'rgba(18,18,18,0.98)', '--bg-element': '#0a0a0a', '--bg-card': '#0d0d0d',
-    }},
-    { id: 'spacex', name: 'SpaceX Dark', cost: 1200, vars: {
-        '--canvas': '#000000',
-        '--surface-1': '#0a0a0a',
-        '--surface-2': '#111111',
-        '--accent-blue': '#ffffff',
-        '--ink': '#ffffff',
-        '--ink-muted': '#5a5a5f',
-        '--hairline': '#3a3a3f',
-        '--hairline-soft': '#2a2a2f',
-        '--semantic-success': '#ffffff',
-        '--semantic-danger': '#ffffff',
-        '--green': '#ffffff',
-        '--rose': '#aaaaaa',
-        '--gold': '#ffffff',
-        '--teal': '#cccccc',
-        '--txt3': '#5a5a5f',
-        '--txt2': '#f0f0fa',
-        '--bg-header': 'rgba(0,0,0,0.96)',
-        '--bg-nav': 'rgba(0,0,0,0.98)',
-        '--bg-element': '#111111',
-        '--bg-card': '#0a0a0a',
-        '--bg-sidebar': '#000000',
-        '--gradient-violet': '#ffffff',
-    }},
+    { id: 'vodafone', name: 'Vodafone Red', cost: 500, vars: { '--canvas': '#ffffff', '--surface-1': '#f2f2f2', '--surface-2': '#ffffff', '--accent-blue': '#e60000', '--ink': '#25282b', '--ink-muted': '#7e7e7e', '--hairline': '#e0e0e0', '--semantic-success': '#00D68F', '--semantic-danger': '#e60000' }},
+    { id: 'spotify', name: 'Spotify Green', cost: 800, vars: { '--canvas': '#121212', '--surface-1': '#181818', '--surface-2': '#1f1f1f', '--accent-blue': '#1ed760', '--ink': '#ffffff', '--ink-muted': '#b3b3b3', '--hairline': '#4d4d4d', '--semantic-success': '#1ed760', '--semantic-danger': '#ff4444' }},
+    { id: 'spacex', name: 'Spasex Dark', cost: 1200, vars: { '--canvas': '#000000', '--surface-1': '#0a0a0a', '--surface-2': '#000000', '--accent-blue': '#ffffff', '--ink': '#ffffff', '--ink-muted': '#5a5a5f', '--hairline': '#3a3a3f', '--semantic-success': '#00FF88', '--semantic-danger': '#FF003C' }},
   ];
 
   /**
@@ -193,13 +143,7 @@ const Gamification = (() => {
         newBadge = b;
       }
     });
-    const badgeArr = [...unlocked];
-    LS.set('badges', badgeArr);
-    // ── Firebase sync ──
-    const uid = typeof store !== 'undefined' ? store.get().currentUser : null;
-    if (uid !== null && typeof window._writeUserData === 'function') {
-      window._writeUserData(uid, { badges: badgeArr });
-    }
+    LS.set('badges', [...unlocked]);
     if (newBadge && typeof showToast === 'function') {
       setTimeout(() => showToast(`${newBadge.emoji} بادج جديد: ${newBadge.name}!`, 'epic'), 500);
     }
@@ -214,20 +158,13 @@ const Gamification = (() => {
   function unlockTheme(id) {
     const theme = THEMES.find(t => t.id === id);
     if (!theme) return false;
+    // Themes cost XP but we can't "subtract" dynamic XP.
+    // Use a "spent XP" ledger instead.
     const spent = LS.get('xp_spent', 0);
     const available = computeXP() - spent;
     if (available < theme.cost) return false;
-    const newSpent = spent + theme.cost;
-    LS.set('xp_spent', newSpent);
+    LS.set('xp_spent', spent + theme.cost);
     LS.update('unlocked_themes', arr => { if (!arr.includes(id)) arr.push(id); return arr; }, ['default']);
-    // ── Firebase sync ──
-    const uid = typeof store !== 'undefined' ? store.get().currentUser : null;
-    if (uid !== null && typeof window._writeUserData === 'function') {
-      window._writeUserData(uid, {
-        xp_spent: newSpent,
-        unlocked_themes: LS.get('unlocked_themes', ['default'])
-      });
-    }
     return true;
   }
   function getAvailableXP() { return computeXP() - LS.get('xp_spent', 0); }
@@ -236,28 +173,15 @@ const Gamification = (() => {
     const theme = THEMES.find(t => t.id === id);
     if (theme && theme.vars) {
       Object.entries(theme.vars).forEach(([k, v]) => document.documentElement.style.setProperty(k, v));
-      document.documentElement.setAttribute('data-theme', id);
     } else {
-      ['--canvas','--surface-1','--surface-2','--accent-blue','--ink','--ink-muted','--hairline',
-       '--hairline-soft','--semantic-success','--semantic-danger','--green','--rose','--gold',
-       '--teal','--txt3','--txt2','--bg-header','--bg-nav','--bg-element','--bg-card','--bg-sidebar'
-      ].forEach(k => document.documentElement.style.removeProperty(k));
-      document.documentElement.removeAttribute('data-theme');
+      ['--canvas','--surface-1','--surface-2','--accent-blue','--ink','--ink-muted','--hairline','--semantic-success','--semantic-danger'].forEach(k => document.documentElement.style.removeProperty(k));
     }
-    // ── Firebase sync ──
-    const uid = typeof store !== 'undefined' ? store.get().currentUser : null;
-    if (uid !== null && typeof window._writeUserData === 'function') {
-      window._writeUserData(uid, { active_theme: id });
-    }
+    // Set data-theme for CSS-level overrides (e.g. Vodafone light mode)
+    document.documentElement.setAttribute('data-theme', id);
   }
   function initTheme() { applyTheme(getActiveTheme()); recheckBadges(); }
-  function resetStore() {
-    LS.set('xp_spent', 0);
-    LS.set('unlocked_themes', ['default']);
-    applyTheme('default');
-  }
 
-  return { XP_PER_LECTURE, BADGES, LEVELS, THEMES, getXP, addXP, getLevel, getNextLevel, getUnlockedBadges, recheckBadges, getActiveTheme, getUnlockedThemes, unlockTheme, getAvailableXP, applyTheme, initTheme, computeXP, resetStore };
+  return { XP_PER_LECTURE, BADGES, LEVELS, THEMES, getXP, addXP, getLevel, getNextLevel, getUnlockedBadges, recheckBadges, getActiveTheme, getUnlockedThemes, unlockTheme, getAvailableXP, applyTheme, initTheme, computeXP };
 })();
 
 
@@ -340,21 +264,26 @@ function renderGamificationPage() {
             <div style="font-size:10px;color:var(--ink-muted)">${t.cost === 0 ? 'مجاني' : t.cost + ' XP'}</div>
           </div>
           ${active ? '<div style="font-size:10px;color:var(--accent-blue);font-weight:900">✓ مفعّل</div>' :
-            unlocked ? `<button onclick="Gamification.applyTheme('${t.id}');renderGamificationPage()" style="padding:5px 10px;background:var(--accent-blue);color:#000;border:none;font-size:10px;font-weight:800;cursor:pointer;clip-path:polygon(4px 0,100% 0,calc(100% - 4px) 100%,0 100%);font-family:'Cairo',sans-serif">تفعيل</button>` :
-            canBuy ? `<button onclick="if(Gamification.unlockTheme('${t.id}')){Gamification.applyTheme('${t.id}');renderGamificationPage()}" style="padding:5px 10px;background:#FFB300;color:#000;border:none;font-size:10px;font-weight:800;cursor:pointer;clip-path:polygon(4px 0,100% 0,calc(100% - 4px) 100%,0 100%);font-family:'Cairo',sans-serif">🔓 شراء</button>` :
+            unlocked ? `<button onclick="Gamification.applyTheme('${t.id}');renderGamificationPage()" style="padding:5px 10px;background:var(--accent-blue);color:var(--ink);border:none;font-size:10px;font-weight:800;cursor:pointer;clip-path:polygon(4px 0,100% 0,calc(100% - 4px) 100%,0 100%);font-family:'Cairo',sans-serif">تفعيل</button>` :
+            canBuy ? `<button onclick="if(Gamification.unlockTheme('${t.id}')){Gamification.applyTheme('${t.id}');renderGamificationPage()}" style="padding:5px 10px;background:#FFB300;color:var(--ink);border:none;font-size:10px;font-weight:800;cursor:pointer;clip-path:polygon(4px 0,100% 0,calc(100% - 4px) 100%,0 100%);font-family:'Cairo',sans-serif">🔓 شراء</button>` :
             `<div style="font-size:9px;color:var(--ink-muted)">🔒 محتاج ${t.cost - availableXP} XP كمان</div>`
           }
         </div>`;
       }).join('')}
     </div>
 
-    <!-- Reset Store Button -->
-    <div style="margin-top:24px;text-align:center;">
-      <button onclick="if(confirm('متأكد إنك عايز ترجع كل الثيمات اللي اشتريتها؟ النقاط هترجعلك تاني وتقدر تشتري من جديد.')){Gamification.resetStore();renderGamificationPage()}" style="padding:10px 20px;background:var(--surface-2);color:var(--semantic-danger);border:1px solid var(--semantic-danger);font-size:12px;font-weight:800;cursor:pointer;clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%);font-family:'Cairo',sans-serif;transition:all 0.2s">
-        🔄 استرجاع الـ XP (تصفير المتجر)
-      </button>
-    </div>
+    <!-- Reset Shop -->
+    <button onclick="resetThemeShop()" style="width:100%;padding:12px;background:rgba(255,0,60,0.08);color:var(--semantic-danger);border:1px solid rgba(255,0,60,0.2);font-size:13px;font-weight:800;cursor:pointer;clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%);font-family:'Cairo',sans-serif;margin-top:8px">🔄 استرجاع الـ XP (تصفير المتجر)</button>
   </div>`;
 
   c.innerHTML = html;
+}
+
+function resetThemeShop() {
+  if (!confirm('هل أنت متأكد؟ سيتم استرجاع كل XP المشتريات وتصفير المتجر.')) return;
+  LS.set('xp_spent', 0);
+  LS.set('unlocked_themes', ['default']);
+  LS.set('active_theme', 'default');
+  if (typeof Gamification !== 'undefined') { Gamification.initTheme(); Gamification.recheckBadges(); }
+  renderGamificationPage();
 }

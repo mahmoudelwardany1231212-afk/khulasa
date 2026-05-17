@@ -111,8 +111,16 @@ const PomodoroModule = (() => {
 
   function getState() { return { ..._state }; }
 
-  function onUpdate(fn) { _onTick = fn; }
-  function _notify() { if (_onTick) _onTick(_state); }
+  function onUpdate(fn) {
+    if (!_onTick) { _onTick = []; }
+    if (typeof _onTick === 'function') { _onTick = [_onTick]; }
+    _onTick.push(fn);
+  }
+  function _notify() {
+    if (!_onTick) return;
+    const cbs = Array.isArray(_onTick) ? _onTick : [_onTick];
+    cbs.forEach(fn => fn(_state));
+  }
 
   function formatTime(secs) {
     const h = Math.floor(secs / 3600);
@@ -177,10 +185,10 @@ function renderPomodoroPage() {
       <div style="display:flex;gap:8px;justify-content:center;margin-bottom:20px;">
         ${isIdle || isDone ? `
           <button onclick="PomodoroModule.start('pomodoro');PomodoroModule.requestNotifPermission()" style="flex:1;max-width:120px;padding:12px;background:var(--semantic-danger);color:var(--canvas);border:none;font-size:13px;font-weight:800;cursor:pointer;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);font-family:'Cairo',sans-serif;text-transform:uppercase;letter-spacing:1px">🍅 تركيز</button>
-          <button onclick="PomodoroModule.start('break')" style="flex:1;max-width:120px;padding:12px;background:var(--semantic-success);color:#000;border:none;font-size:13px;font-weight:800;cursor:pointer;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);font-family:'Cairo',sans-serif;text-transform:uppercase;letter-spacing:1px">☕ راحة</button>
-          <button onclick="PomodoroModule.start('stopwatch')" style="flex:1;max-width:120px;padding:12px;background:var(--accent-blue);color:#000;border:none;font-size:13px;font-weight:800;cursor:pointer;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);font-family:'Cairo',sans-serif;text-transform:uppercase;letter-spacing:1px">⏱️ حر</button>
+          <button onclick="PomodoroModule.start('break')" style="flex:1;max-width:120px;padding:12px;background:var(--semantic-success);color:var(--ink);border:none;font-size:13px;font-weight:800;cursor:pointer;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);font-family:'Cairo',sans-serif;text-transform:uppercase;letter-spacing:1px">☕ راحة</button>
+          <button onclick="PomodoroModule.start('stopwatch')" style="flex:1;max-width:120px;padding:12px;background:var(--accent-blue);color:var(--ink);border:none;font-size:13px;font-weight:800;cursor:pointer;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);font-family:'Cairo',sans-serif;text-transform:uppercase;letter-spacing:1px">⏱️ حر</button>
         ` : `
-          <button onclick="PomodoroModule.pause()" style="flex:1;max-width:140px;padding:14px;background:${isPaused ? 'var(--accent-blue)' : '#FFB300'};color:#000;border:none;font-size:14px;font-weight:900;cursor:pointer;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);font-family:'Cairo',sans-serif;text-transform:uppercase;letter-spacing:1px">${isPaused ? '▶ استمر' : '⏸ وقف'}</button>
+          <button onclick="PomodoroModule.pause()" style="flex:1;max-width:140px;padding:14px;background:${isPaused ? 'var(--accent-blue)' : '#FFB300'};color:var(--ink);border:none;font-size:14px;font-weight:900;cursor:pointer;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);font-family:'Cairo',sans-serif;text-transform:uppercase;letter-spacing:1px">${isPaused ? '▶ استمر' : '⏸ وقف'}</button>
           <button onclick="PomodoroModule.stop()" style="flex:1;max-width:140px;padding:14px;background:var(--surface-2);color:var(--ink);border:1px solid var(--hairline);font-size:14px;font-weight:900;cursor:pointer;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);font-family:'Cairo',sans-serif;text-transform:uppercase;letter-spacing:1px">⏹ إنهاء</button>
         `}
       </div>
@@ -218,6 +226,9 @@ function renderPomodoroPage() {
         </div>
       </div>
 
+      <!-- Presence Panel (Who's Focusing) -->
+      <div id="pomoPresencePanel"></div>
+
       <!-- Recent Sessions -->
       ${todaySessions.length > 0 ? `
         <div style="font-size:11px;font-weight:800;color:var(--ink);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">📋 جلسات اليوم</div>
@@ -232,7 +243,110 @@ function renderPomodoroPage() {
     </div>`;
 
   c.innerHTML = html;
+  
+  // Re-render presence panel
+  if (typeof PresenceModule !== 'undefined') PresenceModule.renderPresencePanel(document.getElementById('pomoPresencePanel'));
 }
 
+// ══════════════════════════════════════════════════════
+// POMO BACKGROUND CANVAS — Racing Speed Lines
+// ══════════════════════════════════════════════════════
+const PomoCanvas = (() => {
+  let canvas, ctx, raf, lines = [], active = false;
+  const LINE_COUNT = 70;
+
+  function init() {
+    if (canvas) return;
+    canvas = document.createElement('canvas');
+    canvas.id = 'pomoCanvas';
+    Object.assign(canvas.style, {
+      position: 'fixed', top: '0', left: '0',
+      width: '100%', height: '100%',
+      pointerEvents: 'none', zIndex: '1',
+      opacity: '0', transition: 'opacity 1.2s ease'
+    });
+    document.body.appendChild(canvas);
+    ctx = canvas.getContext('2d');
+    resize();
+    window.addEventListener('resize', resize);
+  }
+
+  function resize() {
+    if (!canvas) return;
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+
+  function makeLine(color) {
+    return {
+      x: Math.random() * window.innerWidth,
+      y: Math.random() * window.innerHeight,
+      length: Math.random() * 150 + 50,
+      speed: Math.random() * 12 + 4,
+      alpha: Math.random() * 0.3 + 0.05,
+      thickness: Math.random() * 1.5 + 0.5,
+      color
+    };
+  }
+
+  function getColor(type) {
+    if (type === 'pomodoro') return '255,60,80'; // Racing Red
+    if (type === 'break' || type === 'longbreak') return '0,255,136'; // Success Green
+    return '0,229,255'; // Aerospace Blue
+  }
+
+  function draw() {
+    if (!ctx) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const st = PomodoroModule.getState();
+    const col = getColor(st.type);
+
+    lines.forEach(p => {
+      p.x -= p.speed; // move leftwards simulating forward speed
+      if (p.x + p.length < 0) {
+        p.x = canvas.width;
+        p.y = Math.random() * canvas.height;
+        p.speed = Math.random() * 12 + 4; // randomize speed on reset
+      }
+
+      ctx.beginPath();
+      // Gradient for speed line effect
+      const grad = ctx.createLinearGradient(p.x, p.y, p.x + p.length, p.y);
+      grad.addColorStop(0, `rgba(${col}, 0)`);
+      grad.addColorStop(0.5, `rgba(${col}, ${p.alpha})`);
+      grad.addColorStop(1, `rgba(${col}, 0)`);
+
+      ctx.moveTo(p.x, p.y);
+      ctx.lineTo(p.x + p.length, p.y);
+      ctx.strokeStyle = grad;
+      ctx.lineWidth = p.thickness;
+      ctx.stroke();
+    });
+
+    raf = requestAnimationFrame(draw);
+  }
+
+  function show(type) {
+    init();
+    const col = getColor(type);
+    lines = Array.from({ length: LINE_COUNT }, () => makeLine(col));
+    active = true;
+    canvas.style.opacity = '1';
+    if (!raf) draw();
+  }
+
+  function hide() {
+    active = false;
+    if (canvas) canvas.style.opacity = '0';
+    setTimeout(() => { cancelAnimationFrame(raf); raf = null; }, 1300);
+  }
+
+  return { show, hide };
+})();
+
 // Auto-update timer display
-PomodoroModule.onUpdate(() => { renderPomodoroPage(); });
+PomodoroModule.onUpdate(st => {
+  renderPomodoroPage();
+  if (st && st.mode === 'running') PomoCanvas.show(st.type);
+  else PomoCanvas.hide();
+});

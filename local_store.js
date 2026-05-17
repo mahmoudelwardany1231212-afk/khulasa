@@ -2,9 +2,14 @@
  * local_store.js — Unified localStorage wrapper
  * Namespace: ls_ prefix for all keys
  * Features: JSON auto-parse, TTL, defaults, atomic updates
+ *
+ * _fbHook: set by streak_app_v2 after user login — called on every write
+ * _noSync: set to true when writing FROM Firebase to avoid infinite loops
  */
 const LS = {
   _p: 'ls_',
+  _fbHook: null,
+  _noSync: false,
 
   get(key, fallback = null) {
     try {
@@ -19,54 +24,20 @@ const LS = {
     } catch { return fallback; }
   },
 
-  set(key, value, ttlMs = 0, noSync = false) {
+  set(key, value, ttlMs = 0) {
     try {
       const data = ttlMs > 0 ? { v: value, _ttl: Date.now() + ttlMs } : value;
       localStorage.setItem(this._p + key, JSON.stringify(data));
-      
-      // Auto-sync to Firebase if applicable
-      if (!noSync && typeof store !== 'undefined' && store.state && store.state.currentUser !== null) {
-        const uid = store.state.currentUser;
-        if (typeof window._writeUserData === 'function') {
-          let fbKey = key;
-          if (key.startsWith('note_')) fbKey = `notes/${key.substring(5)}`;
-          else if (key.startsWith('checkin_')) fbKey = `checkins/${key.substring(8)}`;
-          
-          const syncKeys = [
-            'badges', 'xp_spent', 'unlocked_themes', 'streak_freeze_available', 
-            'streak_freezes_used', 'pomo_sessions', 'custom_tasks', 'bookmarks', 
-            'stickies', 'active_theme'
-          ];
-          
-          if (syncKeys.includes(key) || key.startsWith('note_') || key.startsWith('checkin_')) {
-            window._writeUserData(uid, { [fbKey]: value });
-          }
-        }
+      if (this._fbHook && !this._noSync) {
+        try { this._fbHook(key, value); } catch(e) {}
       }
     } catch (e) { console.warn('[LS] Write failed:', key, e); }
   },
 
-  del(key, noSync = false) { 
-    localStorage.removeItem(this._p + key); 
-    
-    // Auto-remove from Firebase if applicable
-    if (!noSync && typeof store !== 'undefined' && store.state && store.state.currentUser !== null) {
-      const uid = store.state.currentUser;
-      if (typeof window._writeUserData === 'function') {
-        let fbKey = key;
-        if (key.startsWith('note_')) fbKey = `notes/${key.substring(5)}`;
-        else if (key.startsWith('checkin_')) fbKey = `checkins/${key.substring(8)}`;
-        
-        const syncKeys = [
-          'badges', 'xp_spent', 'unlocked_themes', 'streak_freeze_available', 
-          'streak_freezes_used', 'pomo_sessions', 'custom_tasks', 'bookmarks', 
-          'stickies', 'active_theme'
-        ];
-        
-        if (syncKeys.includes(key) || key.startsWith('note_') || key.startsWith('checkin_')) {
-          window._writeUserData(uid, { [fbKey]: null });
-        }
-      }
+  del(key) {
+    localStorage.removeItem(this._p + key);
+    if (this._fbHook && !this._noSync) {
+      try { this._fbHook(key, null); } catch(e) {}
     }
   },
 

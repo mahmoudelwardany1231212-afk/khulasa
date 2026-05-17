@@ -164,12 +164,12 @@ function renderTasksPage() {
     <!-- Custom Tasks -->
     <div style="font-size:12px;font-weight:800;color:var(--ink);text-transform:uppercase;letter-spacing:1px;margin:16px 0 8px">✏️ مهام شخصية</div>
     <div style="display:flex;gap:6px;margin-bottom:10px;">
-      <input id="taskInput" type="text" placeholder="أضف مهمة..." style="flex:1;padding:10px;background:#000;border:1px solid var(--accent-blue);color:var(--ink);font-size:12px;font-family:'Cairo',sans-serif;clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%);outline:none">
-      <button onclick="_addCustomTask()" style="padding:10px 14px;background:var(--accent-blue);color:#000;border:none;font-weight:900;cursor:pointer;clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%);font-family:'Cairo',sans-serif;font-size:12px">+</button>
+      <input id="taskInput" type="text" placeholder="أضف مهمة..." style="flex:1;padding:10px;background:var(--surface-1);border:1px solid var(--accent-blue);color:var(--ink);font-size:12px;font-family:'Cairo',sans-serif;clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%);outline:none">
+      <button onclick="_addCustomTask()" style="padding:10px 14px;background:var(--accent-blue);color:var(--ink);border:none;font-weight:900;cursor:pointer;clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%);font-family:'Cairo',sans-serif;font-size:12px">+</button>
     </div>
     ${customTasks.map(t => `
       <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--surface-1);border:1px solid var(--hairline);clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%);margin-bottom:4px;${t.done ? 'opacity:0.5;' : ''}">
-        <div onclick="Tasks.toggleCustomTask('${t.id}');renderTasksPage()" style="width:20px;height:20px;border-radius:50%;border:2px solid ${t.done ? 'var(--semantic-success)' : 'var(--hairline)'};display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;background:${t.done ? 'var(--semantic-success)' : 'transparent'};font-size:11px;color:#000">${t.done ? '✓' : ''}</div>
+        <div onclick="Tasks.toggleCustomTask('${t.id}');renderTasksPage()" style="width:20px;height:20px;border-radius:50%;border:2px solid ${t.done ? 'var(--semantic-success)' : 'var(--hairline)'};display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;background:${t.done ? 'var(--semantic-success)' : 'transparent'};font-size:11px;color:var(--ink)">${t.done ? '✓' : ''}</div>
         <div style="flex:1;font-size:11px;font-weight:600;color:var(--ink);${t.done ? 'text-decoration:line-through;' : ''}">${t.text}</div>
         <div onclick="Tasks.removeCustomTask('${t.id}');renderTasksPage()" style="cursor:pointer;font-size:12px;color:var(--ink-muted);padding:4px">✕</div>
       </div>

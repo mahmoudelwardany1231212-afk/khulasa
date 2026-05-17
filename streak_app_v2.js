@@ -174,10 +174,6 @@ const store = {
         window._fbSDK = { ref, set, update, remove };
         window._fbReady = true;
 
-        if (typeof NotificationsSystem !== 'undefined') {
-          NotificationsSystem.init();
-        }
-
         this._showSyncBanner();
 
         window._fbUnsubscribe = onValue(ref(db, 'progress'), (snapshot) => {
@@ -548,7 +544,7 @@ async function checkPin() {
       return;
     }
     // Guard: PINs are loaded from Firebase — if not ready yet, check hardcoded fallback
-    const correctPin = store._pins[pendingUser];
+    const correctPin = store._pins[pendingUser] || MEMBERS[pendingUser]?.pin;
     if (!correctPin) {
       document.getElementById('pinError').textContent = '⏳ جاري تحميل البيانات، انتظر لحظة';
       document.getElementById('pinError').style.opacity = '1';
@@ -619,9 +615,6 @@ function toggleLecture(lecId) {
     });
     // Cloud write — onValue will broadcast to every device
     store._removeFromCloud(uid, lecId);
-    if (typeof NotificationsSystem !== 'undefined') {
-      NotificationsSystem.pushEvent('progress', lecId, 0);
-    }
   } else {
     pendingLecId = lecId;
     document.getElementById('pctModal').classList.add('show');
@@ -646,14 +639,10 @@ function selectPct(pctVal) {
   });
   // Cloud write — onValue will confirm and broadcast to all devices
   store.save(currentUser, lecId, pctVal);
-  if (typeof NotificationsSystem !== 'undefined') {
-    NotificationsSystem.pushEvent('progress', lecId, pctVal);
-  }
 
-  const s = store.get();
-  const scoreData = typeof window.getUserScore === 'function' ? window.getUserScore(s.currentUser, s.progress) : { scorePct: 0, done: 0 };
-  const progressPct = scoreData.scorePct;
-  const done = scoreData.done;
+  const p = store.get().progress[store.get().currentUser];
+  const done = Object.keys(p).filter(id => LECTURES.some(l => l.id == id) && parseFloat(p[id]) > 0).length;
+  const progressPct = Math.round((done / LECTURES.length) * 100);
 
   showToast(PCT_MSGS[pctVal], pctVal >= 75 ? 'success' : pctVal >= 50 ? 'warn' : 'fire');
 
@@ -734,7 +723,7 @@ function setQuizFilter(v) {
 function switchTab(tab) {
   if(DEBUG_MODE) console.log('[Router] Switching to tab:', tab);
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t.dataset.tab === tab));
-  const pages = ['Lectures','Leaderboard','Buy','Finished','Pomodoro','Tasks','Analytics','Gamification','Notes','Notifications','Social','Profile'];
+  const pages = ['Lectures','Leaderboard','Buy','Finished','Pomodoro','Tasks','Analytics','Gamification','Notes','Social','Profile'];
   pages.forEach(p => {
     const el = document.getElementById('page' + p);
     if (el) el.classList.toggle('hide', tab !== p.toLowerCase());
@@ -745,7 +734,6 @@ function switchTab(tab) {
   if (tab === 'analytics' && typeof renderAnalyticsPage === 'function') renderAnalyticsPage();
   if (tab === 'gamification' && typeof Gamification !== 'undefined') { Gamification.recheckBadges(); if (typeof renderGamificationPage === 'function') renderGamificationPage(); }
   if (tab === 'notes' && typeof renderNotesPage === 'function') renderNotesPage();
-  if (tab === 'notifications' && typeof NotificationsSystem !== 'undefined') NotificationsSystem.renderPage();
   if (tab === 'social' && typeof renderSocialPage === 'function') renderSocialPage();
   if (tab === 'finished') { if (typeof renderWellnessWidget === 'function') renderWellnessWidget(); }
   if (tab === 'profile') renderProfilePage();
@@ -780,9 +768,8 @@ function _updateSidebarProfile() {
   if (s.currentUser === null) return;
   const m = MEMBERS[s.currentUser];
   const p = s.progress[s.currentUser] || {};
-  const scoreData = typeof window.getUserScore === 'function' ? window.getUserScore(s.currentUser, s.progress) : { scorePct: 0, done: 0 };
-  const done = scoreData.done;
-  const pct = scoreData.scorePct;
+  const done = LECTURES.filter(l => p[l.id] !== undefined && parseFloat(p[l.id]) > 0).length;
+  const pct = Math.round((done / LECTURES.length) * 100);
   const lvl = typeof Gamification !== 'undefined' ? Gamification.getLevel() : { emoji: '📖', name: 'طالب', color: '#00E5FF' };
   const xp = typeof Gamification !== 'undefined' ? Gamification.getXP() : 0;
 
@@ -806,11 +793,10 @@ function renderProfilePage() {
   const m = MEMBERS[s.currentUser];
   const p = s.progress[s.currentUser] || {};
   const totalLecs = LECTURES.length;
+  const done = LECTURES.filter(l => p[l.id] !== undefined && parseFloat(p[l.id]) > 0).length;
   const perfect = LECTURES.filter(l => parseFloat(p[l.id]) === 100).length;
   const weak = LECTURES.filter(l => { const v = parseFloat(p[l.id]); return v > 0 && v <= 50; }).length;
-  const scoreData = typeof window.getUserScore === 'function' ? window.getUserScore(s.currentUser, s.progress) : { scorePct: 0, done: 0 };
-  const done = scoreData.done;
-  const pct = scoreData.scorePct;
+  const pct = Math.round((done / totalLecs) * 100);
   const lvl = typeof Gamification !== 'undefined' ? Gamification.getLevel() : { emoji: '📖', name: 'طالب', color: '#00E5FF' };
   const xp = typeof Gamification !== 'undefined' ? Gamification.getXP() : 0;
   const badges = typeof Gamification !== 'undefined' ? Gamification.getUnlockedBadges() : [];
@@ -828,9 +814,9 @@ function renderProfilePage() {
 
   // Rank among team
   const ranks = MEMBERS.map((mm, i) => {
-    const scoreData = typeof window.getUserScore === 'function' ? window.getUserScore(i, s.progress) : { totalScoreAchieved: 0 };
-    return { i, score: scoreData.totalScoreAchieved };
-  }).sort((a, b) => b.score - a.score);
+    const pp = s.progress[i] || {};
+    return { i, done: LECTURES.filter(l => pp[l.id] !== undefined && parseFloat(pp[l.id]) > 0).length };
+  }).sort((a, b) => b.done - a.done);
   const rank = ranks.findIndex(r => r.i === s.currentUser) + 1;
 
   c.innerHTML = `<div style="padding:var(--spacing-md);max-width:500px;margin:0 auto;">
@@ -904,9 +890,29 @@ function renderProfilePage() {
       </div>
     </div>
 
+    <!-- Settings -->
+    <div style="background:var(--surface-1);border:1px solid var(--hairline);padding:12px;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);margin:14px 0;">
+      <div style="font-size:11px;font-weight:800;color:var(--ink);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">⚙️ الخصوصية</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--ink-muted);">
+        <span>ظهورك لزملائك أثناء التركيز (Pomodoro)</span>
+        <label style="position:relative;display:inline-block;width:34px;height:20px;">
+          <input type="checkbox" style="opacity:0;width:0;height:0;" ${typeof PresenceModule !== 'undefined' && PresenceModule.isVisible() ? 'checked' : ''} onchange="if(typeof PresenceModule!=='undefined') PresenceModule.setVisible(this.checked)">
+          <span class="slider-bg"></span>
+          <span class="slider-dot"></span>
+        </label>
+      </div>
+    </div>
+
     <!-- Logout -->
     <button onclick="logout()" style="width:100%;padding:12px;background:rgba(255,0,60,0.08);color:var(--semantic-danger);border:1px solid rgba(255,0,60,0.2);font-size:13px;font-weight:800;cursor:pointer;clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%);font-family:'Cairo',sans-serif;margin-top:8px">🚪 تسجيل خروج</button>
-  </div>`;
+  </div>
+  <style>
+    .slider-bg { position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background-color:var(--surface-2);transition:.4s;border-radius:20px;border:1px solid var(--hairline); }
+    .slider-dot { position:absolute;content:'';height:14px;width:14px;left:2px;bottom:2px;background-color:var(--ink-muted);transition:.4s;border-radius:50%; }
+    input:checked ~ .slider-bg { background-color: rgba(0, 255, 136, 0.15) !important; border-color: var(--semantic-success) !important; }
+    input:checked ~ .slider-dot { transform: translateX(14px); background-color: var(--semantic-success) !important; }
+  </style>
+  `;
 }
 
 // ── 2. REACTIVE UI BINDING ─────────────────────────────
@@ -954,9 +960,9 @@ window.addEventListener('DOMContentLoaded', () => {
 
 function renderHeader(state) {
   const m = MEMBERS[state.currentUser];
-  const scoreData = typeof window.getUserScore === 'function' ? window.getUserScore(state.currentUser, state.progress) : { scorePct: 0, done: 0 };
-  const done = scoreData.done;
-  const pct = scoreData.scorePct;
+  const p = state.progress[state.currentUser] || {};
+  const done = Object.keys(p).filter(id => LECTURES.some(l => l.id == id) && parseFloat(p[id]) > 0).length;
+  const pct = Math.round((done / LECTURES.length) * 100);
   
   document.getElementById('ahName').textContent = m.name;
     document.getElementById('ahStat').textContent = `${done} / ${LECTURES.length} محاضرة مكتملة`;
@@ -964,9 +970,9 @@ function renderHeader(state) {
 }
 
 function renderLevelBanner(state) {
-  const scoreData = typeof window.getUserScore === 'function' ? window.getUserScore(state.currentUser, state.progress) : { scorePct: 0, done: 0 };
-  const done = scoreData.done;
-  const pct = scoreData.scorePct;
+  const p = state.progress[state.currentUser] || {};
+  const done = Object.keys(p).filter(id => LECTURES.some(l => l.id == id) && parseFloat(p[id]) > 0).length;
+  const pct = Math.round((done / LECTURES.length) * 100);
   const lv = getLevel(pct);
   const emoji = EMOJIS[lv][done % EMOJIS[lv].length];
   const phrase = PHRASES[lv][done % PHRASES[lv].length];
@@ -1040,7 +1046,6 @@ function renderLectures(state) {
         <div class="lec-meta">
           <span class="lec-tag" style="background:${SUBJ_COLORS[ci]}15;color:${SUBJ_COLORS[ci]}">${SUBJ_SHORT[l.s] || l.s}</span>
           <span class="lec-tag lt-quiz">${l.q}</span>
-          ${l.m ? `<span class="lec-tag" style="background:var(--semantic-danger, #ff3b30);color:#fff;font-weight:900;border:1px solid #ff3b30;box-shadow:0 0 8px rgba(255,59,48,0.5)">⚠️ مقالي</span>` : ''}
           ${l.u ? `<a href="${l.u}" target="_blank" onclick="event.stopPropagation()" class="lec-tag lt-link">🔗 المحاضرة</a>` : ''}
           ${l.u2 ? `<a href="${l.u2}" target="_blank" onclick="event.stopPropagation()" class="lec-tag lt-link lt-link2">🔗 البديل</a>` : ''}
           ${l.u3 ? `<a href="${l.u3}" target="_blank" onclick="event.stopPropagation()" class="lec-tag lt-link lt-link3" style="background:rgba(255,165,0,0.15);color:#ff9800;border:1px solid rgba(255,165,0,0.3)">🔗 بديل 2</a>` : ''}
@@ -1060,8 +1065,34 @@ function renderLectures(state) {
 // ── 5. LEADERBOARD REFACTOR ────────────────────────────
 function renderLeaderboard(state) {
   const data = MEMBERS.map((m, i) => {
-    const scoreData = typeof window.getUserScore === 'function' ? window.getUserScore(i, state.progress) : { done: 0, bySubj: {}, totalScoreAchieved: 0, maxPossibleScore: 0 };
-    return { idx: i, m, done: scoreData.done, bySubj: scoreData.bySubj || {}, totalScoreAchieved: scoreData.totalScoreAchieved, maxPossibleScore: scoreData.maxPossibleScore };
+    const p = state.progress[i] || {};
+    const done = LECTURES.filter(l => p[l.id] !== undefined && parseFloat(p[l.id]) > 0).length;
+    
+    let totalScoreAchieved = 0;
+    let maxPossibleScore = 0;
+    const bySubj = {};
+    
+    SUBJECTS.forEach(s => {
+      const subjLecs = LECTURES.filter(l => l.s === s);
+      const total = subjLecs.length;
+      const d = subjLecs.filter(l => p[l.id] !== undefined && parseFloat(p[l.id]) > 0).length;
+      
+      const subjectGrade = parseFloat(subjLecs[0]?.g) || 100;
+      maxPossibleScore += subjectGrade;
+      
+      let gradeAchieved = 0;
+      subjLecs.forEach(l => {
+        let val = p[l.id];
+        if (val !== undefined && val !== null) {
+          let numVal = parseFloat(val) || 0;
+          gradeAchieved += (subjectGrade / total) * (numVal / 100);
+        }
+      });
+      totalScoreAchieved += gradeAchieved;
+      bySubj[s] = { done: d, total, grade: gradeAchieved, maxGrade: subjectGrade };
+    });
+    
+    return { idx: i, m, done, bySubj, totalScoreAchieved, maxPossibleScore };
   }).sort((a, b) => b.totalScoreAchieved - a.totalScoreAchieved);
 
   const ranks = ['🥇','🥈','🥉'];
@@ -1069,8 +1100,8 @@ function renderLeaderboard(state) {
   const c = document.getElementById('lbCards');
   
   c.innerHTML = data.map((d, ri) => {
-    const pct = d.totalScoreAchieved && d.maxPossibleScore ? Math.round((d.totalScoreAchieved / d.maxPossibleScore) * 100) : 0;
-    const scorePct = pct; 
+    const pct = Math.round((d.done / LECTURES.length) * 100); 
+    const scorePct = d.maxPossibleScore ? Math.round((d.totalScoreAchieved / d.maxPossibleScore) * 100) : 0; 
     const lv = getLevel(pct);
     const lvEmoji = EMOJIS[lv][d.done % EMOJIS[lv].length] || '🌟';
     const lvPhrase = PHRASES[lv][d.done % PHRASES[lv].length] || 'عظيم';
@@ -1300,7 +1331,7 @@ function renderFinishedList(state) {
   const memberStats = MEMBERS.map((m, i) => {
     const p = state.progress[i] || {};
     const done = LECTURES.filter(l => p[l.id] !== undefined && parseFloat(p[l.id]) > 0).length;
-    return { m, done, idx: i };
+    return { m, done };
   });
 
   let html = '';
@@ -1308,8 +1339,7 @@ function renderFinishedList(state) {
   // ── Stats Bar ──
   html += `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">`;
   memberStats.forEach(ms => {
-    const scoreData = typeof window.getUserScore === 'function' ? window.getUserScore(ms.idx, state.progress) : { scorePct: 0 };
-    const pct = scoreData.scorePct;
+    const pct = Math.round((ms.done / LECTURES.length) * 100);
     html += `<div style="flex:1;min-width:70px;background:${ms.m.color}12;border:1px solid ${ms.m.color}40;padding:8px 6px;clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%);text-align:center;">
       <div style="font-size:15px">${ms.m.emoji}</div>
       <div style="font-size:9px;font-weight:800;color:${ms.m.color};text-transform:uppercase;letter-spacing:1px;margin-top:2px;line-height:1.2">${ms.m.name.split(' ')[0]}</div>

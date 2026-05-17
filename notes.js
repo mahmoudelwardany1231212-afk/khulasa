@@ -1,25 +1,15 @@
 /**
  * notes.js — Lecture-Linked Notes, Bookmarks, Per-Lecture Notes Modal
- * FIXED: All writes now sync to Firebase users/{userId}/notes & users/{userId}/bookmarks
+ * Everything is bidirectionally linked to the lecture system.
  */
 
 const Notes = (() => {
-  // ── Per-lecture notes ──
+  // Per-lecture notes
   function getNote(lecId) { return LS.get('note_' + lecId, ''); }
-
   function setNote(lecId, text) {
-    const uid = typeof store !== 'undefined' ? store.get().currentUser : null;
-    if (text && text.trim()) {
-      LS.set('note_' + lecId, text.trim());
-    } else {
-      LS.del('note_' + lecId);
-    }
-    // ── Firebase sync ──
-    if (uid !== null && typeof window._writeUserData === 'function') {
-      window._writeUserData(uid, { ['notes/' + lecId]: text && text.trim() ? text.trim() : null });
-    }
+    if (text && text.trim()) LS.set('note_' + lecId, text.trim());
+    else LS.del('note_' + lecId);
   }
-
   function getAllNotedLectures() {
     const noted = [];
     if (typeof LECTURES === 'undefined') return noted;
@@ -30,49 +20,29 @@ const Notes = (() => {
     return noted;
   }
 
-  // ── Bookmarks ──
+  // Bookmarks
   function getBookmarks() { return LS.get('bookmarks', []); }
-
   function toggleBookmark(lecId) {
-    const uid = typeof store !== 'undefined' ? store.get().currentUser : null;
     LS.update('bookmarks', arr => {
       const idx = arr.indexOf(lecId);
       if (idx >= 0) arr.splice(idx, 1); else arr.push(lecId);
       return arr;
     }, []);
-    // ── Firebase sync ──
-    if (uid !== null && typeof window._writeUserData === 'function') {
-      window._writeUserData(uid, { bookmarks: LS.get('bookmarks', []) });
-    }
   }
-
   function isBookmarked(lecId) { return getBookmarks().includes(lecId); }
-
   function getBookmarkedLectures() {
     if (typeof LECTURES === 'undefined') return [];
     const bm = getBookmarks();
     return LECTURES.filter(l => bm.includes(l.id));
   }
 
-  // ── Sticky Notes (free-form, quick capture) ──
+  // Sticky Notes (free-form, quick capture)
   function getStickies() { return LS.get('stickies', []); }
-
   function addSticky(text, color = '#FFB300') {
-    const uid = typeof store !== 'undefined' ? store.get().currentUser : null;
     LS.push('stickies', { id: LS.uid(), text, color, createdAt: Date.now() }, 50);
-    // ── Firebase sync ──
-    if (uid !== null && typeof window._writeUserData === 'function') {
-      window._writeUserData(uid, { stickies: LS.get('stickies', []) });
-    }
   }
-
   function removeSticky(id) {
-    const uid = typeof store !== 'undefined' ? store.get().currentUser : null;
     LS.update('stickies', arr => arr.filter(s => s.id !== id), []);
-    // ── Firebase sync ──
-    if (uid !== null && typeof window._writeUserData === 'function') {
-      window._writeUserData(uid, { stickies: LS.get('stickies', []) });
-    }
   }
 
   return { getNote, setNote, getAllNotedLectures, getBookmarks, toggleBookmark, isBookmarked, getBookmarkedLectures, getStickies, addSticky, removeSticky };
@@ -100,9 +70,9 @@ function _openLecNote(lecId) {
       <div class="m-close" onclick="document.getElementById('noteModal').remove()">✕</div>
       <div style="font-size:11px;color:${col};font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">${typeof SUBJ_SHORT !== 'undefined' ? SUBJ_SHORT[lec.s] || lec.s : lec.s} — ${lec.q}</div>
       <div class="m-title" style="font-size:14px;line-height:1.5;margin-bottom:12px">${lec.t}</div>
-      <textarea id="lecNoteText" placeholder="أكتب ملاحظاتك هنا... (نقاط مهمة، أسئلة، ملخص سريع)" style="width:100%;min-height:120px;padding:12px;background:#000;border:1px solid var(--accent-blue);color:var(--ink);font-size:13px;font-family:'Cairo',sans-serif;resize:vertical;outline:none;border-radius:6px;line-height:1.8">${existing || ''}</textarea>
+      <textarea id="lecNoteText" placeholder="أكتب ملاحظاتك هنا... (نقاط مهمة، أسئلة، ملخص سريع)" style="width:100%;min-height:120px;padding:12px;background:var(--surface-1);border:1px solid var(--accent-blue);color:var(--ink);font-size:13px;font-family:'Cairo',sans-serif;resize:vertical;outline:none;border-radius:6px;line-height:1.8">${existing || ''}</textarea>
       <div style="display:flex;gap:8px;margin-top:10px;">
-        <button onclick="_saveLecNote(${lecId})" style="flex:1;padding:12px;background:var(--accent-blue);color:#000;border:none;font-size:13px;font-weight:900;cursor:pointer;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);font-family:'Cairo',sans-serif">💾 حفظ</button>
+        <button onclick="_saveLecNote(${lecId})" style="flex:1;padding:12px;background:var(--accent-blue);color:var(--ink);border:none;font-size:13px;font-weight:900;cursor:pointer;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);font-family:'Cairo',sans-serif">💾 حفظ</button>
         ${existing ? `<button onclick="Notes.setNote(${lecId},'');document.getElementById('noteModal').remove();store.notify()" style="padding:12px 16px;background:rgba(255,0,60,0.1);color:var(--semantic-danger);border:1px solid rgba(255,0,60,0.3);font-size:12px;font-weight:800;cursor:pointer;clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%);font-family:'Cairo',sans-serif">🗑️</button>` : ''}
       </div>
     </div>`;
@@ -117,7 +87,7 @@ function _saveLecNote(lecId) {
   Notes.setNote(lecId, text);
   document.getElementById('noteModal').remove();
   store.notify(); // re-render lecture cards to show 📝 indicator
-  if (typeof showToast === 'function') showToast('💾 الملاحظة محفوظة وتزامنت مع السحابة ☁️', 'success');
+  if (typeof showToast === 'function') showToast('💾 الملاحظة محفوظة', 'success');
 }
 
 
@@ -151,8 +121,8 @@ function renderNotesPage() {
     <!-- Quick Sticky Notes -->
     <div style="font-size:12px;font-weight:800;color:var(--ink);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">📌 ملاحظات سريعة</div>
     <div style="display:flex;gap:6px;margin-bottom:10px;">
-      <input id="stickyInput" type="text" placeholder="ملاحظة سريعة..." style="flex:1;padding:10px;background:#000;border:1px solid var(--accent-blue);color:var(--ink);font-size:12px;font-family:'Cairo',sans-serif;clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%);outline:none">
-      <button onclick="_addSticky()" style="padding:10px 14px;background:var(--accent-blue);color:#000;border:none;font-weight:900;cursor:pointer;clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%);font-family:'Cairo',sans-serif;font-size:12px">+</button>
+      <input id="stickyInput" type="text" placeholder="ملاحظة سريعة..." style="flex:1;padding:10px;background:var(--surface-1);border:1px solid var(--accent-blue);color:var(--ink);font-size:12px;font-family:'Cairo',sans-serif;clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%);outline:none">
+      <button onclick="_addSticky()" style="padding:10px 14px;background:var(--accent-blue);color:var(--ink);border:none;font-weight:900;cursor:pointer;clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%);font-family:'Cairo',sans-serif;font-size:12px">+</button>
     </div>
     ${stickies.length > 0 ? `<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:14px;">
       ${stickies.map(s => `
@@ -188,6 +158,7 @@ function renderNotesPage() {
         ${bookmarkedLecs.map(l => {
           const ci = typeof SUBJECTS !== 'undefined' ? SUBJECTS.indexOf(l.s) : 0;
           const col = typeof SUBJ_COLORS !== 'undefined' ? SUBJ_COLORS[ci] || '#888' : '#888';
+          // Get current pct
           let pctText = '';
           if (typeof store !== 'undefined') {
             const s = store.get();

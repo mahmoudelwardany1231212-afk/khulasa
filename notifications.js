@@ -10,7 +10,14 @@ const NotificationsSystem = (() => {
 
   function init() {
     if (isInitialized) return;
-    if (!window._fbReady || !window._fbDb || !window.firebase_database) return;
+    if (!window._fbReady || !window._fbDb || !window.firebase_database) {
+      // Retry after Firebase is ready
+      if (!window._fbReady) {
+        const onReady = () => { init(); };
+        window.addEventListener('firebase-ready', onReady, { once: true });
+      }
+      return;
+    }
     
     isInitialized = true;
     const { ref, query, limitToLast, onChildAdded } = window.firebase_database;
