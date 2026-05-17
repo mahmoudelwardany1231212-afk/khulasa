@@ -784,7 +784,7 @@ function setQuizFilter(v) {
 function switchTab(tab) {
   if(DEBUG_MODE) console.log('[Router] Switching to tab:', tab);
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t.dataset.tab === tab));
-  const pages = ['Lectures','Leaderboard','Buy','Finished','Pomodoro','Tasks','Analytics','Gamification','Notes','Social','Profile','Notifications'];
+  const pages = ['Lectures','Leaderboard','Buy','Finished','Pomodoro','Tasks','Analytics','Gamification','Notes','Social','EvalCenter','Profile','Notifications'];
   pages.forEach(p => {
     const el = document.getElementById('page' + p);
     if (el) el.classList.toggle('hide', tab !== p.toLowerCase());
@@ -797,6 +797,7 @@ function switchTab(tab) {
   if (tab === 'notes' && typeof renderNotesPage === 'function') renderNotesPage();
   if (tab === 'social' && typeof renderSocialPage === 'function') renderSocialPage();
   if (tab === 'notifications' && typeof NotificationsSystem !== 'undefined') NotificationsSystem.renderPage();
+  if (tab === 'evalcenter' && typeof EvalCenter !== 'undefined') EvalCenter.render();
   if (tab === 'finished') { if (typeof renderWellnessWidget === 'function') renderWellnessWidget(); }
   if (tab === 'profile') renderProfilePage();
 
