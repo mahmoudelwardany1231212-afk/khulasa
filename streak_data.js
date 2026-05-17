@@ -9,8 +9,8 @@ const LECTURES = [
 {"s":"Perio","t":"Calculus & other local factors","q":"كويز 1","g":120,"id":4,"u":"https://t.me/c/2006385993/357"},
 {"s":"Perio","t":"Gingival inflammation & clinical features & Supportive periodontal therapy","q":"كويز 1","g":120,"id":5,"u":"https://t.me/c/2006385993/365","m":true},
 {"s":"Perio","t":"Acute Gingival Infections and periodontal abscess","q":"كويز 1","g":120,"id":7,"u":"https://t.me/c/2006385993/372"},
-{"s":"Perio","t":"Gingival Enlargement","q":"كويز 1","g":120,"id":6,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_3j6ecl/IQDivRbt_1nLTaKwiktDG2mMAR3aaQF9WfwEhmgasquwNu4","u2":"https://t.me/c/1724673789/2835"},
-{"s":"Perio","t":"The Periodontal Pocket","q":"كويز 1","g":120,"id":8,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_3j6ecl/IQCB6MOYsS4nRYpWUNaldh-7AaJSfZkGQyeQpjgLUAZtf2Q","u2":"https://t.me/bitinjan/114","u3":"https://t.me/talagah/223"},
+{"s":"Perio","t":"Gingival Enlargement","q":"كويز 1","g":120,"id":6,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_3j6ecl/IQDivRbt_1nLTaKwiktDG2mMAR3aaQF9WfwEhmgasquwNu4","u2":"https://t.me/c/1724673789/2835","online":true},
+{"s":"Perio","t":"The Periodontal Pocket","q":"كويز 1","g":120,"id":8,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_3j6ecl/IQCB6MOYsS4nRYpWUNaldh-7AaJSfZkGQyeQpjgLUAZtf2Q","u2":"https://t.me/bitinjan/114","u3":"https://t.me/talagah/223","online":true},
 {"s":"Perio","t":"Chronic and Aggressive Periodontitis","q":"كويز 1","g":120,"id":9,"u":"https://t.me/c/2006385993/381","m":true},
 
 // PERIO — بين كويز 1 و 2 (11→14)
@@ -20,17 +20,17 @@ const LECTURES = [
 {"s":"Perio","t":"The Periodontal Flap – The Flap Technique for Pocket Therapy","q":"بين كويز 1 و 2","g":120,"id":15,"u":"https://t.me/talagah/417","u2":"https://youtu.be/zqRTldGt2ws?si=MsCI05ePfDryTyqp","m":true},
 
 // PERIO — كويز 2 (Term 2)
-{"s":"Perio","t":"Anti – infective- Agents - Host Modulation Agents","q":"كويز 2","g":120,"id":14,"u":"https://t.me/c/1674571996/1269","u2":"https://t.me/c/2006385993/422","u3":"https://youtu.be/JmpNZ_l7Ozs?si=spsLJ8ajEgcAZeHP","u4":"https://youtu.be/P9Fa8nwztKE?si=4Gb9LgPSNPVPViyF","m":true},
+{"s":"Perio","t":"Anti – infective- Agents - Host Modulation Agents","q":"كويز 2","g":120,"id":14,"u":"https://t.me/c/1674571996/1269","u2":"https://t.me/c/2006385993/422","u3":"https://youtu.be/JmpNZ_l7Ozs?si=spsLJ8ajEgcAZeHP","u4":"https://youtu.be/P9Fa8nwztKE?si=4Gb9LgPSNPVPViyF","m":true,"online":true},
 {"s":"Perio","t":"General Principles of Periodontal surgery -Gingival Surgical Techniques","q":"كويز 2","g":120,"id":13,"u":"https://t.me/talagah/490"},
 {"s":"Perio","t":"Resective Osseous Surgery – Bone Loss and Patterns of Bone Destruction 1","q":"كويز 2","g":120,"id":16,"u":"https://t.me/c/2006385993/427","m":true},
-{"s":"Perio","t":"Resective Osseous Surgery – Bone Loss and Patterns of Bone Destruction 2","q":"كويز 2","g":120,"id":17,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_3j6ecl/IQDQJpkaM9sDTbdlVD6eHeG4AZGUI_6prg47Vgi13_d3LTE","m":true},
+{"s":"Perio","t":"Resective Osseous Surgery – Bone Loss and Patterns of Bone Destruction 2","q":"كويز 2","g":120,"id":17,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_3j6ecl/IQDQJpkaM9sDTbdlVD6eHeG4AZGUI_6prg47Vgi13_d3LTE","m":true,"online":true},
 
 // PERIO — بعد كويز 2 (Term 2)
-{"s":"Perio","t":"Reconstructive Periodontal Surgery","q":"بعد كويز 2","g":120,"id":18,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_3j6ecl/IQA36fC8HW3HSIRvvmObHYTqAczjoalJmBokKjwyqcZsEuU","m":true},
+{"s":"Perio","t":"Reconstructive Periodontal Surgery","q":"بعد كويز 2","g":120,"id":18,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_3j6ecl/IQA36fC8HW3HSIRvvmObHYTqAczjoalJmBokKjwyqcZsEuU","m":true,"online":true},
 {"s":"Perio","t":"Furcation: Involvement and Treatment","q":"بعد كويز 2","g":120,"id":19,"u":"https://t.me/c/2006385993/435"},
-{"s":"Perio","t":"Periodontal Plastic and Aesthetic Surgery","q":"بعد كويز 2","g":120,"id":20,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_3j6ecl/IQBplP6qQFN6TK7nQaL7kPGQASRSf-nmfMsBpFfP0YJSvQ0"},
+{"s":"Perio","t":"Periodontal Plastic and Aesthetic Surgery","q":"بعد كويز 2","g":120,"id":20,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_3j6ecl/IQBplP6qQFN6TK7nQaL7kPGQASRSf-nmfMsBpFfP0YJSvQ0","online":true},
 {"s":"Perio","t":"Perio- Restorative–Interrelationship and esthetic crown lengthening","q":"بعد كويز 2","g":120,"id":21,"u":"https://t.me/c/2006385993/446"},
-{"s":"Perio","t":"Minimally invasive surgery & use of PRF","q":"بعد كويز 2","g":120,"id":22,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_3j6ecl/IQDkNx6yenFyQrmmHFFB6rlSATOPzQf6pT8Ubw05zoRaX2Q"},
+{"s":"Perio","t":"Minimally invasive surgery & use of PRF","q":"بعد كويز 2","g":120,"id":22,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_3j6ecl/IQDkNx6yenFyQrmmHFFB6rlSATOPzQf6pT8Ubw05zoRaX2Q","online":true},
 
 // ════════════════════════════════════════════════════════
 // MEDICINE — كويز 1 (Term 1)
@@ -41,7 +41,7 @@ const LECTURES = [
 {"s":"Medicine","t":"Immunologic Diseases (Part 2)","q":"كويز 1","g":120,"id":26,"u":"https://t.me/c/2006385993/368"},
 {"s":"Medicine","t":"Red & White Lesions of the Oral Mucosa (Part 1)","q":"كويز 1","g":120,"id":27,"u":"https://t.me/c/2006385993/353"},
 {"s":"Medicine","t":"Red & White Lesions of the Oral Mucosa (Part 2)","q":"كويز 1","g":120,"id":28,"u":"https://t.me/c/2006385993/360"},
-{"s":"Medicine","t":"Endocrine Diseases (Part 1)","q":"كويز 1","g":120,"id":30,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_ouoqcl/EazyCGFJHaNCix5e9OBTAQoBispA5nS4Cv1-nB5JZ3nChw","m":true},
+{"s":"Medicine","t":"Endocrine Diseases (Part 1)","q":"كويز 1","g":120,"id":30,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_ouoqcl/EazyCGFJHaNCix5e9OBTAQoBispA5nS4Cv1-nB5JZ3nChw","m":true,"online":true},
 {"s":"Medicine","t":"Endocrine Diseases (Part 2)","q":"كويز 1","g":120,"id":31,"u":"https://t.me/c/2006385993/376","m":true},
 {"s":"Medicine","t":"Diabetes","q":"كويز 1","g":120,"id":32,"u":"https://t.me/tagmiaat1/3235?single"},
 {"s":"Medicine","t":"Hypersensitivity reactions","q":"كويز 1","g":120,"id":29,"u":"https://t.me/c/2006385993/378"},
@@ -56,11 +56,11 @@ const LECTURES = [
 // MEDICINE — كويز 2 (Term 2)
 {"s":"Medicine","t":"Hematologic Diseases (Part 1)","q":"كويز 2","g":120,"id":38,"u":"https://t.me/c/2006385993/418","m":true},
 {"s":"Medicine","t":"Hematologic Diseases (Part 2)","q":"كويز 2","g":120,"id":39,"u":"https://t.me/c/2006385993/425","m":true},
-{"s":"Medicine","t":"Oral cancer (on line)","q":"كويز 2","g":120,"id":40,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_ouoqcl/IQBLhorJlBVrS4QkinRi0Q-oAfxtu-dPxpT7ekfBhW5fy2A"},
-{"s":"Medicine","t":"Medically compromised patients","q":"كويز 2","g":120,"id":45,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_ouoqcl/IQB8z4MwOFxTSYqiaPIQ68gGAR4qkxs-EvZFTrTtxZIRGtA","u2":"https://t.me/talagah/483"},
+{"s":"Medicine","t":"Oral cancer (on line)","q":"كويز 2","g":120,"id":40,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_ouoqcl/IQBLhorJlBVrS4QkinRi0Q-oAfxtu-dPxpT7ekfBhW5fy2A","online":true},
+{"s":"Medicine","t":"Medically compromised patients","q":"كويز 2","g":120,"id":45,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_ouoqcl/IQB8z4MwOFxTSYqiaPIQ68gGAR4qkxs-EvZFTrTtxZIRGtA","u2":"https://t.me/talagah/483","online":true},
 
 // MEDICINE — بعد كويز 2 (Term 2)
-{"s":"Medicine","t":"Diseases of the Tongue (on line)","q":"بعد كويز 2","g":120,"id":41,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_ouoqcl/IQBIU7eSPwjzSYEz-gWU6Ch5AZ7STZNoRDAly2sgMKbTbJw"},
+{"s":"Medicine","t":"Diseases of the Tongue (on line)","q":"بعد كويز 2","g":120,"id":41,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_ouoqcl/IQBIU7eSPwjzSYEz-gWU6Ch5AZ7STZNoRDAly2sgMKbTbJw","online":true},
 {"s":"Medicine","t":"Orofacial pain & Headache","q":"بعد كويز 2","g":120,"id":42,"u":"https://t.me/c/2006385993/431","m":true},
 {"s":"Medicine","t":"Infectious Diseases (Part 1)","q":"بعد كويز 2","g":120,"id":43,"u":"https://t.me/c/2006385993/439"},
 {"s":"Medicine","t":"Infectious Diseases (Part 2)","q":"بعد كويز 2","g":120,"id":44,"u":"https://t.me/c/2006385993/444"},

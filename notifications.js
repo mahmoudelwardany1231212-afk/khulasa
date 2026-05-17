@@ -7,7 +7,7 @@ const NotificationsSystem = (() => {
   let initialLoadDone = false;
   const events = []; // Array of { id, data }
   let lastReadTimestamp = parseInt(localStorage.getItem('streak_lastReadNotif') || '0', 10);
-  
+
   // Available Emojis for Reactions
   const REACTION_EMOJIS = ['🔥', '🎯', '💪', '🦷', '⚡', '✨'];
 
@@ -29,13 +29,13 @@ const NotificationsSystem = (() => {
       gain.connect(ctx.destination);
       osc.start();
       osc.stop(ctx.currentTime + 0.2);
-    } catch (e) {}
+    } catch (e) { }
   }
 
   // ── INIT ──
   function init() {
     if (isInitialized) return;
-    
+
     // Poll until both Firebase AND the store are fully ready.
     // _fbDb is set inside store.boot's onValue callback — small delay after firebase-ready.
     let retries = 0;
@@ -53,9 +53,9 @@ const NotificationsSystem = (() => {
 
   function _connect() {
     if (isInitialized) return;
-    
+
     isInitialized = true;
-    const { ref, query, limitToLast, onChildAdded, onChildChanged } = window.firebase_database;
+    const { ref, query, limitToLast, onChildAdded, onChildChanged, onChildRemoved } = window.firebase_database;
     const db = window._fbDb;
 
     const eventsRef = query(ref(db, 'events'), limitToLast(100));
@@ -66,11 +66,14 @@ const NotificationsSystem = (() => {
       const eventId = snapshot.key;
       const eventData = snapshot.val();
       if (!eventData) return;
-      
+
+      // Avoid duplicates (onChildAdded fires again after onChildChanged sometimes)
+      if (events.find(e => e.id === eventId)) return;
+
       const evt = { id: eventId, ...eventData };
       events.unshift(evt);
       if (events.length > 200) events.pop();
-      events.sort((a,b) => b.timestamp - a.timestamp);
+      events.sort((a, b) => b.timestamp - a.timestamp);
 
       if (document.getElementById('pageNotifications') && !document.getElementById('pageNotifications').classList.contains('hide')) {
         renderPage();
@@ -86,35 +89,64 @@ const NotificationsSystem = (() => {
       }
     });
 
-    // Support for reactions
+    // Update reactions or changed values
     if (onChildChanged) {
       onChildChanged(eventsRef, (snapshot) => {
         const eventId = snapshot.key;
         const eventData = snapshot.val();
         if (!eventData) return;
-        
+
         const idx = events.findIndex(e => e.id === eventId);
         if (idx !== -1) {
           events[idx] = { id: eventId, ...eventData };
-          if (document.getElementById('pageNotifications') && !document.getElementById('pageNotifications').classList.contains('hide')) {
-            renderPage();
-          }
+        } else {
+          events.unshift({ id: eventId, ...eventData });
+          events.sort((a, b) => b.timestamp - a.timestamp);
+        }
+        if (document.getElementById('pageNotifications') && !document.getElementById('pageNotifications').classList.contains('hide')) {
+          renderPage();
+        }
+        updateBadge();
+      });
+    }
+
+    // Handle deletions — remove locally when deleted from Firebase
+    if (onChildRemoved) {
+      onChildRemoved(eventsRef, (snapshot) => {
+        const eventId = snapshot.key;
+        const idx = events.findIndex(e => e.id === eventId);
+        if (idx !== -1) events.splice(idx, 1);
+        updateBadge();
+        if (document.getElementById('pageNotifications') && !document.getElementById('pageNotifications').classList.contains('hide')) {
+          renderPage();
         }
       });
     }
   }
 
   // ── PUSH EVENT ──
+  // Uses a deterministic key: uid_type_targetId
+  // → same action always overwrites the previous notification
+  // → value of 0 or null means the action was reversed, so delete the notification
   function pushEvent(type, targetId, value) {
     if (!window._fbReady || !window._fbDb || !window.firebase_database) return;
     if (typeof window.store === 'undefined') return;
     const s = window.store.get();
     if (s.currentUser === null || s.currentUser === undefined) return;
     try {
-      const { ref, push, set } = window.firebase_database;
+      const { ref, set, remove } = window.firebase_database;
       const db = window._fbDb;
-      const newEventRef = push(ref(db, 'events'));
-      set(newEventRef, {
+      const safeTarget = (targetId !== null && targetId !== undefined) ? targetId : 'x';
+      const key = `${s.currentUser}_${type}_${safeTarget}`;
+      const eventRef = ref(db, `events/${key}`);
+
+      // Action reversed → delete the notification
+      if (value === 0 || value === null) {
+        remove(eventRef);
+        return;
+      }
+
+      set(eventRef, {
         userId: s.currentUser,
         type: type,
         targetId: targetId || null,
@@ -133,7 +165,7 @@ const NotificationsSystem = (() => {
     if (typeof window.store === 'undefined') return;
     const s = window.store.get();
     if (s.currentUser === null || s.currentUser === undefined) return;
-    
+
     try {
       const { ref, update } = window.firebase_database;
       const db = window._fbDb;
@@ -187,7 +219,7 @@ const NotificationsSystem = (() => {
   function getEventMessage(event) {
     const userName = MEMBERS && MEMBERS[event.userId] ? MEMBERS[event.userId].name.split(' ')[0] : 'زميل';
     let subjTag = '';
-    
+
     switch (event.type) {
       case 'progress':
         const pct = parseFloat(event.value) || 0;
@@ -205,7 +237,7 @@ const NotificationsSystem = (() => {
         }
         let pctEmoji = '🌱';
         let actionStr = `خلص <b style="color:var(--accent-blue)">${pct}%</b> من`;
-        
+
         if (pct === 100) {
           pctEmoji = '🔥';
           actionStr = `قفل المحاضرة بنسبة <b style="color:var(--semantic-success)">100%</b> 👑`;
@@ -260,7 +292,7 @@ const NotificationsSystem = (() => {
 
     const msgInfo = getEventMessage(event);
     const userEmoji = MEMBERS && MEMBERS[event.userId] ? MEMBERS[event.userId].emoji : '👤';
-    
+
     const toast = document.createElement('div');
     Object.assign(toast.style, {
       background: 'rgba(28, 28, 30, 0.8)',
@@ -294,7 +326,7 @@ const NotificationsSystem = (() => {
         return;
       }
       if (typeof navTo === 'function') {
-        navTo('notifications'); 
+        navTo('notifications');
       }
       dismissToast(toast);
     };
@@ -316,14 +348,14 @@ const NotificationsSystem = (() => {
   }
 
   // ── RENDER PAGE ──
-  window._addReaction = function(eventId, emoji) {
+  window._addReaction = function (eventId, emoji) {
     addReaction(eventId, emoji);
   };
 
   function renderPage() {
     const c = document.getElementById('pageNotifications');
     if (!c) return;
-    
+
     // Automatically update read timestamp on view
     if (events.length > 0 && events[0].timestamp > lastReadTimestamp) {
       lastReadTimestamp = events[0].timestamp;
@@ -350,21 +382,21 @@ const NotificationsSystem = (() => {
     }
 
     html += '<div style="display:flex;flex-direction:column;gap:12px;">';
-    
+
     events.slice(0, 100).forEach(ev => {
       const msgInfo = getEventMessage(ev);
       const userEmoji = MEMBERS && MEMBERS[ev.userId] ? MEMBERS[ev.userId].emoji : '👤';
-      
+
       const diffMs = Date.now() - ev.timestamp;
       const diffMins = Math.floor(diffMs / 60000);
       let timeStr = '';
       if (diffMins < 1) timeStr = 'الآن';
       else if (diffMins < 60) timeStr = `منذ ${diffMins} دقيقة`;
-      else if (diffMins < 1440) timeStr = `منذ ${Math.floor(diffMins/60)} ساعة`;
-      else timeStr = `منذ ${Math.floor(diffMins/1440)} يوم`;
+      else if (diffMins < 1440) timeStr = `منذ ${Math.floor(diffMins / 60)} ساعة`;
+      else timeStr = `منذ ${Math.floor(diffMins / 1440)} يوم`;
 
       const exactTime = new Date(ev.timestamp).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
-      
+
       const rxCount = {};
       const rxUsers = {};
       if (ev.reactions) {

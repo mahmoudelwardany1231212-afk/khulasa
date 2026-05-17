@@ -530,9 +530,61 @@ function _doLogin(confirmedUser) {
   store.set({ currentUser: confirmedUser });
   showToast(`أهلاً بك يا ${MEMBERS[confirmedUser].name} 💪`, 'success');
   _watchSession(confirmedUser);
+  // ── PREFS SYNC: Connect LS hook to Firebase for notes/bookmarks/tasks/pomodoro ──
+  _initPrefsSync(confirmedUser);
   if (typeof showMeme === 'function') {
     setTimeout(() => showMeme('login', 0, `أهلاً يا ${MEMBERS[confirmedUser].name}! جاهز تذاكر؟ 💪`), 400);
   }
+}
+
+// ── PREFS SYNC ENGINE ─────────────────────────────────────────────────────
+// Syncs all LS keys (notes, bookmarks, tasks, pomodoro prefs, stickies)
+// to Firebase under: users/{uid}/prefs/{key}
+// On login: loads existing cloud prefs INTO localStorage (cloud wins).
+// On any LS.set: writes to Firebase immediately.
+let _prefsUnsubscribe = null;
+
+function _initPrefsSync(uid) {
+  if (!window._fbReady || !window._fbDb) {
+    // Firebase not ready yet — wait and retry
+    window.addEventListener('firebase-ready', () => _initPrefsSync(uid), { once: true });
+    return;
+  }
+  const { ref, onValue, update } = window._fbSDK;
+  const { onValue: onVal } = window.firebase_database;
+
+  // 1. Load existing prefs from Firebase into localStorage (cloud-first)
+  if (_prefsUnsubscribe) _prefsUnsubscribe();
+  _prefsUnsubscribe = onVal(ref(window._fbDb, `users/${uid}/prefs`), (snap) => {
+    const cloudPrefs = snap.val();
+    if (cloudPrefs) {
+      LS._noSync = true; // prevent re-triggering write hook
+      Object.entries(cloudPrefs).forEach(([k, v]) => {
+        try {
+          // Store raw JSON value from Firebase back into localStorage
+          localStorage.setItem(LS._p + k, typeof v === 'string' ? v : JSON.stringify(v));
+        } catch(e) {}
+      });
+      LS._noSync = false;
+      // Refresh any open pages that use LS data
+      if (typeof renderNotesPage === 'function' && !document.getElementById('pageNotes')?.classList.contains('hide')) renderNotesPage();
+      if (typeof renderTasksPage === 'function' && !document.getElementById('pageTasks')?.classList.contains('hide')) renderTasksPage();
+    }
+    console.log('[PrefsSync] Cloud prefs loaded for user', uid);
+  }, { onlyOnce: true });
+
+  // 2. Hook: every LS.set() → write to Firebase
+  LS._fbHook = (key, value) => {
+    if (!window._fbReady || !window._fbDb) return;
+    try {
+      const payload = {};
+      // Store the raw JSON string as-is (Firebase stores it as string)
+      payload[key] = value === null ? null : JSON.stringify(value);
+      update(ref(window._fbDb, `users/${uid}/prefs`), payload);
+    } catch(e) { console.warn('[PrefsSync] Write error:', e); }
+  };
+
+  console.log('[PrefsSync] Hook attached for user', uid);
 }
 
 async function checkPin() {
@@ -709,6 +761,9 @@ function logout() {
     window._fbUnsubscribe = null;
     window._fbReady = false;
   }
+  // Detach prefs sync
+  if (typeof _prefsUnsubscribe === 'function') { _prefsUnsubscribe(); }
+  LS._fbHook = null;
   store.set({ currentUser: null });
   document.getElementById('mainApp').classList.add('hide');
   document.getElementById('userSelect').classList.remove('hide');
@@ -1055,6 +1110,10 @@ function renderLectures(state) {
       <div class="lec-check" style="--pct:${isDone ? compPct : 0};${isDone ? `border-color:${color};` : ''}"></div>
       <div class="lec-info">
         <div class="lec-title">${l.t}${hasNote ? ' <span style="font-size:10px;opacity:0.5" title="عليها ملاحظة">📝</span>' : ''}</div>
+        ${l.m || l.online ? `<div class="lec-meta" style="margin-bottom:4px">
+          ${l.m ? '<span style="display:inline-flex;align-items:center;gap:4px;padding:4px 12px;font-size:11px;font-weight:900;background:var(--semantic-danger);color:#fff;border:none;clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%);letter-spacing:0.5px">📝 مقالي</span>' : ''}
+          ${l.online ? '<span style="display:inline-flex;align-items:center;gap:4px;padding:4px 12px;font-size:11px;font-weight:900;background:#FFB300;color:#000;border:none;clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%);letter-spacing:0.5px">🛜 أونلاين</span>' : ''}
+        </div>` : ''}
         <div class="lec-meta">
           <span class="lec-tag" style="background:${SUBJ_COLORS[ci]}15;color:${SUBJ_COLORS[ci]}">${SUBJ_SHORT[l.s] || l.s}</span>
           <span class="lec-tag lt-quiz">${l.q}</span>
@@ -1270,6 +1329,10 @@ function renderBuyList(state) {
             <div style="width:6px;height:6px;border-radius:50%;background:${cColor};flex-shrink:0;margin-top:6px;"></div>
             <div style="display:flex;flex-direction:column;flex:1;gap:4px;">
               <div style="font-size:12px;font-weight:600;color:var(--txt);line-height:1.5;">${l.t}</div>
+              ${l.m || l.online ? `<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-bottom:4px;">
+                ${l.m ? '<span style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;font-size:10px;font-weight:900;background:var(--semantic-danger);color:#fff;clip-path:polygon(4px 0,100% 0,calc(100% - 4px) 100%,0 100%)">📝 مقالي</span>' : ''}
+                ${l.online ? '<span style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;font-size:10px;font-weight:900;background:#FFB300;color:#000;clip-path:polygon(4px 0,100% 0,calc(100% - 4px) 100%,0 100%)">🛜 أونلاين</span>' : ''}
+              </div>` : ''}
               <div style="display:flex;align-items:center;gap:6px;">
                 <div style="font-size:9px;color:${cColor};background:${cColor}15;padding:1px 6px;border-radius:6px;font-family:'Inter',sans-serif;">${SUBJ_SHORT[l.s] || l.s}</div>
                 ${d.idx === state.currentUser ? `<button onclick="event.stopPropagation();markAsBought(${d.idx}, ${l.id})" style="background:rgba(0,214,143,0.08);border:1px solid rgba(0,214,143,0.25);color:var(--green);font-size:10px;cursor:pointer;font-weight:800;padding:5px 12px;border-radius:8px;font-family:'Cairo',sans-serif;white-space:nowrap;transition:all 0.2s;">تم الشراء ✅</button>` : ''}
@@ -1442,7 +1505,11 @@ function renderFinishedList(state) {
         <div style="display:flex;align-items:flex-start;gap:10px;">
           <div style="width:8px;height:8px;border-radius:50%;background:${cColor};flex-shrink:0;margin-top:5px;box-shadow:0 0 6px ${cColor}80"></div>
           <div style="flex:1;min-width:0;">
-            <div style="font-size:12px;font-weight:700;color:var(--ink);line-height:1.5;margin-bottom:6px;">${l.t}</div>
+            <div style="font-size:12px;font-weight:700;color:var(--ink);line-height:1.5;margin-bottom:4px;">${l.t}</div>
+            ${l.m || l.online ? `<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-bottom:4px;">
+              ${l.m ? '<span style="display:inline-flex;align-items:center;gap:3px;padding:3px 10px;font-size:10px;font-weight:900;background:var(--semantic-danger);color:#fff;clip-path:polygon(5px 0,100% 0,calc(100% - 5px) 100%,0 100%)">📝 مقالي</span>' : ''}
+              ${l.online ? '<span style="display:inline-flex;align-items:center;gap:3px;padding:3px 10px;font-size:10px;font-weight:900;background:#FFB300;color:#000;clip-path:polygon(5px 0,100% 0,calc(100% - 5px) 100%,0 100%)">🛜 أونلاين</span>' : ''}
+            </div>` : ''}
             <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:8px;">
               <span style="font-size:9px;color:${cColor};background:${cColor}15;padding:2px 7px;clip-path:polygon(4px 0,100% 0,calc(100% - 4px) 100%,0 100%);font-weight:800;letter-spacing:1px;text-transform:uppercase">${SUBJ_SHORT[l.s] || l.s}</span>
               <span style="font-size:9px;color:var(--ink-muted);background:rgba(255,255,255,0.05);padding:2px 7px;clip-path:polygon(4px 0,100% 0,calc(100% - 4px) 100%,0 100%);font-weight:700">${l.q}</span>
