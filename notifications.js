@@ -147,7 +147,13 @@ const NotificationsSystem = (() => {
 
   // ── BADGE UPDATER ──
   function updateBadge() {
-    const unreadCount = events.filter(e => e.timestamp > lastReadTimestamp).length;
+    const _s = window.store;
+    const currentUser = _s ? _s.get().currentUser : null;
+    // Only count events from OTHER users as unread — own actions never create a badge
+    const unreadCount = events.filter(e =>
+      e.timestamp > lastReadTimestamp &&
+      (currentUser === null || e.userId !== currentUser)
+    ).length;
     const sidebarItem = document.querySelector('.sidebar-nav-item[data-nav="notifications"]');
     if (sidebarItem) {
       let badge = sidebarItem.querySelector('.notif-badge');
