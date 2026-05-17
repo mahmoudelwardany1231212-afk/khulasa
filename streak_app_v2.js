@@ -548,7 +548,7 @@ async function checkPin() {
       return;
     }
     // Guard: PINs are loaded from Firebase — if not ready yet, check hardcoded fallback
-    const correctPin = store._pins[pendingUser] || MEMBERS[pendingUser]?.pin;
+    const correctPin = store._pins[pendingUser];
     if (!correctPin) {
       document.getElementById('pinError').textContent = '⏳ جاري تحميل البيانات، انتظر لحظة';
       document.getElementById('pinError').style.opacity = '1';
