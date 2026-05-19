@@ -212,19 +212,18 @@
 
   function _renderCoverageSection() {
     var h = _renderActiveBadge();
-    var tc = _state.teamCoverage;
 
     if (!_state.result) return h;
 
     var r = _state.result;
+    var subs = _getCoverageSubjects();
 
-    // Compute team coverage lazily if not already set
-    if (!tc && typeof Engine !== 'undefined' && Engine.getTeamCoverage) {
-      var subs = _getCoverageSubjects();
+    // Always recompute team coverage with fresh progress data
+    if (typeof Engine !== 'undefined' && Engine.getTeamCoverage) {
       var filtered = _lectures().filter(function(l) { return subs.indexOf(l.s) !== -1; });
-      tc = Engine.getTeamCoverage(filtered.length ? filtered : _lectures(), _progress());
-      _state.teamCoverage = tc;
+      _state.teamCoverage = Engine.getTeamCoverage(filtered.length ? filtered : _lectures(), _progress());
     }
+    var tc = _state.teamCoverage;
 
     // Tabs
     h += _renderTabs();
