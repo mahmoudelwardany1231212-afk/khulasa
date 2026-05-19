@@ -182,17 +182,20 @@
     h += _renderTabs();
 
     // Stats bar
-    h += '<div class="cov-stats-bar">' +
-      (tc ? _statChip('👥', 'تغطية الفريق / الاستعدادية', tc.teamCoveragePercent + '%') : '') +
-      _statChip('📊', 'التوزيع', r.stats.coveragePercent + '%') +
-      _statChip('🎯', 'التغطية الفعلية', r.stats.effectiveCoverage + '%') +
-      _statChip('⚖️', 'التوازن (LBS)', Math.round(r.stats.lbs * 100) + '%') +
-    '</div>' +
     (function() {
-      var criticalGap = tc ? tc.lectureDetails.filter(function(d){return d.maxPct<20;}).length : 0;
-      return tc
-        ? '<div class="cov-effective-note">👥 تغطية الفريق = الاستعدادية = لو كلنا دخلنا الامتحان النهاردة، هنعرف نجاوب على <strong>' + tc.teamCoveragePercent + '%</strong> من المنهج. الفجوة: <strong>' + criticalGap + '</strong> محاضرة مفيش ولا واحد عارفها.</div>'
-        : '';
+      var critGap = tc ? tc.lectureDetails.filter(function(d){return d.maxPct<20;}).length : 0;
+      var critTotal = tc ? tc.totalLectures : 0;
+      var critCovered = critTotal - critGap;
+      var critPct = critTotal > 0 ? Math.round((critCovered / critTotal) * 100) : 0;
+      h += '<div class="cov-stats-bar">' +
+        (tc ? _statChip('👥', 'تغطية الفريق / الاستعدادية', critPct + '%') : '') +
+        _statChip('📊', 'التوزيع', r.stats.coveragePercent + '%') +
+        _statChip('🎯', 'التغطية الفعلية', r.stats.effectiveCoverage + '%') +
+        _statChip('⚖️', 'التوازن (LBS)', Math.round(r.stats.lbs * 100) + '%') +
+      '</div>' +
+      (tc
+        ? '<div class="cov-effective-note">👥 تغطية الفريق = الاستعدادية = لو كلنا دخلنا الامتحان النهاردة، هنعرف نجاوب على <strong>' + critPct + '%</strong> من المنهج. الفجوة: <strong>' + critGap + '</strong> محاضرة لسه محتاجة شغل.</div>'
+        : '');
     })() +
 
     // Gap lectures section: scrollable table with filters
