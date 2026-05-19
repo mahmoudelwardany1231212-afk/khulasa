@@ -1367,7 +1367,12 @@ function renderBuyList(state) {
 // ── FINISHED LIST — Lecture-Centric View (Multi-Select Filter) ─────
 // Filter state: shared=true/false, subjects=Set of subject names
 // Both can be active at the same time → intersection
-window._finishedState = { shared: true, subjects: new Set(), selectedMembers: new Set() };
+window._finishedState = { shared: true, subjects: new Set(), selectedMembers: new Set(), mode: 'finished' };
+
+function _toggleFinMode() {
+  window._finishedState.mode = window._finishedState.mode === 'finished' ? 'unfinished' : 'finished';
+  store.notify();
+}
 
 function _toggleFinShared() {
   window._finishedState.shared = !window._finishedState.shared;
@@ -1394,11 +1399,21 @@ function _clearFinMembers() {
   store.notify();
 }
 
+function _getPlanOwner(lecId) {
+  try {
+    if (window._evalPlan && window._evalPlan.result && window._evalPlan.result.ownershipMap) {
+      var entry = window._evalPlan.result.ownershipMap[lecId];
+      return entry ? { name: entry.ownerName, id: entry.owner } : null;
+    }
+  } catch(e) {}
+  return null;
+}
+
 function renderFinishedList(state) {
   const c = document.getElementById('finishedCards');
   if (!c) return;
 
-  const { shared, subjects, selectedMembers } = window._finishedState;
+  const { shared, subjects, selectedMembers, mode } = window._finishedState;
 
   // ── Build lecture map: id → { lec, studiedBy[] }
   const lecMap = {};
@@ -1412,31 +1427,41 @@ function renderFinishedList(state) {
     });
   });
 
-  // ── Base: only lectures at least one person studied
-  let entries = Object.values(lecMap).filter(e => e.studiedBy.length > 0);
-
-  // ── Apply "مشتركة" toggle
-  if (shared) entries = entries.filter(e => e.studiedBy.length > 1);
-
-  // ── Apply subject multi-select (OR logic inside subjects)
-  if (subjects.size > 0) entries = entries.filter(e => subjects.has(e.lec.s));
-
-  // ── Apply member filter (AND: every selected member must have studied it)
-  if (selectedMembers.size > 0) {
-    entries = entries.filter(function(e) {
-      var studiedIds = e.studiedBy.map(function(sb) { return sb.idx; });
-      return Array.from(selectedMembers).every(function(id) { return studiedIds.indexOf(id) !== -1; });
-    });
+  // ── Base entries
+  let entries;
+  if (mode === 'finished') {
+    entries = Object.values(lecMap).filter(e => e.studiedBy.length > 0);
+  } else {
+    entries = Object.values(lecMap);
   }
 
-  // ── Sort: most shared first, then alphabetical
-  entries.sort((a, b) => b.studiedBy.length - a.studiedBy.length || a.lec.t.localeCompare(b.lec.t));
+  // ── Apply filters
+  if (mode === 'finished' && shared) {
+    entries = entries.filter(e => e.studiedBy.length > 1);
+  }
 
-  // ── Counts for badge labels
+  if (subjects.size > 0) entries = entries.filter(e => subjects.has(e.lec.s));
+
+  if (selectedMembers.size > 0) {
+    if (mode === 'finished') {
+      entries = entries.filter(e => selectedMembers.every(id => e.studiedBy.some(sb => sb.idx === id)));
+    } else {
+      entries = entries.filter(e => selectedMembers.every(id => !e.studiedBy.some(sb => sb.idx === id)));
+    }
+  }
+
+  // ── Sort
+  if (mode === 'finished') {
+    entries.sort((a, b) => b.studiedBy.length - a.studiedBy.length || a.lec.t.localeCompare(b.lec.t));
+  } else {
+    entries.sort((a, b) => a.lec.t.localeCompare(b.lec.t));
+  }
+
+  // ── Counts
   const allEntries    = Object.values(lecMap).filter(e => e.studiedBy.length > 0);
   const totalStudied  = allEntries.length;
   const sharedCount   = allEntries.filter(e => e.studiedBy.length > 1).length;
-  const allSubjects   = [...new Set(allEntries.map(e => e.lec.s))];
+  const allSubjects   = [...new Set(LECTURES.map(l => l.s))];
 
   // ── Member stats
   const memberStats = MEMBERS.map((m, i) => {
@@ -1447,73 +1472,139 @@ function renderFinishedList(state) {
 
   let html = '';
 
-  // ── Stats Bar ──
-  html += `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">`;
-  memberStats.forEach(ms => {
-    const pct = Math.round((ms.done / LECTURES.length) * 100);
-    html += `<div style="flex:1;min-width:70px;background:${ms.m.color}12;border:1px solid ${ms.m.color}40;padding:8px 6px;clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%);text-align:center;">
-      <div style="font-size:15px">${ms.m.emoji}</div>
-      <div style="font-size:9px;font-weight:800;color:${ms.m.color};text-transform:uppercase;letter-spacing:1px;margin-top:2px;line-height:1.2">${ms.m.name.split(' ')[0]}</div>
-      <div style="font-size:14px;font-weight:900;color:var(--ink)">${ms.done}</div>
-      <div style="height:3px;background:${ms.m.color}25;margin-top:4px;border-radius:2px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${ms.m.color}"></div></div>
-    </div>`;
-  });
-  html += `</div>`;
-
-  // ── Filter Row 1: Shared toggle + Reset ──
-  const sharedBg  = shared ? 'var(--accent-blue)' : 'var(--surface-1)';
-  const sharedClr = shared ? '#000' : 'var(--ink-muted)';
-  const sharedBrd = shared ? 'var(--accent-blue)' : 'var(--hairline)';
-  const sharedGlw = shared ? '0 0 12px rgba(0,229,255,0.35)' : 'none';
-
-  const hasSubjFilter = subjects.size > 0;
-  const activeCount = entries.length;
-
-  html += `<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap;">
-    <div onclick="_toggleFinShared()" style="
-      flex-shrink:0;padding:7px 14px;font-size:11px;font-weight:800;cursor:pointer;
+  // ── Tab bar ──
+  html += `<div style="display:flex;gap:0;margin-bottom:16px;border-bottom:1px solid var(--hairline);">`;
+  ['finished','unfinished'].forEach(mod => {
+    const on = mode === mod;
+    const label = mod === 'finished' ? '✓ الخلصانة' : '🔥 اللي لسه';
+    html += `<div onclick="_toggleFinMode()" style="
+      flex:1;padding:10px 0;text-align:center;font-size:12px;font-weight:800;cursor:pointer;
       text-transform:uppercase;letter-spacing:1px;white-space:nowrap;
-      clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%);
-      background:${sharedBg};color:${sharedClr};border:1px solid ${sharedBrd};
-      box-shadow:${sharedGlw};transition:all .2s;
-    ">🔗 ${shared ? '✓ ' : ''}مشتركة فقط</div>
-
-    <div style="flex:1;min-width:0;font-size:10px;color:var(--ink-muted);text-align:left;letter-spacing:1px;font-weight:700;text-transform:uppercase;padding-right:4px">
-      ${activeCount} محضرة${subjects.size > 0 ? ` — ${subjects.size} مادة` : ''}${selectedMembers.size > 0 ? ` — ${selectedMembers.size} عضو` : ''}
-    </div>
-
-    ${hasSubjFilter ? `<div onclick="_clearFinSubjects()" style="
-      flex-shrink:0;padding:5px 10px;font-size:10px;font-weight:800;cursor:pointer;
-      color:var(--semantic-danger);border:1px solid rgba(255,0,60,0.3);
-      background:rgba(255,0,60,0.05);clip-path:polygon(4px 0,100% 0,calc(100% - 4px) 100%,0 100%);
-      text-transform:uppercase;letter-spacing:1px;transition:all .2s;
-    ">✕ مسح المواد</div>` : ''}
-  </div>`;
-
-  // ── Filter Row 2: Subject multi-chips ──
-  html += `<div style="display:flex;gap:4px;overflow-x:auto;padding-bottom:6px;margin-bottom:14px;scrollbar-width:none;">`;
-  allSubjects.forEach(s => {
-    const isOn = subjects.has(s);
-    const ci   = SUBJECTS.indexOf(s);
-    const col  = SUBJ_COLORS[ci] || '#888';
-    const cnt  = allEntries.filter(e => e.lec.s === s).length;
-    // when shared is on, show count of shared-only for this subject
-    const sharedCnt = allEntries.filter(e => e.lec.s === s && e.studiedBy.length > 1).length;
-    const displayCnt = shared ? sharedCnt : cnt;
-    html += `<div onclick="_toggleFinSubject('${s}')" style="
-      flex-shrink:0;padding:5px 11px;font-size:11px;font-weight:800;cursor:pointer;
-      text-transform:uppercase;letter-spacing:1px;white-space:nowrap;
-      clip-path:polygon(5px 0,100% 0,calc(100% - 5px) 100%,0 100%);
-      background:${isOn ? col + '22' : 'var(--surface-1)'};
-      color:${isOn ? col : 'var(--ink-muted)'};
-      border:1px solid ${isOn ? col : 'var(--hairline)'};
-      box-shadow:${isOn ? `0 0 10px ${col}40` : 'none'};
+      color:${on ? 'var(--accent-blue)' : 'var(--ink-muted)'};
+      border-bottom:2px solid ${on ? 'var(--accent-blue)' : 'transparent'};
       transition:all .2s;
-    ">${isOn ? '✓ ' : ''}${SUBJ_SHORT[s] || s} <span style="opacity:0.7;font-size:9px">(${displayCnt})</span></div>`;
+    ">${label}</div>`;
   });
   html += `</div>`;
 
-  // ── Filter Row 3: Member multi-chips ──
+  // ── Stats Bar ──
+  if (mode === 'finished') {
+    html += `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">`;
+    memberStats.forEach(ms => {
+      const pct = Math.round((ms.done / LECTURES.length) * 100);
+      html += `<div style="flex:1;min-width:70px;background:${ms.m.color}12;border:1px solid ${ms.m.color}40;padding:8px 6px;clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%);text-align:center;">
+        <div style="font-size:15px">${ms.m.emoji}</div>
+        <div style="font-size:9px;font-weight:800;color:${ms.m.color};text-transform:uppercase;letter-spacing:1px;margin-top:2px;line-height:1.2">${ms.m.name.split(' ')[0]}</div>
+        <div style="font-size:14px;font-weight:900;color:var(--ink)">${ms.done}</div>
+        <div style="height:3px;background:${ms.m.color}25;margin-top:4px;border-radius:2px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${ms.m.color}"></div></div>
+      </div>`;
+    });
+    html += `</div>`;
+  } else {
+    const targetMembers = selectedMembers.size > 0 ? [...selectedMembers] : MEMBERS.map((_, i) => i);
+    html += `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">`;
+    targetMembers.forEach(mi => {
+      const m = MEMBERS[mi];
+      const p = state.progress[mi] || {};
+      const done = LECTURES.filter(l => p[l.id] !== undefined && parseFloat(p[l.id]) > 0).length;
+      const pending = LECTURES.length - done;
+      html += `<div style="flex:1;min-width:70px;background:rgba(255,70,30,0.08);border:1px solid rgba(255,70,30,0.25);padding:8px 6px;clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%);text-align:center;">
+        <div style="font-size:15px">${m.emoji}</div>
+        <div style="font-size:9px;font-weight:800;color:${m.color};text-transform:uppercase;letter-spacing:1px;margin-top:2px;line-height:1.2">${m.name.split(' ')[0]}</div>
+        <div style="font-size:14px;font-weight:900;color:var(--semantic-danger)">${pending}</div>
+        <div style="font-size:9px;color:var(--ink-muted);margin-top:2px">متبقي</div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  // ── Filter Row 1: Shared toggle + Reset (finished only) ──
+  if (mode === 'finished') {
+    const sharedBg  = shared ? 'var(--accent-blue)' : 'var(--surface-1)';
+    const sharedClr = shared ? '#000' : 'var(--ink-muted)';
+    const sharedBrd = shared ? 'var(--accent-blue)' : 'var(--hairline)';
+    const sharedGlw = shared ? '0 0 12px rgba(0,229,255,0.35)' : 'none';
+
+    const hasSubjFilter = subjects.size > 0;
+    const activeCount = entries.length;
+
+    html += `<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap;">
+      <div onclick="_toggleFinShared()" style="
+        flex-shrink:0;padding:7px 14px;font-size:11px;font-weight:800;cursor:pointer;
+        text-transform:uppercase;letter-spacing:1px;white-space:nowrap;
+        clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%);
+        background:${sharedBg};color:${sharedClr};border:1px solid ${sharedBrd};
+        box-shadow:${sharedGlw};transition:all .2s;
+      ">🔗 ${shared ? '✓ ' : ''}مشتركة فقط</div>
+
+      <div style="flex:1;min-width:0;font-size:10px;color:var(--ink-muted);text-align:left;letter-spacing:1px;font-weight:700;text-transform:uppercase;padding-right:4px">
+        ${activeCount} محضرة${subjects.size > 0 ? ` — ${subjects.size} مادة` : ''}${selectedMembers.size > 0 ? ` — ${selectedMembers.size} عضو` : ''}
+      </div>
+
+      ${hasSubjFilter ? `<div onclick="_clearFinSubjects()" style="
+        flex-shrink:0;padding:5px 10px;font-size:10px;font-weight:800;cursor:pointer;
+        color:var(--semantic-danger);border:1px solid rgba(255,0,60,0.3);
+        background:rgba(255,0,60,0.05);clip-path:polygon(4px 0,100% 0,calc(100% - 4px) 100%,0 100%);
+        text-transform:uppercase;letter-spacing:1px;transition:all .2s;
+      ">✕ مسح المواد</div>` : ''}
+    </div>`;
+  }
+
+  // ── Subject filter chips ──
+  if (mode === 'finished') {
+    html += `<div style="display:flex;gap:4px;overflow-x:auto;padding-bottom:6px;margin-bottom:14px;scrollbar-width:none;">`;
+    allSubjects.forEach(s => {
+      const isOn = subjects.has(s);
+      const ci   = SUBJECTS.indexOf(s);
+      const col  = SUBJ_COLORS[ci] || '#888';
+      const cnt  = allEntries.filter(e => e.lec.s === s).length;
+      const sharedCnt = allEntries.filter(e => e.lec.s === s && e.studiedBy.length > 1).length;
+      const displayCnt = shared ? sharedCnt : cnt;
+      html += `<div onclick="_toggleFinSubject('${s}')" style="
+        flex-shrink:0;padding:5px 11px;font-size:11px;font-weight:800;cursor:pointer;
+        text-transform:uppercase;letter-spacing:1px;white-space:nowrap;
+        clip-path:polygon(5px 0,100% 0,calc(100% - 5px) 100%,0 100%);
+        background:${isOn ? col + '22' : 'var(--surface-1)'};
+        color:${isOn ? col : 'var(--ink-muted)'};
+        border:1px solid ${isOn ? col : 'var(--hairline)'};
+        box-shadow:${isOn ? `0 0 10px ${col}40` : 'none'};
+        transition:all .2s;
+      ">${isOn ? '✓ ' : ''}${SUBJ_SHORT[s] || s} <span style="opacity:0.7;font-size:9px">(${displayCnt})</span></div>`;
+    });
+    html += `</div>`;
+  } else {
+    html += `<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap;">
+      <div style="font-size:10px;color:var(--ink-muted);font-weight:700;letter-spacing:1px;text-transform:uppercase;padding-left:4px">
+        ${entries.length} محاضرة لسه${subjects.size > 0 ? '' : ` (اختار مادة)`}
+      </div>
+      ${subjects.size > 0 ? `<div onclick="_clearFinSubjects()" style="
+        flex-shrink:0;padding:5px 10px;font-size:10px;font-weight:800;cursor:pointer;
+        color:var(--semantic-danger);border:1px solid rgba(255,0,60,0.3);
+        background:rgba(255,0,60,0.05);clip-path:polygon(4px 0,100% 0,calc(100% - 4px) 100%,0 100%);
+        text-transform:uppercase;letter-spacing:1px;transition:all .2s;
+      ">✕ مسح المواد</div>` : ''}
+    </div>`;
+    html += `<div style="display:flex;gap:4px;overflow-x:auto;padding-bottom:6px;margin-bottom:14px;scrollbar-width:none;">`;
+    allSubjects.forEach(s => {
+      const isOn = subjects.has(s);
+      const ci   = SUBJECTS.indexOf(s);
+      const col  = SUBJ_COLORS[ci] || '#888';
+      const cnt  = LECTURES.filter(l => l.s === s).length;
+      html += `<div onclick="_toggleFinSubject('${s}')" style="
+        flex-shrink:0;padding:5px 11px;font-size:11px;font-weight:800;cursor:pointer;
+        text-transform:uppercase;letter-spacing:1px;white-space:nowrap;
+        clip-path:polygon(5px 0,100% 0,calc(100% - 5px) 100%,0 100%);
+        background:${isOn ? col + '22' : 'var(--surface-1)'};
+        color:${isOn ? col : 'var(--ink-muted)'};
+        border:1px solid ${isOn ? col : 'var(--hairline)'};
+        box-shadow:${isOn ? `0 0 10px ${col}40` : 'none'};
+        transition:all .2s;
+      ">${isOn ? '✓ ' : ''}${SUBJ_SHORT[s] || s} <span style="opacity:0.7;font-size:9px">(${cnt})</span></div>`;
+    });
+    html += `</div>`;
+  }
+
+  // ── Member filter chips ──
   const hasMemFilter = selectedMembers.size > 0;
   html += `<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap;">` +
     (hasMemFilter ? `<div onclick="_clearFinMembers()" style="
@@ -1522,11 +1613,16 @@ function renderFinishedList(state) {
       background:rgba(255,0,60,0.05);clip-path:polygon(4px 0,100% 0,calc(100% - 4px) 100%,0 100%);
       text-transform:uppercase;letter-spacing:1px;transition:all .2s;
     ">✕ مسح الأعضاء</div>` : '') +
+    (mode === 'unfinished' && selectedMembers.size === 0 ?
+      `<span style="font-size:10px;color:var(--semantic-danger);font-weight:700">⬇ اختر عضو عشان تشوف اللي لسه</span>` : '') +
   `</div>` +
   `<div style="display:flex;gap:4px;overflow-x:auto;padding-bottom:6px;margin-bottom:14px;scrollbar-width:none;">`;
   MEMBERS.forEach(function(m, i) {
     var isOn = selectedMembers.has(i);
     var col = m.color || '#888';
+    var cnt = mode === 'finished'
+      ? allEntries.filter(function(e){return e.studiedBy.some(function(sb){return sb.idx===i;})}).length
+      : LECTURES.filter(function(l){var p=state.progress[i]||{};return p[l.id]===undefined||parseFloat(p[l.id])===0}).length;
     html += `<div onclick="_toggleFinMember(${i})" style="
       flex-shrink:0;padding:5px 11px;font-size:11px;font-weight:800;cursor:pointer;
       text-transform:uppercase;letter-spacing:1px;white-space:nowrap;
@@ -1536,68 +1632,121 @@ function renderFinishedList(state) {
       border:1px solid ${isOn ? col : 'var(--hairline)'};
       box-shadow:${isOn ? '0 0 10px ' + col + '40' : 'none'};
       transition:all .2s;
-    ">${m.emoji} ${isOn ? '✓ ' : ''}${m.name.split(' ')[0]} <span style="opacity:0.7;font-size:9px">(${allEntries.filter(function(e){return e.studiedBy.some(function(sb){return sb.idx===i;})}).length})</span></div>`;
+    ">${m.emoji} ${isOn ? '✓ ' : ''}${m.name.split(' ')[0]} <span style="opacity:0.7;font-size:9px">(${cnt})</span></div>`;
   });
   html += `</div>`;
 
   // ── Lecture Cards ──
   if (!entries.length) {
+    const msg = mode === 'finished'
+      ? (shared && subjects.size > 0 ? 'جرب تشيل فلتر المشتركة أو تغير المادة' : shared ? 'مافيش محضرات مشتركة لسه' : 'جرب فلتر تاني')
+      : (selectedMembers.size > 0 ? 'مبروك! خلصت كل حاجه 🎉' : 'اختار عضو عشان تشوف اللي لسه');
     html += `<div style="text-align:center;padding:50px 20px;color:var(--ink-muted);">
       <div style="font-size:40px;margin-bottom:12px">🔍</div>
       <div style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1px">مافيش محضرات بالفلتر ده</div>
-      <div style="font-size:11px;margin-top:8px;opacity:0.6">${shared && subjects.size > 0 ? 'جرب تشيل فلتر المشتركة أو تغير المادة' : shared ? 'مافيش محضرات مشتركة لسه' : 'جرب فلتر تاني'}</div>
+      <div style="font-size:11px;margin-top:8px;opacity:0.6">${msg}</div>
     </div>`;
   } else {
     entries.forEach(e => {
       const l = e.lec;
       const ci = SUBJECTS.indexOf(l.s);
       const cColor = SUBJ_COLORS[ci] || '#888';
-      const isShared  = e.studiedBy.length > 1;
-      const allStudied = e.studiedBy.length === MEMBERS.length;
-      const glowColor  = allStudied ? '#FFB300' : isShared ? 'var(--accent-blue)' : cColor;
 
-      html += `<div style="
-        background:linear-gradient(145deg,${glowColor}08,#050812);
-        border:1px solid ${glowColor}${isShared ? '50' : '25'};
-        border-right:4px solid ${glowColor};
-        padding:10px 12px;margin-bottom:8px;
-        clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%);
-        position:relative;transition:all .2s;
-      ">
-        ${isShared ? `<div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,${glowColor},transparent);opacity:0.5"></div>` : ''}
-        <div style="display:flex;align-items:flex-start;gap:10px;">
-          <div style="width:8px;height:8px;border-radius:50%;background:${cColor};flex-shrink:0;margin-top:5px;box-shadow:0 0 6px ${cColor}80"></div>
-          <div style="flex:1;min-width:0;">
-            <div style="font-size:12px;font-weight:700;color:var(--ink);line-height:1.5;margin-bottom:4px;">${l.t}</div>
-            ${l.m || l.online ? `<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-bottom:4px;">
-              ${l.m ? '<span style="display:inline-flex;align-items:center;gap:3px;padding:3px 10px;font-size:10px;font-weight:900;background:var(--semantic-danger);color:#fff;clip-path:polygon(5px 0,100% 0,calc(100% - 5px) 100%,0 100%)">📝 مقالي</span>' : ''}
-              ${l.online ? '<span style="display:inline-flex;align-items:center;gap:3px;padding:3px 10px;font-size:10px;font-weight:900;background:#FFB300;color:#000;clip-path:polygon(5px 0,100% 0,calc(100% - 5px) 100%,0 100%)">🛜 أونلاين</span>' : ''}
-            </div>` : ''}
-            <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:8px;">
-              <span style="font-size:9px;color:${cColor};background:${cColor}15;padding:2px 7px;clip-path:polygon(4px 0,100% 0,calc(100% - 4px) 100%,0 100%);font-weight:800;letter-spacing:1px;text-transform:uppercase">${SUBJ_SHORT[l.s] || l.s}</span>
-              <span style="font-size:9px;color:var(--ink-muted);background:rgba(255,255,255,0.05);padding:2px 7px;clip-path:polygon(4px 0,100% 0,calc(100% - 4px) 100%,0 100%);font-weight:700">${l.q}</span>
-              ${allStudied ? `<span style="font-size:9px;color:#FFB300;background:rgba(255,179,0,0.1);padding:2px 8px;clip-path:polygon(4px 0,100% 0,calc(100% - 4px) 100%,0 100%);font-weight:900;letter-spacing:1px">👑 الكل ذاكرها</span>` : ''}
-            </div>
-            <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
-              ${e.studiedBy.map(sb => {
-                const pc = PCT_COLORS[sb.pct] || 'var(--semantic-success)';
-                return `<div style="display:flex;align-items:center;gap:3px;background:${sb.m.color}12;border:1px solid ${sb.m.color}35;padding:3px 8px;clip-path:polygon(5px 0,100% 0,calc(100% - 5px) 100%,0 100%);">
-                  <span style="font-size:12px">${sb.m.emoji}</span>
-                  <span style="font-size:10px;font-weight:800;color:${sb.m.color};text-transform:uppercase;letter-spacing:0.5px">${sb.m.name.split(' ')[0]}</span>
-                  <span style="font-size:10px;font-weight:900;color:${pc};font-family:'Inter',sans-serif">${sb.pct}%</span>
-                </div>`;
-              }).join('')}
-              ${MEMBERS.map((m, mi) => {
-                if (e.studiedBy.some(sb => sb.idx === mi)) return '';
-                return `<div style="display:flex;align-items:center;gap:3px;background:rgba(255,255,255,0.02);border:1px dashed rgba(255,255,255,0.1);padding:3px 8px;clip-path:polygon(5px 0,100% 0,calc(100% - 5px) 100%,0 100%);opacity:0.35;">
-                  <span style="font-size:12px">${m.emoji}</span>
-                  <span style="font-size:10px;color:var(--ink-muted);text-transform:uppercase">${m.name.split(' ')[0]}</span>
-                </div>`;
-              }).join('')}
+      if (mode === 'finished') {
+        const isShared  = e.studiedBy.length > 1;
+        const allStudied = e.studiedBy.length === MEMBERS.length;
+        const glowColor  = allStudied ? '#FFB300' : isShared ? 'var(--accent-blue)' : cColor;
+
+        html += `<div style="
+          background:linear-gradient(145deg,${glowColor}08,#050812);
+          border:1px solid ${glowColor}${isShared ? '50' : '25'};
+          border-right:4px solid ${glowColor};
+          padding:10px 12px;margin-bottom:8px;
+          clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%);
+          position:relative;transition:all .2s;
+        ">
+          ${isShared ? `<div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,${glowColor},transparent);opacity:0.5"></div>` : ''}
+          <div style="display:flex;align-items:flex-start;gap:10px;">
+            <div style="width:8px;height:8px;border-radius:50%;background:${cColor};flex-shrink:0;margin-top:5px;box-shadow:0 0 6px ${cColor}80"></div>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:12px;font-weight:700;color:var(--ink);line-height:1.5;margin-bottom:4px;">${l.t}</div>
+              ${l.m || l.online ? `<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-bottom:4px;">
+                ${l.m ? '<span style="display:inline-flex;align-items:center;gap:3px;padding:3px 10px;font-size:10px;font-weight:900;background:var(--semantic-danger);color:#fff;clip-path:polygon(5px 0,100% 0,calc(100% - 5px) 100%,0 100%)">📝 مقالي</span>' : ''}
+                ${l.online ? '<span style="display:inline-flex;align-items:center;gap:3px;padding:3px 10px;font-size:10px;font-weight:900;background:#FFB300;color:#000;clip-path:polygon(5px 0,100% 0,calc(100% - 5px) 100%,0 100%)">🛜 أونلاين</span>' : ''}
+              </div>` : ''}
+              <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:8px;">
+                <span style="font-size:9px;color:${cColor};background:${cColor}15;padding:2px 7px;clip-path:polygon(4px 0,100% 0,calc(100% - 4px) 100%,0 100%);font-weight:800;letter-spacing:1px;text-transform:uppercase">${SUBJ_SHORT[l.s] || l.s}</span>
+                <span style="font-size:9px;color:var(--ink-muted);background:rgba(255,255,255,0.05);padding:2px 7px;clip-path:polygon(4px 0,100% 0,calc(100% - 4px) 100%,0 100%);font-weight:700">${l.q}</span>
+                ${allStudied ? `<span style="font-size:9px;color:#FFB300;background:rgba(255,179,0,0.1);padding:2px 8px;clip-path:polygon(4px 0,100% 0,calc(100% - 4px) 100%,0 100%);font-weight:900;letter-spacing:1px">👑 الكل ذاكرها</span>` : ''}
+              </div>
+              <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
+                ${e.studiedBy.map(sb => {
+                  const pc = PCT_COLORS[sb.pct] || 'var(--semantic-success)';
+                  return `<div style="display:flex;align-items:center;gap:3px;background:${sb.m.color}12;border:1px solid ${sb.m.color}35;padding:3px 8px;clip-path:polygon(5px 0,100% 0,calc(100% - 5px) 100%,0 100%);">
+                    <span style="font-size:12px">${sb.m.emoji}</span>
+                    <span style="font-size:10px;font-weight:800;color:${sb.m.color};text-transform:uppercase;letter-spacing:0.5px">${sb.m.name.split(' ')[0]}</span>
+                    <span style="font-size:10px;font-weight:900;color:${pc};font-family:'Inter',sans-serif">${sb.pct}%</span>
+                  </div>`;
+                }).join('')}
+                ${MEMBERS.map((m, mi) => {
+                  if (e.studiedBy.some(sb => sb.idx === mi)) return '';
+                  return `<div style="display:flex;align-items:center;gap:3px;background:rgba(255,255,255,0.02);border:1px dashed rgba(255,255,255,0.1);padding:3px 8px;clip-path:polygon(5px 0,100% 0,calc(100% - 5px) 100%,0 100%);opacity:0.35;">
+                    <span style="font-size:12px">${m.emoji}</span>
+                    <span style="font-size:10px;color:var(--ink-muted);text-transform:uppercase">${m.name.split(' ')[0]}</span>
+                  </div>`;
+                }).join('')}
+              </div>
             </div>
           </div>
-        </div>
-      </div>`;
+        </div>`;
+      } else {
+        // ── Unfinished card ──
+        const planOwner = _getPlanOwner(l.id);
+        html += `<div style="
+          background:linear-gradient(145deg,rgba(255,70,30,0.04),#050812);
+          border:1px dashed rgba(255,70,30,0.35);
+          border-left:4px solid var(--semantic-danger);
+          padding:10px 12px;margin-bottom:8px;
+          clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%);
+          transition:all .2s;
+        ">
+          <div style="display:flex;align-items:flex-start;gap:10px;">
+            <div style="width:8px;height:8px;border-radius:50%;background:${cColor};flex-shrink:0;margin-top:5px;box-shadow:0 0 6px ${cColor}80"></div>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:12px;font-weight:700;color:var(--ink);line-height:1.5;margin-bottom:4px;">${l.t}</div>
+              ${l.m || l.online ? `<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-bottom:4px;">
+                ${l.m ? '<span style="display:inline-flex;align-items:center;gap:3px;padding:3px 10px;font-size:10px;font-weight:900;background:var(--semantic-danger);color:#fff;clip-path:polygon(5px 0,100% 0,calc(100% - 5px) 100%,0 100%)">📝 مقالي</span>' : ''}
+                ${l.online ? '<span style="display:inline-flex;align-items:center;gap:3px;padding:3px 10px;font-size:10px;font-weight:900;background:#FFB300;color:#000;clip-path:polygon(5px 0,100% 0,calc(100% - 5px) 100%,0 100%)">🛜 أونلاين</span>' : ''}
+              </div>` : ''}
+              <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:8px;">
+                <span style="font-size:9px;color:${cColor};background:${cColor}15;padding:2px 7px;clip-path:polygon(4px 0,100% 0,calc(100% - 4px) 100%,0 100%);font-weight:800;letter-spacing:1px;text-transform:uppercase">${SUBJ_SHORT[l.s] || l.s}</span>
+                <span style="font-size:9px;color:var(--ink-muted);background:rgba(255,255,255,0.05);padding:2px 7px;clip-path:polygon(4px 0,100% 0,calc(100% - 4px) 100%,0 100%);font-weight:700">${l.q}</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;flex-direction:column;align-items:stretch;">
+                ${(selectedMembers.size > 0 ? [...selectedMembers] : []).map(mi => {
+                  const m = MEMBERS[mi];
+                  const p = state.progress[mi] || {};
+                  const val = p[l.id];
+                  const hasIt = val !== undefined && parseFloat(val) > 0;
+                  if (hasIt) return '';
+                  const pct = parseFloat(val || 0);
+                  const pc = PCT_COLORS[pct] || '#FF461E';
+                  const isOwner = planOwner && planOwner.id === mi;
+                  return `<div style="display:flex;align-items:center;gap:4px;background:rgba(255,70,30,0.06);border:1px dashed rgba(255,70,30,0.2);padding:4px 8px;clip-path:polygon(5px 0,100% 0,calc(100% - 5px) 100%,0 100%);margin-bottom:3px;">
+                    <span style="font-size:12px">${m.emoji}</span>
+                    <span style="font-size:10px;font-weight:800;color:${m.color};text-transform:uppercase;letter-spacing:0.5px">${m.name.split(' ')[0]}</span>
+                    <span style="font-size:10px;font-weight:900;color:${pc}">لم يبدأ (0%)</span>
+                    ${isOwner ? `<span style="font-size:9px;color:var(--accent-blue);background:rgba(0,229,255,0.1);padding:2px 6px;clip-path:polygon(3px 0,100% 0,calc(100% - 3px) 100%,0 100%);font-weight:700;margin-right:auto">📋 المكلف</span>` : ''}
+                  </div>`;
+                }).join('')}
+                ${planOwner && !(selectedMembers.size > 0 && selectedMembers.has(planOwner.id)) ? `<div style="display:flex;align-items:center;gap:3px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.2);padding:3px 8px;clip-path:polygon(5px 0,100% 0,calc(100% - 5px) 100%,0 100%);margin-top:2px;">
+                  <span style="font-size:10px;font-weight:800;color:var(--accent-blue)">📋 المكلف في الخطة: ${planOwner.name}</span>
+                </div>` : ''}
+              </div>
+            </div>
+          </div>
+        </div>`;
+      }
     });
   }
 
