@@ -188,12 +188,17 @@
       _statChip('🎯', 'التغطية الفعلية', r.stats.effectiveCoverage + '%') +
       _statChip('⚖️', 'التوازن (LBS)', Math.round(r.stats.lbs * 100) + '%') +
     '</div>' +
-    (tc
-      ? '<div class="cov-effective-note">👥 تغطية الفريق = الاستعدادية = لو كلنا دخلنا الامتحان النهاردة، هنعرف نجاوب على <strong>' + tc.teamCoveragePercent + '%</strong> من المنهج. الفجوة: <strong>' + tc.uncoveredLectures + '</strong> محاضرة مفيش ولا واحد عارفها.</div>'
-      : '') +
+    (function() {
+      var criticalGap = tc ? tc.lectureDetails.filter(function(d){return d.maxPct<20;}).length : 0;
+      return tc
+        ? '<div class="cov-effective-note">👥 تغطية الفريق = الاستعدادية = لو كلنا دخلنا الامتحان النهاردة، هنعرف نجاوب على <strong>' + tc.teamCoveragePercent + '%</strong> من المنهج. الفجوة: <strong>' + criticalGap + '</strong> محاضرة مفيش ولا واحد عارفها.</div>'
+        : '';
+    })() +
 
     // Gap lectures section: scrollable table with filters
-    (tc && tc.uncoveredLectures > 0 && r.ownershipMap
+    (function() {
+      var criticalGap = tc ? tc.lectureDetails.filter(function(d){return d.maxPct<20;}).length : 0;
+      return (tc && criticalGap > 0 && r.ownershipMap
       ? '<div class="cov-card" style="margin-top:8px">' +
         '<div class="cov-section-label" style="display:flex;justify-content:space-between;align-items:center">' +
           '<span>⚠️ محاضرات الفجوة — مين المكلف في الخطة؟</span>' +
@@ -235,7 +240,7 @@
           var person = _state.gapFilters.person;
           var range = _state.gapFilters.range;
           return tc.lectureDetails.filter(function(d) {
-            if (d.covered) return false;
+            if (d.maxPct >= 20) return false;
             if (query && (d.title || '').toLowerCase().indexOf(query) === -1) return false;
             if (person !== 'all') {
               var oi = _ownerForGap(r, d);
@@ -272,6 +277,7 @@
         })() +
         '</tbody></table></div></div>'
       : '');
+    })();
 
     if (_state.activeTab === 'members') {
       // Toggle: hide completed

@@ -115,7 +115,7 @@ function renderSocialPage() {
           ${ch.gap > 0 ? `
           <div style="margin-bottom:6px">
             <div style="font-size:9px;color:#ef4444;margin-bottom:4px">
-              <strong>⚠️ فجوة: ${ch.gap} محاضرة</strong> — مفيش ولا واحد عارفها
+              <strong>⚠️ فجوة: ${ch.gap} محاضرة</strong> — محاضرات لسه محتاجة شغل
               <span style="color:var(--ink-muted);font-size:8px;cursor:pointer" onclick="(function(el){
                 var t=el.closest('div').nextElementSibling;t.style.display=t.style.display==='none'?'block':'none'
               })(this)"> [عرض/إخفاء]</span>

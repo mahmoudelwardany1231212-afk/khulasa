@@ -1367,7 +1367,7 @@ function renderBuyList(state) {
 // ── FINISHED LIST — Lecture-Centric View (Multi-Select Filter) ─────
 // Filter state: shared=true/false, subjects=Set of subject names
 // Both can be active at the same time → intersection
-window._finishedState = { shared: true, subjects: new Set() };
+window._finishedState = { shared: true, subjects: new Set(), selectedMembers: new Set() };
 
 function _toggleFinShared() {
   window._finishedState.shared = !window._finishedState.shared;
@@ -1384,12 +1384,21 @@ function _clearFinSubjects() {
   window._finishedState.subjects.clear();
   store.notify();
 }
+function _toggleFinMember(id) {
+  const s = window._finishedState.selectedMembers;
+  if (s.has(id)) s.delete(id); else s.add(id);
+  store.notify();
+}
+function _clearFinMembers() {
+  window._finishedState.selectedMembers.clear();
+  store.notify();
+}
 
 function renderFinishedList(state) {
   const c = document.getElementById('finishedCards');
   if (!c) return;
 
-  const { shared, subjects } = window._finishedState;
+  const { shared, subjects, selectedMembers } = window._finishedState;
 
   // ── Build lecture map: id → { lec, studiedBy[] }
   const lecMap = {};
@@ -1411,6 +1420,14 @@ function renderFinishedList(state) {
 
   // ── Apply subject multi-select (OR logic inside subjects)
   if (subjects.size > 0) entries = entries.filter(e => subjects.has(e.lec.s));
+
+  // ── Apply member filter (AND: every selected member must have studied it)
+  if (selectedMembers.size > 0) {
+    entries = entries.filter(function(e) {
+      var studiedIds = e.studiedBy.map(function(sb) { return sb.idx; });
+      return Array.from(selectedMembers).every(function(id) { return studiedIds.indexOf(id) !== -1; });
+    });
+  }
 
   // ── Sort: most shared first, then alphabetical
   entries.sort((a, b) => b.studiedBy.length - a.studiedBy.length || a.lec.t.localeCompare(b.lec.t));
@@ -1462,7 +1479,7 @@ function renderFinishedList(state) {
     ">🔗 ${shared ? '✓ ' : ''}مشتركة فقط</div>
 
     <div style="flex:1;min-width:0;font-size:10px;color:var(--ink-muted);text-align:left;letter-spacing:1px;font-weight:700;text-transform:uppercase;padding-right:4px">
-      ${activeCount} محضرة${subjects.size > 0 ? ` — ${subjects.size} مادة مختارة` : ''}
+      ${activeCount} محضرة${subjects.size > 0 ? ` — ${subjects.size} مادة` : ''}${selectedMembers.size > 0 ? ` — ${selectedMembers.size} عضو` : ''}
     </div>
 
     ${hasSubjFilter ? `<div onclick="_clearFinSubjects()" style="
@@ -1493,6 +1510,33 @@ function renderFinishedList(state) {
       box-shadow:${isOn ? `0 0 10px ${col}40` : 'none'};
       transition:all .2s;
     ">${isOn ? '✓ ' : ''}${SUBJ_SHORT[s] || s} <span style="opacity:0.7;font-size:9px">(${displayCnt})</span></div>`;
+  });
+  html += `</div>`;
+
+  // ── Filter Row 3: Member multi-chips ──
+  const hasMemFilter = selectedMembers.size > 0;
+  html += `<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap;">` +
+    (hasMemFilter ? `<div onclick="_clearFinMembers()" style="
+      flex-shrink:0;padding:5px 10px;font-size:10px;font-weight:800;cursor:pointer;
+      color:var(--semantic-danger);border:1px solid rgba(255,0,60,0.3);
+      background:rgba(255,0,60,0.05);clip-path:polygon(4px 0,100% 0,calc(100% - 4px) 100%,0 100%);
+      text-transform:uppercase;letter-spacing:1px;transition:all .2s;
+    ">✕ مسح الأعضاء</div>` : '') +
+  `</div>` +
+  `<div style="display:flex;gap:4px;overflow-x:auto;padding-bottom:6px;margin-bottom:14px;scrollbar-width:none;">`;
+  MEMBERS.forEach(function(m, i) {
+    var isOn = selectedMembers.has(i);
+    var col = m.color || '#888';
+    html += `<div onclick="_toggleFinMember(${i})" style="
+      flex-shrink:0;padding:5px 11px;font-size:11px;font-weight:800;cursor:pointer;
+      text-transform:uppercase;letter-spacing:1px;white-space:nowrap;
+      clip-path:polygon(5px 0,100% 0,calc(100% - 5px) 100%,0 100%);
+      background:${isOn ? col + '22' : 'var(--surface-1)'};
+      color:${isOn ? col : 'var(--ink-muted)'};
+      border:1px solid ${isOn ? col : 'var(--hairline)'};
+      box-shadow:${isOn ? '0 0 10px ' + col + '40' : 'none'};
+      transition:all .2s;
+    ">${m.emoji} ${isOn ? '✓ ' : ''}${m.name.split(' ')[0]} <span style="opacity:0.7;font-size:9px">(${allEntries.filter(function(e){return e.studiedBy.some(function(sb){return sb.idx===i;})}).length})</span></div>`;
   });
   html += `</div>`;
 
