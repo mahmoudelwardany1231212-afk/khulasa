@@ -1443,10 +1443,11 @@ function renderFinishedList(state) {
   if (subjects.size > 0) entries = entries.filter(e => subjects.has(e.lec.s));
 
   if (selectedMembers.size > 0) {
+    const sel = Array.from(selectedMembers);
     if (mode === 'finished') {
-      entries = entries.filter(e => selectedMembers.every(id => e.studiedBy.some(sb => sb.idx === id)));
+      entries = entries.filter(e => sel.every(id => e.studiedBy.some(sb => sb.idx === id)));
     } else {
-      entries = entries.filter(e => selectedMembers.every(id => !e.studiedBy.some(sb => sb.idx === id)));
+      entries = entries.filter(e => sel.every(id => !e.studiedBy.some(sb => sb.idx === id)));
     }
   }
 
