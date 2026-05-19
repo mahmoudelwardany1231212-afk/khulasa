@@ -21,6 +21,7 @@
   ];
 
   function _clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+  function _arraysEqual(a, b) { return a && b && a.length === b.length && a.every(function(v,i){return v===b[i];}); }
 
   var _state = {
     result       : null,
@@ -97,6 +98,7 @@
         { subjectFilter: subs, ignoreHistory: true }
       );
       _state.planSubjects = subs.slice();
+      window._evalPlan = { result: _state.result, planSubjects: subs.slice(), savedAt: Date.now() };
       if (typeof Engine !== 'undefined' && Engine.getTeamCoverage) {
         var filtered = _lectures().filter(function(l) { return subs.indexOf(l.s) !== -1; });
         _state.teamCoverage = Engine.getTeamCoverage(
@@ -236,9 +238,8 @@
             if (d.covered) return false;
             if (query && (d.title || '').toLowerCase().indexOf(query) === -1) return false;
             if (person !== 'all') {
-              var oe = r.ownershipMap[d.lectureId];
-              var oid = oe ? String(oe.owner) : '';
-              if (oid !== person) return false;
+              var oi = _ownerForGap(r, d);
+              if (oi !== person) return false;
             }
             if (range !== 'all') {
               var parts = range.split('-');
@@ -248,11 +249,18 @@
             return true;
           }).map(function(d) {
             var ownerEntry = r.ownershipMap[d.lectureId];
-            var ownerName = ownerEntry ? ownerEntry.ownerName : 'غير موزع';
-            var ownerColor = 'var(--semantic-danger)';
+            var ownerName, ownerColor;
             if (ownerEntry) {
+              ownerName = ownerEntry.ownerName;
               var mi = _members().findIndex(function(m) { return m.id === ownerEntry.owner; });
               ownerColor = mi >= 0 ? COLORS[mi % COLORS.length] : 'var(--ink-muted)';
+            } else if (d.topMember >= 0) {
+              var mi = _members().findIndex(function(m) { return m.id === d.topMember; });
+              ownerName = mi >= 0 ? _members()[mi].name : 'أحد الأعضاء';
+              ownerColor = mi >= 0 ? COLORS[mi % COLORS.length] : 'var(--ink-muted)';
+            } else {
+              ownerName = 'غير موزع';
+              ownerColor = 'var(--semantic-danger)';
             }
             var riskColor = d.maxPct < 20 ? '#ef4444' : d.maxPct < 50 ? '#f59e0b' : '#6366f1';
             return '<tr>' +
@@ -323,6 +331,13 @@
     return h;
   }
 
+  function _ownerForGap(result, detail) {
+    var oe = result.ownershipMap[detail.lectureId];
+    if (oe) return String(oe.owner);
+    if (detail.topMember >= 0) return String(detail.topMember);
+    return '';
+  }
+
   function _pctColor(pct) {
     if (pct == null) return 'var(--surface-2)';
     var r = Math.round(255 * (1 - pct / 100));
@@ -377,7 +392,15 @@
     var el = document.getElementById("pageEvalCenter");
     if (!el) return;
 
-    if (!_state.result) _autoGenerate();
+    if (!_state.result) {
+      // Try loading shared plan
+      var subs = _getCoverageSubjects();
+      if (window._evalPlan && _arraysEqual(window._evalPlan.planSubjects, subs)) {
+        _state.result = window._evalPlan.result;
+        _state.planSubjects = subs;
+      }
+      _autoGenerate();
+    }
 
     el.innerHTML =
     '<div class="cov-wrapper">' +

@@ -162,19 +162,31 @@ function renderSocialPage() {
                     ${function(){
                       var ownershipMap = {};
                       try {
-                        if (typeof CoverageEngine !== 'undefined') {
-                          var plan = CoverageEngine.loadLatestPlan();
-                          if (plan && plan.ownershipMap) { ownershipMap = plan.ownershipMap; }
+                        // 1) Use the shared evaluation-center plan if available
+                        if (window._evalPlan && window._evalPlan.result && window._evalPlan.result.ownershipMap) {
+                          ownershipMap = window._evalPlan.result.ownershipMap;
                         }
-                        if (!ownershipMap || Object.keys(ownershipMap).length === 0) {
-                          if (typeof CoverageEngine !== 'undefined' && typeof MEMBERS !== 'undefined') {
-                            var members = Array.from(MEMBERS, function(m, i) { return { id: i, name: m.name || 'عضو ' + i }; });
-                            var progress = typeof store !== 'undefined' ? store.get().progress : {};
-                            var distResult = CoverageEngine.distributeLectures(
-                              typeof LECTURES !== 'undefined' ? LECTURES : [], members, progress, {}
-                            );
-                            if (distResult && distResult.ownershipMap) ownershipMap = distResult.ownershipMap;
+                        // 2) Fallback: generate a deterministic plan (same options as evaluation center)
+                        if (Object.keys(ownershipMap).length === 0 && typeof CoverageEngine !== 'undefined' && typeof MEMBERS !== 'undefined') {
+                          var members = Array.from(MEMBERS, function(m, i) { return { id: i, name: m.name || 'عضو ' + i }; });
+                          var progress = typeof store !== 'undefined' ? store.get().progress : {};
+                          var opts = { ignoreHistory: true };
+                          // Try to match the same exam subjects as evaluation center
+                          if (typeof EXAM_SCHEDULE !== 'undefined' && EXAM_SCHEDULE.length && typeof LECTURES !== 'undefined') {
+                            var now = Date.now(), closest = null;
+                            EXAM_SCHEDULE.forEach(function(ex){ var d=Math.round((new Date(ex.iso).getTime()-now)/86400000); if(d>0&&(!closest||d<closest.days)) closest={name:ex.name,days:d}; });
+                            if (closest) {
+                              var subs = [], all = [];
+                              LECTURES.forEach(function(l){ if(l.s&&all.indexOf(l.s)===-1) all.push(l.s); });
+                              var alias = { 'Crown': 'Fixed Prosth.' };
+                              all.forEach(function(s){ if(s.indexOf(closest.name)!==-1||closest.name.indexOf(s)!==-1||(alias[closest.name]&&s===alias[closest.name])) if(subs.indexOf(s)===-1) subs.push(s); });
+                              if (subs.length) opts.subjectFilter = subs;
+                            }
                           }
+                          var distResult = CoverageEngine.distributeLectures(
+                            typeof LECTURES !== 'undefined' ? LECTURES : [], members, progress, opts
+                          );
+                          if (distResult && distResult.ownershipMap) ownershipMap = distResult.ownershipMap;
                         }
                       } catch(e) { console.warn('[Social] could not load coverage map', e); }
                       return ch.gapLectures.map(function(gl){
