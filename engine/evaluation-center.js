@@ -218,6 +218,14 @@
 
     var r = _state.result;
 
+    // Compute team coverage lazily if not already set
+    if (!tc && typeof Engine !== 'undefined' && Engine.getTeamCoverage) {
+      var subs = _getCoverageSubjects();
+      var filtered = _lectures().filter(function(l) { return subs.indexOf(l.s) !== -1; });
+      tc = Engine.getTeamCoverage(filtered.length ? filtered : _lectures(), _progress());
+      _state.teamCoverage = tc;
+    }
+
     // Tabs
     h += _renderTabs();
 
