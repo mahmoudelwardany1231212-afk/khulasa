@@ -201,7 +201,6 @@ const store = {
         });
 
         // Load PINs from Firebase — they never live in the source code
-        const { get } = window.firebase_database || {};
         if (get) {
           get(ref(db, 'config/pins')).then(snap => {
             const pins = snap.val();
