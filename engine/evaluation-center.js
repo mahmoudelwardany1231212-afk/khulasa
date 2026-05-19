@@ -88,8 +88,11 @@
     if (typeof CoverageEngine === 'undefined') return;
     var subs = _getCoverageSubjects();
     if (!subs.length) { _state.result = null; _state.planSubjects = null; return; }
-    // If we already have a plan for the same subjects, don't regenerate
-    if (_state.result && _state.planSubjects && _state.planSubjects.join(',') === subs.join(',')) return;
+    if (_state.result && _state.planSubjects && _state.planSubjects.join(',') === subs.join(',')) {
+      // Already have a plan for these subjects — just ensure teamCoverage is set
+      _ensureTeamCoverage(subs);
+      return;
+    }
     try {
       _state.result = CoverageEngine.distributeLectures(
         _lectures(),
@@ -99,42 +102,41 @@
       );
       _state.planSubjects = subs.slice();
       window._evalPlan = { result: _state.result, planSubjects: subs.slice(), savedAt: Date.now() };
-      // Persist to localStorage for immediate fallback
-      try {
-        CoverageEngine.savePlan(
-          { grade: _state.selectedGrade, stats: _state.result.stats, ownershipMap: _state.result.ownershipMap, planSubjects: subs.slice() }
-        );
-      } catch(e) { console.warn('[Eval] localStorage save failed:', e); }
-      // Write-once to Firebase as SSOT — check first, set only if missing
-      try {
-        var fbDb = typeof window._fbDb !== 'undefined' ? window._fbDb : null;
-        var sdk  = typeof window._fbSDK !== 'undefined' ? window._fbSDK : null;
-        if (fbDb && sdk && sdk.ref && sdk.set && sdk.get) {
-          var fbRef = sdk.ref(fbDb, 'plans/latest');
-          sdk.get(fbRef).then(function(snap) {
-            if (!snap.exists()) {
-              sdk.set(fbRef, {
-                grade: _state.selectedGrade,
-                stats: _state.result.stats,
-                ownershipMap: _state.result.ownershipMap,
-                planSubjects: subs.slice(),
-                savedAt: Date.now()
-              });
-            }
-          }).catch(function(e) { console.warn('[Eval] Firebase check failed:', e); });
-        }
-      } catch(e) { console.warn('[Eval] Firebase write-once failed:', e); }
-      if (typeof Engine !== 'undefined' && Engine.getTeamCoverage) {
-        var filtered = _lectures().filter(function(l) { return subs.indexOf(l.s) !== -1; });
-        _state.teamCoverage = Engine.getTeamCoverage(
-          filtered.length ? filtered : _lectures(),
-          _progress()
-        );
-      }
+      _ensureTeamCoverage(subs);
     } catch (e) {
       _state.result = null;
       _state.planSubjects = null;
     }
+  }
+
+  function _ensureTeamCoverage(subs) {
+    if (!_state.teamCoverage && _state.result && typeof Engine !== 'undefined' && Engine.getTeamCoverage) {
+      var filtered = _lectures().filter(function(l) { return subs.indexOf(l.s) !== -1; });
+      _state.teamCoverage = Engine.getTeamCoverage(
+        filtered.length ? filtered : _lectures(),
+        _progress()
+      );
+    }
+  }
+
+  function _syncPlanToFirebase() {
+    if (!_state.result || !_state.planSubjects) return;
+    try {
+      var fbDb = typeof window._fbDb !== 'undefined' ? window._fbDb : null;
+      var sdk  = typeof window._fbSDK !== 'undefined' ? window._fbSDK : null;
+      if (!fbDb || !sdk || !sdk.ref || !sdk.set || !sdk.get) return;
+      var fbRef = sdk.ref(fbDb, 'plans/latest');
+      sdk.get(fbRef).then(function(sn) {
+        if (!sn.exists()) {
+          sdk.set(fbRef, {
+            stats: _state.result.stats,
+            ownershipMap: _state.result.ownershipMap,
+            planSubjects: _state.planSubjects.slice(),
+            savedAt: Date.now()
+          });
+        }
+      }).catch(function(e) { console.warn('[Eval] Firebase check failed:', e); });
+    } catch(e) { console.warn('[Eval] Firebase write-once failed:', e); }
   }
 
   /* ══════════════════════════════════════════════════════════════════
@@ -428,22 +430,17 @@
 
     if (!_state.result) {
       var subs = _getCoverageSubjects();
-      // 1) Try same-session plan from evaluation center
+      // Try same-session plan (populated by Firebase SSOT init or earlier generation)
       if (window._evalPlan && _arraysEqual(window._evalPlan.planSubjects, subs)) {
         _state.result = window._evalPlan.result;
         _state.planSubjects = subs;
       }
-      // 2) Try localStorage plan from previous session (Firebase SSOT fallback)
-      if (!_state.result && typeof CoverageEngine !== 'undefined') {
-        var saved = CoverageEngine.loadLatestPlan();
-        if (saved && saved.ownershipMap && saved.planSubjects && _arraysEqual(saved.planSubjects, subs)) {
-          _state.result = { ownershipMap: saved.ownershipMap, stats: saved.stats || {} };
-          _state.planSubjects = subs;
-          window._evalPlan = { result: _state.result, planSubjects: subs, savedAt: saved.savedAt };
-        }
-      }
       _autoGenerate();
+      // Ensure teamCoverage is set even if plan was restored (not generated fresh)
+      _ensureTeamCoverage(subs);
     }
+    // Write plan to Firebase once (runs every render, idempotent — checks existence first)
+    _syncPlanToFirebase();
 
     el.innerHTML =
     '<div class="cov-wrapper">' +
@@ -617,22 +614,11 @@
               planSubjects: d.planSubjects || [],
               savedAt: d.savedAt || Date.now()
             };
-            // Sync to localStorage for social.js fallback
-            try {
-              if (typeof CoverageEngine !== 'undefined') {
-                CoverageEngine.savePlan({
-                  grade: d.grade,
-                  stats: d.stats || {},
-                  ownershipMap: d.ownershipMap,
-                  planSubjects: d.planSubjects
-                });
-              }
-            } catch(e) {}
             render();
           }
         }
-      }).catch(function(e) { console.warn('[Eval] Firebase SSOT read failed:', e); });
+      }).catch(function(e) { /* Firebase not ready yet — will generate fresh */ });
     }
-  } catch(e) { console.warn('[Eval] Firebase SSOT init failed:', e); }
+  } catch(e) {}
 
 })();
