@@ -119,6 +119,19 @@
     }
   }
 
+  function _stripUndefined(obj) {
+    if (obj === null || obj === undefined) return obj;
+    if (Array.isArray(obj)) return obj.map(_stripUndefined);
+    if (typeof obj === 'object') {
+      var out = {};
+      for (var k in obj) {
+        if (obj.hasOwnProperty(k) && obj[k] !== undefined) out[k] = _stripUndefined(obj[k]);
+      }
+      return out;
+    }
+    return obj;
+  }
+
   function _syncPlanToFirebase() {
     if (!_state.result || !_state.planSubjects) return;
     try {
@@ -128,12 +141,12 @@
       var fbRef = sdk.ref(fbDb, 'coverage/latest');
       sdk.get(fbRef).then(function(sn) {
         if (!sn.exists()) {
-          sdk.set(fbRef, {
+          sdk.set(fbRef, _stripUndefined({
             stats: _state.result.stats,
             ownershipMap: _state.result.ownershipMap,
             planSubjects: _state.planSubjects.slice(),
             savedAt: Date.now()
-          });
+          }));
         }
       }).catch(function(e) { console.warn('[Eval] Firebase check failed:', e); });
     } catch(e) { console.warn('[Eval] Firebase write-once failed:', e); }
