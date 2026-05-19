@@ -27,6 +27,8 @@
     teamCoverage : null,
     activeTab    : "members",
     gapFilters   : { search: '', person: 'all', range: 'all' },
+    planSubjects : null,
+    hideCompleted: true,
   };
 
   function _uniqueSubjects() {
@@ -36,6 +38,10 @@
     });
     return out.sort();
   }
+
+  var EXAM_SUBJECT_ALIASES = {
+    'Crown': 'Fixed Prosth.'
+  };
 
   function _getCoverageSubjects() {
     try {
@@ -51,9 +57,10 @@
       if (!closest) return [];
 
       var subs = _uniqueSubjects();
+      var aliasTarget = EXAM_SUBJECT_ALIASES[closest.name];
       var matches = [];
       subs.forEach(function(s) {
-        if (s.indexOf(closest.name) !== -1 || closest.name.indexOf(s) !== -1)
+        if (s.indexOf(closest.name) !== -1 || closest.name.indexOf(s) !== -1 || (aliasTarget && s === aliasTarget))
           if (matches.indexOf(s) === -1) matches.push(s);
       });
       return matches;
@@ -79,14 +86,17 @@
   function _autoGenerate() {
     if (typeof CoverageEngine === 'undefined') return;
     var subs = _getCoverageSubjects();
-    if (!subs.length) { _state.result = null; return; }
+    if (!subs.length) { _state.result = null; _state.planSubjects = null; return; }
+    // If we already have a plan for the same subjects, don't regenerate
+    if (_state.result && _state.planSubjects && _state.planSubjects.join(',') === subs.join(',')) return;
     try {
       _state.result = CoverageEngine.distributeLectures(
         _lectures(),
         _members(),
         _progress(),
-        { subjectFilter: subs }
+        { subjectFilter: subs, ignoreHistory: true }
       );
+      _state.planSubjects = subs.slice();
       if (typeof Engine !== 'undefined' && Engine.getTeamCoverage) {
         var filtered = _lectures().filter(function(l) { return subs.indexOf(l.s) !== -1; });
         _state.teamCoverage = Engine.getTeamCoverage(
@@ -96,6 +106,7 @@
       }
     } catch (e) {
       _state.result = null;
+      _state.planSubjects = null;
     }
   }
 
@@ -115,12 +126,12 @@
     var exams = _examCountdown();
     if (!exams.length) return '';
     var subs = _getCoverageSubjects();
-    var activeName = subs.length ? subs[0] : '';
     var h = '<div class="cov-active-badge" style="margin-bottom:6px"><span>📅 الكونت دون: </span>';
     h += exams.map(function(e) {
-      var isActive = activeName && (e.name.indexOf(activeName) !== -1 || activeName.indexOf(e.name) !== -1);
+      var isActive = subs.some(function(s) { return e.name.indexOf(s) !== -1 || s.indexOf(e.name) !== -1; });
       return (isActive ? '<strong>👉 ' : '') + e.name + ' (' + e.daysUntil + ' يوم)' + (isActive ? ' ⬅️</strong>' : '');
     }).join(' · ');
+    if (subs.length) h += '<div style="font-size:.75rem;opacity:.7;margin-top:2px">📚 المواد: ' + subs.join(' + ') + '</div>';
     h += '</div>';
     return h;
   }
@@ -170,14 +181,13 @@
 
     // Stats bar
     h += '<div class="cov-stats-bar">' +
-      (tc ? _statChip('👥', 'تغطية الفريق', tc.teamCoveragePercent + '%') : '') +
+      (tc ? _statChip('👥', 'تغطية الفريق / الاستعدادية', tc.teamCoveragePercent + '%') : '') +
       _statChip('📊', 'التوزيع', r.stats.coveragePercent + '%') +
       _statChip('🎯', 'التغطية الفعلية', r.stats.effectiveCoverage + '%') +
       _statChip('⚖️', 'التوازن (LBS)', Math.round(r.stats.lbs * 100) + '%') +
-      _statChip('🔄', 'الاستعدادية', r.stats.redundancyPercent + '%') +
     '</div>' +
     (tc
-      ? '<div class="cov-effective-note">👥 تغطية الفريق = لو كلنا دخلنا الامتحان النهاردة، هنعرف نجاوب على <strong>' + tc.teamCoveragePercent + '%</strong> من المنهج. الفجوة: <strong>' + tc.uncoveredLectures + '</strong> محاضرة مفيش ولا واحد عارفها.</div>'
+      ? '<div class="cov-effective-note">👥 تغطية الفريق = الاستعدادية = لو كلنا دخلنا الامتحان النهاردة، هنعرف نجاوب على <strong>' + tc.teamCoveragePercent + '%</strong> من المنهج. الفجوة: <strong>' + tc.uncoveredLectures + '</strong> محاضرة مفيش ولا واحد عارفها.</div>'
       : '') +
 
     // Gap lectures section: scrollable table with filters
@@ -256,9 +266,20 @@
       : '');
 
     if (_state.activeTab === 'members') {
+      // Toggle: hide completed
+      h += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">' +
+        '<label style="font-size:.75rem;color:var(--ink-muted);display:flex;align-items:center;gap:4px;cursor:pointer">' +
+        '<input type="checkbox" ' + (_state.hideCompleted ? 'checked' : '') + ' onchange="EvalCenter._toggleHideCompleted(this.checked)" style="margin:0">' +
+        'إخفاء المخلص (≥80%)</label></div>';
+
       // Member cards
       r.stats.memberBreakdown.forEach(function(m, i) {
         var color = COLORS[i % COLORS.length];
+        var ownedList = m.owned.filter(function(l) {
+          if (!_state.hideCompleted) return true;
+          var pct = _memberPct(m.id, l.id);
+          return pct === undefined || pct < 80;
+        });
         h += '<div class="cov-member-card" style="border-right:4px solid ' + color + '">' +
           '<div class="cov-member-header">' +
             '<div><div class="cov-member-name">' + (m.name || 'عضو ' + i) + '</div>' +
@@ -269,13 +290,19 @@
             '</div>' +
           '</div>' +
           '<div class="cov-member-lectures">';
-        m.owned.forEach(function(l) {
+        ownedList.forEach(function(l) {
+          var pct = _memberPct(m.id, l.id);
+          var pctVal = pct !== undefined ? parseFloat(pct) : 0;
+          var bg = _pctColor(pctVal);
           var risk = _riskBadge(l.risk || 0);
-          h += '<span class="cov-lecture-chip">' +
-            (l.t || l.s || l.id) + ' ' + risk +
+          h += '<span class="cov-lecture-chip" style="background:' + bg + '20;border-color:' + bg + '60">' +
+            (l.t || l.s || l.id) + ' <span style="font-weight:700;color:' + bg + '">' + Math.round(pctVal) + '%</span> ' + risk +
             (l.ttlExpiry ? ' <span class="cov-ttl-badge">⌛' + l.ttlExpiry + ' أيام</span>' : '') +
             '</span>';
         });
+        if (!ownedList.length) {
+          h += '<span style="color:var(--ink-muted);font-size:.75rem">✅ خلصت كل محاضراتك</span>';
+        }
         if (m.backup && m.backup.length) {
           h += '<div style="margin-top:4px;font-size:.7rem;opacity:.6">🔁 احتياطي: ' +
             m.backup.map(function(l) { return l.t || l.s || l.id; }).join(', ') + '</div>';
@@ -294,6 +321,18 @@
     h += '<button class="cov-export-btn" onclick="EvalCenter._exportPDF()">📄 تصدير PDF</button>';
 
     return h;
+  }
+
+  function _pctColor(pct) {
+    if (pct == null) return 'var(--surface-2)';
+    var r = Math.round(255 * (1 - pct / 100));
+    var g = Math.round(255 * (pct / 100));
+    return 'rgb(' + r + ',' + g + ',50)';
+  }
+
+  function _memberPct(memberId, lectureId) {
+    var p = _progress()[memberId];
+    return p ? p[lectureId] : undefined;
   }
 
   function _riskBadge(risk) {
@@ -455,6 +494,11 @@
     render();
   }
 
+  function _toggleHideCompleted(val) {
+    _state.hideCompleted = !!val;
+    render();
+  }
+
   function _submitRating(memberId, btn) {
     var quality = parseInt(document.getElementById('rQuality').value);
     var help = parseInt(document.getElementById('rHelp').value);
@@ -485,6 +529,7 @@
     _setGapSearch: _setGapSearch,
     _setGapPerson: _setGapPerson,
     _setGapRange: _setGapRange,
+    _toggleHideCompleted: _toggleHideCompleted,
     _exportPDF: _exportPDF,
     _openRating: _openRating,
     _submitRating: _submitRating,

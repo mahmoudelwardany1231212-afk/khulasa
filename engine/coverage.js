@@ -153,6 +153,7 @@
     var subjectFilter       = options.subjectFilter       || null;
     var redundancyThreshold = options.redundancyThreshold || REDUNDANCY_IMP_THRESHOLD;
     var maxHours            = options.maxHours            || MAX_STUDY_HOURS;
+    var ignoreHistory       = options.ignoreHistory       || false;
 
     var targets = gradeFilter
       ? lectures.filter(function(l) { return String(l.g) === String(gradeFilter); })
@@ -172,7 +173,7 @@
     var scored = _scoreLectures(targets).sort(function(a, b) { return b._priority - a._priority; });
 
     var riskScores       = {};
-    var assignmentHistory = _getAssignmentHistory();
+    var assignmentHistory = ignoreHistory ? {} : _getAssignmentHistory();
     members.forEach(function(m) { riskScores[m.id] = _getOwnerRiskScore(m.id); });
 
     var load  = {};
