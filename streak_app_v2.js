@@ -17,7 +17,8 @@ const store = {
     currentUser: null,
     filterSubj: 'all',
     filterQuiz: 'all',
-    filterModeOnline: false,
+    filterEssay: false,
+    filterOnline: false,
     searchQuery: '',
     progress: {}
   },
@@ -781,8 +782,11 @@ function setSubjFilter(v) {
 function setQuizFilter(v) {
   store.set({ filterQuiz: v });
 }
-function setModeFilter(v) {
-  store.set({ filterModeOnline: !!v });
+function setEssayFilter(v) {
+  store.set({ filterEssay: !!v });
+}
+function setOnlineFilter(v) {
+  store.set({ filterOnline: !!v });
 }
 
 function switchTab(tab) {
@@ -1005,7 +1009,9 @@ function buildFilters() {
 
   const mf = document.getElementById('modeFilters');
   if (mf) {
-    mf.innerHTML = `<div class="chip${s.filterModeOnline ? ' on' : ''}" onclick="setModeFilter(${!s.filterModeOnline})" style="border-color:var(--semantic-danger);color:${s.filterModeOnline ? 'var(--semantic-danger)' : 'var(--ink-muted)'}">📝 للمقالي و الاونلاين</div>`;
+    mf.innerHTML =
+      `<div class="chip${s.filterEssay ? ' on' : ''}" onclick="setEssayFilter(${!s.filterEssay})" style="border-color:var(--semantic-danger);color:${s.filterEssay ? 'var(--semantic-danger)' : 'var(--ink-muted)'}">📝 مقالي</div>` +
+      `<div class="chip${s.filterOnline ? ' on' : ''}" onclick="setOnlineFilter(${!s.filterOnline})" style="border-color:#FFB300;color:${s.filterOnline ? '#FFB300' : 'var(--ink-muted)'}">🛜 أونلاين</div>`;
   }
 }
 
@@ -1101,7 +1107,9 @@ function renderLectures(state) {
   
   if (state.filterSubj !== 'all') lecs = lecs.filter(l => l.s === state.filterSubj);
   if (state.filterQuiz !== 'all') lecs = lecs.filter(l => l.q === state.filterQuiz);
-  if (state.filterModeOnline) lecs = lecs.filter(l => l.m || l.online);
+  if (state.filterEssay && state.filterOnline) lecs = lecs.filter(l => l.m || l.online);
+  else if (state.filterEssay) lecs = lecs.filter(l => l.m);
+  else if (state.filterOnline) lecs = lecs.filter(l => l.online);
   if (state.searchQuery) {
     const q = state.searchQuery;
     lecs = lecs.filter(l => l.t.toLowerCase().includes(q) || l.s.toLowerCase().includes(q) || (SUBJ_SHORT[l.s] || '').toLowerCase().includes(q));
