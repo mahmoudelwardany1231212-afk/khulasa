@@ -166,7 +166,14 @@ function renderSocialPage() {
                         if (window._evalPlan && window._evalPlan.result && window._evalPlan.result.ownershipMap) {
                           ownershipMap = window._evalPlan.result.ownershipMap;
                         }
-                        // 2) Fallback: generate a deterministic plan (same options as evaluation center)
+                        // 2) LocalStorage plan from a previous session
+                        if (Object.keys(ownershipMap).length === 0 && typeof CoverageEngine !== 'undefined') {
+                          var _latest = CoverageEngine.loadLatestPlan();
+                          if (_latest && _latest.ownershipMap && Object.keys(_latest.ownershipMap).length > 0) {
+                            ownershipMap = _latest.ownershipMap;
+                          }
+                        }
+                        // 3) Fallback: generate a deterministic plan (same options as evaluation center)
                         if (Object.keys(ownershipMap).length === 0 && typeof CoverageEngine !== 'undefined' && typeof MEMBERS !== 'undefined') {
                           var members = Array.from(MEMBERS, function(m, i) { return { id: i, name: m.name || 'عضو ' + i }; });
                           var progress = typeof store !== 'undefined' ? store.get().progress : {};

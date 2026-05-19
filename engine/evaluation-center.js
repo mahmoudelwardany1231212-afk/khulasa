@@ -99,6 +99,31 @@
       );
       _state.planSubjects = subs.slice();
       window._evalPlan = { result: _state.result, planSubjects: subs.slice(), savedAt: Date.now() };
+      // Persist to localStorage for immediate fallback
+      try {
+        CoverageEngine.savePlan(
+          { grade: _state.selectedGrade, stats: _state.result.stats, ownershipMap: _state.result.ownershipMap, planSubjects: subs.slice() }
+        );
+      } catch(e) { console.warn('[Eval] localStorage save failed:', e); }
+      // Write-once to Firebase as SSOT — check first, set only if missing
+      try {
+        var fbDb = typeof window._fbDb !== 'undefined' ? window._fbDb : null;
+        var sdk  = typeof window._fbSDK !== 'undefined' ? window._fbSDK : null;
+        if (fbDb && sdk && sdk.ref && sdk.set && sdk.get) {
+          var fbRef = sdk.ref(fbDb, 'plans/latest');
+          sdk.get(fbRef).then(function(snap) {
+            if (!snap.exists()) {
+              sdk.set(fbRef, {
+                grade: _state.selectedGrade,
+                stats: _state.result.stats,
+                ownershipMap: _state.result.ownershipMap,
+                planSubjects: subs.slice(),
+                savedAt: Date.now()
+              });
+            }
+          }).catch(function(e) { console.warn('[Eval] Firebase check failed:', e); });
+        }
+      } catch(e) { console.warn('[Eval] Firebase write-once failed:', e); }
       if (typeof Engine !== 'undefined' && Engine.getTeamCoverage) {
         var filtered = _lectures().filter(function(l) { return subs.indexOf(l.s) !== -1; });
         _state.teamCoverage = Engine.getTeamCoverage(
@@ -402,11 +427,20 @@
     if (!el) return;
 
     if (!_state.result) {
-      // Try loading shared plan
       var subs = _getCoverageSubjects();
+      // 1) Try same-session plan from evaluation center
       if (window._evalPlan && _arraysEqual(window._evalPlan.planSubjects, subs)) {
         _state.result = window._evalPlan.result;
         _state.planSubjects = subs;
+      }
+      // 2) Try localStorage plan from previous session (Firebase SSOT fallback)
+      if (!_state.result && typeof CoverageEngine !== 'undefined') {
+        var saved = CoverageEngine.loadLatestPlan();
+        if (saved && saved.ownershipMap && saved.planSubjects && _arraysEqual(saved.planSubjects, subs)) {
+          _state.result = { ownershipMap: saved.ownershipMap, stats: saved.stats || {} };
+          _state.planSubjects = subs;
+          window._evalPlan = { result: _state.result, planSubjects: subs, savedAt: saved.savedAt };
+        }
       }
       _autoGenerate();
     }
@@ -566,5 +600,39 @@
     _openRating: _openRating,
     _submitRating: _submitRating,
   };
+
+  // ════════════════════════════════════════
+  // Firebase SSOT init — restore plan on page load
+  // ════════════════════════════════════════
+  try {
+    var fdb = typeof window._fbDb !== 'undefined' ? window._fbDb : null;
+    var fsd = typeof window._fbSDK !== 'undefined' ? window._fbSDK : null;
+    if (fdb && fsd && fsd.ref && fsd.get) {
+      fsd.get(fsd.ref(fdb, 'plans/latest')).then(function(sn) {
+        if (sn.exists()) {
+          var d = sn.val();
+          if (d && d.ownershipMap && d.planSubjects) {
+            window._evalPlan = {
+              result: { ownershipMap: d.ownershipMap, stats: d.stats || {} },
+              planSubjects: d.planSubjects || [],
+              savedAt: d.savedAt || Date.now()
+            };
+            // Sync to localStorage for social.js fallback
+            try {
+              if (typeof CoverageEngine !== 'undefined') {
+                CoverageEngine.savePlan({
+                  grade: d.grade,
+                  stats: d.stats || {},
+                  ownershipMap: d.ownershipMap,
+                  planSubjects: d.planSubjects
+                });
+              }
+            } catch(e) {}
+            render();
+          }
+        }
+      }).catch(function(e) { console.warn('[Eval] Firebase SSOT read failed:', e); });
+    }
+  } catch(e) { console.warn('[Eval] Firebase SSOT init failed:', e); }
 
 })();

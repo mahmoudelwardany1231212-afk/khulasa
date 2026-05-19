@@ -422,27 +422,12 @@
      PERSIST
   ══════════════════════════════════════════════════════════════════════ */
 
-  function savePlan(plan, fbDb, fbSDK) {
+  function savePlan(plan) {
     try {
       var all = _loadAll();
       var key = "cov_" + Date.now();
       all[key] = Object.assign({}, plan, { savedAt: Date.now() });
       localStorage.setItem(LS_KEY, JSON.stringify(all));
-
-      if (fbDb && fbSDK && fbSDK.ref && fbSDK.update) {
-        var date = new Date().toISOString().slice(0, 10);
-        var ref  = fbSDK.ref(fbDb, "coverage/" + date + "/" + key);
-        fbSDK.update(ref, {
-          savedAt          : Date.now(),
-          grade            : plan.grade,
-          lbs              : plan.stats ? plan.stats.lbs : null,
-          coverage         : plan.stats ? plan.stats.coveragePercent : null,
-          effectiveCoverage: plan.stats ? plan.stats.effectiveCoverage : null,
-          totalLecs        : plan.stats ? plan.stats.totalLectures : null,
-          expiresAt        : Date.now() + OWNERSHIP_TTL_MS,
-        }).catch(function(e) { console.warn("[Coverage] Firebase sync failed:", e); });
-      }
-
       return key;
     } catch (e) {
       console.error("[Coverage] Save failed:", e);

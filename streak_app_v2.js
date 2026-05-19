@@ -163,7 +163,7 @@ const store = {
       const boot = () => {
       try {
         const { initializeApp, getApps } = window.firebase_app || {};
-        const { getDatabase, ref, onValue, set, update, remove } = window.firebase_database || {};
+        const { getDatabase, ref, onValue, set, update, remove, get } = window.firebase_database || {};
         if (!initializeApp || !update) { console.warn('[Firebase] SDK not loaded.'); return; }
 
         // Guard against double-init
@@ -173,7 +173,7 @@ const store = {
         // Without this, Firebase may connect to the wrong (default US) database.
         const db = getDatabase(app, FIREBASE_CONFIG.databaseURL);
         window._fbDb  = db;
-        window._fbSDK = { ref, set, update, remove };
+        window._fbSDK = { ref, set, update, remove, get };
         window._fbReady = true;
 
         this._showSyncBanner();
