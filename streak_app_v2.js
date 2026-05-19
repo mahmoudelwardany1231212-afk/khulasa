@@ -17,6 +17,7 @@ const store = {
     currentUser: null,
     filterSubj: 'all',
     filterQuiz: 'all',
+    filterModeOnline: false,
     searchQuery: '',
     progress: {}
   },
@@ -780,6 +781,9 @@ function setSubjFilter(v) {
 function setQuizFilter(v) {
   store.set({ filterQuiz: v });
 }
+function setModeFilter(v) {
+  store.set({ filterModeOnline: !!v });
+}
 
 function switchTab(tab) {
   if(DEBUG_MODE) console.log('[Router] Switching to tab:', tab);
@@ -998,6 +1002,11 @@ function buildFilters() {
   const qf = document.getElementById('quizFilters');
   qf.innerHTML = `<div class="chip chip-q ${s.filterQuiz === 'all' ? 'on' : ''}" onclick="setQuizFilter('all')">الكل</div>` +
     QUIZZES.map(q => `<div class="chip chip-q ${s.filterQuiz === q ? 'on' : ''}" onclick="setQuizFilter('${q}')">${q}</div>`).join('');
+
+  const mf = document.getElementById('modeFilters');
+  if (mf) {
+    mf.innerHTML = `<div class="chip${s.filterModeOnline ? ' on' : ''}" onclick="setModeFilter(${!s.filterModeOnline})" style="border-color:var(--semantic-danger);color:${s.filterModeOnline ? 'var(--semantic-danger)' : 'var(--ink-muted)'}">📝 للمقالي و الاونلاين</div>`;
+  }
 }
 
 store.subscribe((state) => {
@@ -1092,6 +1101,7 @@ function renderLectures(state) {
   
   if (state.filterSubj !== 'all') lecs = lecs.filter(l => l.s === state.filterSubj);
   if (state.filterQuiz !== 'all') lecs = lecs.filter(l => l.q === state.filterQuiz);
+  if (state.filterModeOnline) lecs = lecs.filter(l => l.m || l.online);
   if (state.searchQuery) {
     const q = state.searchQuery;
     lecs = lecs.filter(l => l.t.toLowerCase().includes(q) || l.s.toLowerCase().includes(q) || (SUBJ_SHORT[l.s] || '').toLowerCase().includes(q));
