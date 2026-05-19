@@ -11,12 +11,22 @@ const NotificationsSystem = (() => {
   // Available Emojis for Reactions
   const REACTION_EMOJIS = ['🔥', '🎯', '💪', '🦷', '⚡', '✨'];
 
-  // ── SOUND ──
+  // ── SOUND: singleton AudioContext reuse ──
+  let _audioCtx = null;
+  function _getAudioCtx() {
+    if (!_audioCtx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      _audioCtx = new AC();
+    }
+    if (_audioCtx.state === 'suspended') _audioCtx.resume();
+    return _audioCtx;
+  }
+
   function playPopSound() {
     try {
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      if (!AudioContext) return;
-      const ctx = new AudioContext();
+      const ctx = _getAudioCtx();
+      if (!ctx) return;
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = 'sine';

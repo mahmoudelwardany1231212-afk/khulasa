@@ -63,12 +63,18 @@ const PomodoroModule = (() => {
     if ('Notification' in window && Notification.permission === 'granted') {
       new Notification('⏰ الخلاصة', { body: _state.type === 'pomodoro' ? 'وقت الراحة!' : 'يلا نرجع للمذاكرة!' });
     }
-    // Audio beep
+    // Audio beep — singleton AudioContext
     try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      const osc = ctx.createOscillator();
+      if (!window._pomoAudioCtx) {
+        var AC = window.AudioContext || window.webkitAudioContext;
+        if (AC) window._pomoAudioCtx = new AC();
+      }
+      var pc = window._pomoAudioCtx;
+      if (!pc) return;
+      if (pc.state === 'suspended') pc.resume();
+      var osc = pc.createOscillator();
       osc.type = 'sine'; osc.frequency.value = 880;
-      osc.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.3);
+      osc.connect(pc.destination); osc.start(); osc.stop(pc.currentTime + 0.3);
     } catch {}
     _notify();
   }
