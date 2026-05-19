@@ -24,7 +24,9 @@
 
   var _state = {
     result       : null,
+    teamCoverage : null,
     activeTab    : "members",
+    gapFilters   : { search: '', person: 'all', range: 'all' },
   };
 
   function _uniqueSubjects() {
@@ -85,6 +87,13 @@
         _progress(),
         { subjectFilter: subs }
       );
+      if (typeof Engine !== 'undefined' && Engine.getTeamCoverage) {
+        var filtered = _lectures().filter(function(l) { return subs.indexOf(l.s) !== -1; });
+        _state.teamCoverage = Engine.getTeamCoverage(
+          filtered.length ? filtered : _lectures(),
+          _progress()
+        );
+      }
     } catch (e) {
       _state.result = null;
     }
@@ -123,6 +132,23 @@
     render();
   }
 
+  /* ── Gap Filters ── */
+
+  function _setGapSearch(val) {
+    _state.gapFilters.search = val;
+    render();
+  }
+
+  function _setGapPerson(val) {
+    _state.gapFilters.person = val;
+    render();
+  }
+
+  function _setGapRange(val) {
+    _state.gapFilters.range = val;
+    render();
+  }
+
   function _renderTabs() {
     var t = _state.activeTab;
     return '<div class="cov-tab-bar">' +
@@ -133,6 +159,7 @@
 
   function _renderCoverageSection() {
     var h = _renderActiveBadge();
+    var tc = _state.teamCoverage;
 
     if (!_state.result) return h;
 
@@ -143,11 +170,90 @@
 
     // Stats bar
     h += '<div class="cov-stats-bar">' +
-      _statChip('📊', 'التغطية', r.stats.coveragePercent + '%') +
+      (tc ? _statChip('👥', 'تغطية الفريق', tc.teamCoveragePercent + '%') : '') +
+      _statChip('📊', 'التوزيع', r.stats.coveragePercent + '%') +
       _statChip('🎯', 'التغطية الفعلية', r.stats.effectiveCoverage + '%') +
       _statChip('⚖️', 'التوازن (LBS)', Math.round(r.stats.lbs * 100) + '%') +
       _statChip('🔄', 'الاستعدادية', r.stats.redundancyPercent + '%') +
-    '</div>';
+    '</div>' +
+    (tc
+      ? '<div class="cov-effective-note">👥 تغطية الفريق = لو كلنا دخلنا الامتحان النهاردة، هنعرف نجاوب على <strong>' + tc.teamCoveragePercent + '%</strong> من المنهج. الفجوة: <strong>' + tc.uncoveredLectures + '</strong> محاضرة مفيش ولا واحد عارفها.</div>'
+      : '') +
+
+    // Gap lectures section: scrollable table with filters
+    (tc && tc.uncoveredLectures > 0 && r.ownershipMap
+      ? '<div class="cov-card" style="margin-top:8px">' +
+        '<div class="cov-section-label" style="display:flex;justify-content:space-between;align-items:center">' +
+          '<span>⚠️ محاضرات الفجوة — مين المكلف في الخطة؟</span>' +
+          '<button onclick="EvalCenter._refresh()" style="background:var(--surface-2);border:1px solid var(--hairline);color:var(--ink-muted);padding:2px 6px;font-size:9px;cursor:pointer;clip-path:polygon(4px 0,100% 0,calc(100% - 4px) 100%,0 100%);font-family:\'Cairo\',sans-serif">🔄</button>' +
+        '</div>' +
+
+        // Filter bar
+        '<div style="display:flex;gap:4px;margin-bottom:6px;flex-wrap:wrap">' +
+          '<input id="gapSearchInput" type="text" placeholder="🔍 بحث..." value="' + _state.gapFilters.search.replace(/"/g,'&quot;') + '" ' +
+            'oninput="EvalCenter._setGapSearch(this.value)" ' +
+            'style="flex:1;min-width:80px;padding:4px 6px;font-size:10px;background:var(--surface-2);border:1px solid var(--hairline);color:var(--ink);clip-path:polygon(4px 0,100% 0,calc(100% - 4px) 100%,0 100%);font-family:\'Cairo\',sans-serif">' +
+          '<select onchange="EvalCenter._setGapPerson(this.value)" ' +
+            'style="padding:4px 6px;font-size:10px;background:var(--surface-2);border:1px solid var(--hairline);color:var(--ink);clip-path:polygon(4px 0,100% 0,calc(100% - 4px) 100%,0 100%);font-family:\'Cairo\',sans-serif">' +
+            '<option value="all"' + (_state.gapFilters.person === 'all' ? ' selected' : '') + '>👤 الكل</option>' +
+            _members().map(function(m) {
+              return '<option value="' + m.id + '"' + (_state.gapFilters.person === String(m.id) ? ' selected' : '') + '>' + m.name + '</option>';
+            }).join('') +
+          '</select>' +
+          '<select onchange="EvalCenter._setGapRange(this.value)" ' +
+            'style="padding:4px 6px;font-size:10px;background:var(--surface-2);border:1px solid var(--hairline);color:var(--ink);clip-path:polygon(4px 0,100% 0,calc(100% - 4px) 100%,0 100%);font-family:\'Cairo\',sans-serif">' +
+            '<option value="all"' + (_state.gapFilters.range === 'all' ? ' selected' : '') + '>📊 الكل</option>' +
+            '<option value="0-20"' + (_state.gapFilters.range === '0-20' ? ' selected' : '') + '>0-20%</option>' +
+            '<option value="20-40"' + (_state.gapFilters.range === '20-40' ? ' selected' : '') + '>20-40%</option>' +
+            '<option value="40-60"' + (_state.gapFilters.range === '40-60' ? ' selected' : '') + '>40-60%</option>' +
+            '<option value="60-80"' + (_state.gapFilters.range === '60-80' ? ' selected' : '') + '>60-80%</option>' +
+          '</select>' +
+        '</div>' +
+
+        // Table
+        '<div class="cov-table-wrapper" style="max-height:260px;overflow-y:auto">' +
+        '<table class="cov-heatmap-table" style="font-size:10px">' +
+        '<thead><tr>' +
+        '<th style="position:sticky;top:0;background:var(--surface-1);z-index:1">المحاضرة</th>' +
+        '<th style="position:sticky;top:0;background:var(--surface-1);z-index:1">أعلى فهم</th>' +
+        '<th style="position:sticky;top:0;background:var(--surface-1);z-index:1">المكلف في الخطة</th>' +
+        '</tr></thead><tbody>' +
+        (function() {
+          var query = _state.gapFilters.search.trim().toLowerCase();
+          var person = _state.gapFilters.person;
+          var range = _state.gapFilters.range;
+          return tc.lectureDetails.filter(function(d) {
+            if (d.covered) return false;
+            if (query && (d.title || '').toLowerCase().indexOf(query) === -1) return false;
+            if (person !== 'all') {
+              var oe = r.ownershipMap[d.lectureId];
+              var oid = oe ? String(oe.owner) : '';
+              if (oid !== person) return false;
+            }
+            if (range !== 'all') {
+              var parts = range.split('-');
+              var lo = parseInt(parts[0]), hi = parseInt(parts[1]);
+              if (d.maxPct < lo || d.maxPct >= hi) return false;
+            }
+            return true;
+          }).map(function(d) {
+            var ownerEntry = r.ownershipMap[d.lectureId];
+            var ownerName = ownerEntry ? ownerEntry.ownerName : 'غير موزع';
+            var ownerColor = 'var(--semantic-danger)';
+            if (ownerEntry) {
+              var mi = _members().findIndex(function(m) { return m.id === ownerEntry.owner; });
+              ownerColor = mi >= 0 ? COLORS[mi % COLORS.length] : 'var(--ink-muted)';
+            }
+            var riskColor = d.maxPct < 20 ? '#ef4444' : d.maxPct < 50 ? '#f59e0b' : '#6366f1';
+            return '<tr>' +
+              '<td style="font-weight:600">' + (d.title || d.lectureId) + '</td>' +
+              '<td style="color:' + riskColor + ';font-weight:700">' + d.maxPct + '%</td>' +
+              '<td style="color:' + ownerColor + ';font-weight:700">✏️ ' + ownerName + '</td>' +
+            '</tr>';
+          }).join('') || '<tr><td colspan="3" style="text-align:center;color:var(--ink-muted);font-size:10px">لا توجد نتائج</td></tr>';
+        })() +
+        '</tbody></table></div></div>'
+      : '');
 
     if (_state.activeTab === 'members') {
       // Member cards
@@ -261,7 +367,8 @@
       '<style>body{font-family:system-ui,sans-serif;padding:20px;max-width:700px;margin:auto}h1{font-size:1.3rem}.m{border:1px solid #ddd;padding:10px;margin:8px 0;border-radius:8px}.s{color:#666;font-size:.8rem}.risk{color:#e44}table{width:100%;border-collapse:collapse;margin:12px 0;font-size:.8rem}th,td{border:1px solid #ddd;padding:6px 8px;text-align:right}th{background:#f5f5f5;font-weight:700}.t{background:#e8f5e9}.b{background:#fff3e0}.e{color:#999}</style></head><body>',
       '<h1>🍭 آخر مصة — توزيع التغطية</h1>',
       '<p class="s">' + new Date().toLocaleDateString("ar-EG") + '</p>',
-      '<p class="s">📊 تغطية: ' + s.coveragePercent + '% | فعلي: ' + s.effectiveCoverage + '% | LBS: ' + Math.round(s.lbs * 100) + '%</p>'
+      '<p class="s">📊 توزيع: ' + s.coveragePercent + '% | فعلي: ' + s.effectiveCoverage + '% | LBS: ' + Math.round(s.lbs * 100) + '%' +
+      (_state.teamCoverage ? ' | 👥 فريق: ' + _state.teamCoverage.teamCoveragePercent + '%' : '') + '</p>'
     ];
 
     // Heatmap table
@@ -336,6 +443,18 @@
     overlay.addEventListener('click', function(e) { if (e.target === overlay) overlay.remove(); });
   }
 
+  function _refresh() {
+    if (typeof Engine !== 'undefined' && Engine.getTeamCoverage) {
+      var progress = _progress();
+      var lectures = _lectures();
+      var subs = _getCoverageSubjects();
+      var filtered = subs.length ? lectures.filter(function(l) { return subs.indexOf(l.s) !== -1; }) : lectures;
+      _state.teamCoverage = Engine.getTeamCoverage(filtered.length ? filtered : lectures, progress);
+      if (typeof store !== 'undefined' && typeof renderSocialPage === 'function') renderSocialPage();
+    }
+    render();
+  }
+
   function _submitRating(memberId, btn) {
     var quality = parseInt(document.getElementById('rQuality').value);
     var help = parseInt(document.getElementById('rHelp').value);
@@ -361,7 +480,11 @@
 
   window.EvalCenter = {
     render: render,
+    _refresh: _refresh,
     _setTab: _setTab,
+    _setGapSearch: _setGapSearch,
+    _setGapPerson: _setGapPerson,
+    _setGapRange: _setGapRange,
     _exportPDF: _exportPDF,
     _openRating: _openRating,
     _submitRating: _submitRating,
