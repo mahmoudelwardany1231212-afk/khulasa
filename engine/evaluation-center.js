@@ -125,7 +125,7 @@
       var fbDb = typeof window._fbDb !== 'undefined' ? window._fbDb : null;
       var sdk  = typeof window._fbSDK !== 'undefined' ? window._fbSDK : null;
       if (!fbDb || !sdk || !sdk.ref || !sdk.set || !sdk.get) return;
-      var fbRef = sdk.ref(fbDb, 'plans/latest');
+      var fbRef = sdk.ref(fbDb, 'coverage/latest');
       sdk.get(fbRef).then(function(sn) {
         if (!sn.exists()) {
           sdk.set(fbRef, {
@@ -605,7 +605,7 @@
     var fdb = typeof window._fbDb !== 'undefined' ? window._fbDb : null;
     var fsd = typeof window._fbSDK !== 'undefined' ? window._fbSDK : null;
     if (fdb && fsd && fsd.ref && fsd.get) {
-      fsd.get(fsd.ref(fdb, 'plans/latest')).then(function(sn) {
+      fsd.get(fsd.ref(fdb, 'coverage/latest')).then(function(sn) {
         if (sn.exists()) {
           var d = sn.val();
           if (d && d.ownershipMap && d.planSubjects) {
