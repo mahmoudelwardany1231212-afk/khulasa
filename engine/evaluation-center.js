@@ -51,9 +51,8 @@
       var closest = null;
       EXAM_SCHEDULE.forEach(function(exam) {
         var examTime = new Date(exam.iso).getTime();
-        var daysUntil = Math.round((examTime - now) / 86400000);
-        if (daysUntil > 0 && (closest === null || daysUntil < closest.days))
-          closest = { name: exam.name, days: daysUntil };
+        if (examTime > now && (closest === null || examTime < closest.examTime))
+          closest = { name: exam.name, examTime: examTime };
       });
       if (!closest) return [];
 
@@ -76,8 +75,8 @@
       EXAM_SCHEDULE.forEach(function(exam) {
         var examTime = new Date(exam.iso).getTime();
         var daysUntil = Math.round((examTime - now) / 86400000);
-        if (daysUntil > 0 && daysUntil <= 60) {
-          out.push({ name: exam.name, daysUntil: daysUntil });
+        if (examTime > now && daysUntil <= 60) {
+          out.push({ name: exam.name, daysUntil: daysUntil < 1 ? 0 : daysUntil });
         }
       });
       return out.sort(function(a, b) { return a.daysUntil - b.daysUntil; });

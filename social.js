@@ -174,7 +174,11 @@ function renderSocialPage() {
                           // Try to match the same exam subjects as evaluation center
                           if (typeof EXAM_SCHEDULE !== 'undefined' && EXAM_SCHEDULE.length && typeof LECTURES !== 'undefined') {
                             var now = Date.now(), closest = null;
-                            EXAM_SCHEDULE.forEach(function(ex){ var d=Math.round((new Date(ex.iso).getTime()-now)/86400000); if(d>0&&(!closest||d<closest.days)) closest={name:ex.name,days:d}; });
+                            EXAM_SCHEDULE.forEach(function(ex){ 
+                              var examTime = new Date(ex.iso).getTime(); 
+                              if (examTime > now && (!closest || examTime < closest.examTime)) 
+                                closest = {name: ex.name, examTime: examTime}; 
+                            });
                             if (closest) {
                               var subs = [], all = [];
                               LECTURES.forEach(function(l){ if(l.s&&all.indexOf(l.s)===-1) all.push(l.s); });
