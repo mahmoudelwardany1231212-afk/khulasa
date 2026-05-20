@@ -243,10 +243,8 @@
       (tc
         ? '<div class="cov-effective-note">👥 تغطية الفريق = الاستعدادية = لو كلنا دخلنا الامتحان النهاردة، هنعرف نجاوب على <strong>' + critPct + '%</strong> من المنهج. الفجوة: <strong>' + critGap + '</strong> محاضرة لسه محتاجة شغل.</div>'
         : '');
-    })() +
-
-    // Gap lectures section: scrollable table with filters
-    (function() {
+    })();
+    h += (function() {
       var criticalGap = tc ? tc.lectureDetails.filter(function(d){return d.maxPct<20;}).length : 0;
       if (tc && criticalGap > 0 && r.ownershipMap) {
       return '<div class="cov-card" style="margin-top:8px">' +
@@ -334,9 +332,6 @@
       if (!r.ownershipMap) why.push('❗ownershipMap=فاضي');
       if (why.length) why.push('<button onclick="EvalCenter._refresh()" style="background:var(--surface-2);border:1px solid var(--hairline);color:var(--ink-muted);padding:2px 6px;font-size:9px;cursor:pointer;clip-path:polygon(4px 0,100% 0,calc(100% - 4px) 100%,0 100%);font-family:\'Cairo\',sans-serif">🔄 إعادة حساب</button>');
       return '<div style="padding:8px;margin-top:8px;font-size:11px;color:var(--ink-muted);background:rgba(255,70,30,0.05);border:1px dashed rgba(255,70,30,0.2);clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%)">' + why.join(' · ') + '</div>';
-    })() +
-        '</tbody></table></div></div>'
-      : '');
     })();
 
     if (_state.activeTab === 'members') {
