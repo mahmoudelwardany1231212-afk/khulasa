@@ -109,13 +109,13 @@ const LECTURES = [
 {"s":"Surgery","t":"Management of Lefort, Orbital and NOE fractures (3 hrs.) part 2","q":"كويز 2","g":120,"id":197,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_u0t-cl/IQC_ebgP_ut6RJv0QX6X36lUAS1T_Fcwlq7MNnbyjJPQcZ4","u2":"https://t.me/talagah/473","u3":"https://t.me/talagah/475","u4":"https://t.me/talagah/476"},
 {"s":"Surgery","t":"Management of Zygomatic complex fractures (3 hrs.) part 1","q":"كويز 2","g":120,"id":198,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_u0t-cl/IQDELK2K7UzGQ6IxH3RhabPwAW78if6y4SXEcB9tkcVcZ2E","u2":"https://t.me/talagah/474"},
 {"s":"Surgery","t":"Management of Zygomatic complex fractures (3 hrs.) part 2","q":"كويز 2","g":120,"id":199,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_u0t-cl/IQDELK2K7UzGQ6IxH3RhabPwAW78if6y4SXEcB9tkcVcZ2E","u2":"https://t.me/talagah/474"},
-{"s":"Surgery","t":"Pediatric Maxillofacial trauma (3 hrs.) part 1","q":"بعد كويز 2","g":120,"id":200,"u":""},
-{"s":"Surgery","t":"Pediatric Maxillofacial trauma (3 hrs.) part 2","q":"بعد كويز 2","g":120,"id":201,"u":""},
-{"s":"Surgery","t":"Orthognathic surgery, management of dentofacial deformities & distraction osteogenesis (4 hrs.) part 1","q":"بعد كويز 2","g":120,"id":202,"u":""},
-{"s":"Surgery","t":"Orthognathic surgery, management of dentofacial deformities & distraction osteogenesis (4 hrs.) part 2","q":"بعد كويز 2","g":120,"id":203,"u":""},
+{"s":"Surgery","t":"Pediatric Maxillofacial trauma (3 hrs.) part 1","q":"بعد كويز 2","g":120,"id":200,"u":"https://t.me/c/2006385993/434","u2":"https://t.me/talagah/593"},
+{"s":"Surgery","t":"Pediatric Maxillofacial trauma (3 hrs.) part 2","q":"بعد كويز 2","g":120,"id":201,"u":"https://t.me/c/2006385993/436","u2":"https://t.me/talagah/593"},
+{"s":"Surgery","t":"Orthognathic surgery, management of dentofacial deformities & distraction osteogenesis (4 hrs.) part 1","q":"بعد كويز 2","g":120,"id":202,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_u0t-cl/IQDQHM2lvb9dQaWEE6sCHVbYAV4-QRhB6eCmBP_MOENhB_U"},
+{"s":"Surgery","t":"Orthognathic surgery, management of dentofacial deformities & distraction osteogenesis (4 hrs.) part 2","q":"بعد كويز 2","g":120,"id":203,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_u0t-cl/IQCDT1m0DDLHSpAoXfAR-H8FAcOND_Jo677JCJNLLW8sUqc"},
 {"s":"Surgery","t":"Orthognathic surgery, management of dentofacial deformities & distraction osteogenesis (4 hrs.) part 3","q":"بعد كويز 2","g":120,"id":204,"u":""},
-{"s":"Surgery","t":"Diagnosis and management of Orofacial pain (3 hrs.) part 1","q":"بعد كويز 2","g":120,"id":205,"u":""},
-{"s":"Surgery","t":"Diagnosis and management of Orofacial pain (3 hrs.) part 2","q":"بعد كويز 2","g":120,"id":206,"u":""},
+{"s":"Surgery","t":"Diagnosis and management of Orofacial pain (3 hrs.) part 1","q":"بعد كويز 2","g":120,"id":205,"u":"https://t.me/talagah/737","u2":"https://t.me/talagah/724"},
+{"s":"Surgery","t":"Diagnosis and management of Orofacial pain (3 hrs.) part 2","q":"بعد كويز 2","g":120,"id":206,"u":"https://t.me/talagah/737","u2":"https://t.me/talagah/724"},
 
 // ════════════════════════════════════════════════════════
 // PROSTHESIS — كويز 1 (Term 1)
