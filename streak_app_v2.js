@@ -323,6 +323,23 @@ const SUBJ_SHORT = {
   'Endo': 'Endo'
 };
 
+const EXAM_TO_SUBJECT_MAP = {
+  'Perio & Medicine': ['Perio', 'Medicine'],
+  'Oral Surgery': ['Surgery'],
+  'Prosthesis': ['Prosthesis'],
+  'Crown': ['Fixed Prosth.'],
+  'Endodontics': ['Endo'],
+  'Operative': ['Operative']
+};
+
+function getCurrentSubjects() {
+  if (typeof _getActiveSubjIdx !== 'function' || typeof EXAM_SCHEDULE === 'undefined') return [];
+  var idx = _getActiveSubjIdx();
+  if (typeof EXAM_SCHEDULE[idx] === 'undefined') return [];
+  var examName = EXAM_SCHEDULE[idx].name;
+  return EXAM_TO_SUBJECT_MAP[examName] || [];
+}
+
 const PCT_COLORS = { 100: 'var(--green)', 75: 'var(--teal)', 50: 'var(--gold)', 25: 'var(--rose)', 0: 'var(--txt3)' };
 const PCT_MSGS = { 100: 'كفاية يا عالمي انت لخصت الخلاصة', 75: 'حل عليها كفاية كدة', 50: 'ذاكرها كمان مرة هتثبت', 25: 'مش كفاية تتذاكر مرة واحدة', 0: 'انت محتاج تشتري ورق' };
 
@@ -1153,12 +1170,15 @@ function renderLectures(state) {
 
 // ── 5. LEADERBOARD REFACTOR ────────────────────────────
 function renderLeaderboard(state) {
+  var currentSubjs = getCurrentSubjects();
+  
   const data = MEMBERS.map((m, i) => {
     const p = state.progress[i] || {};
     const done = LECTURES.filter(l => p[l.id] !== undefined && parseFloat(p[l.id]) > 0).length;
     
     let totalScoreAchieved = 0;
     let maxPossibleScore = 0;
+    let currentSubjGrade = 0;
     const bySubj = {};
     
     SUBJECTS.forEach(s => {
@@ -1178,43 +1198,87 @@ function renderLeaderboard(state) {
         }
       });
       totalScoreAchieved += gradeAchieved;
+      if (currentSubjs.indexOf(s) !== -1) currentSubjGrade += gradeAchieved;
       bySubj[s] = { done: d, total, grade: gradeAchieved, maxGrade: subjectGrade };
     });
     
-    return { idx: i, m, done, bySubj, totalScoreAchieved, maxPossibleScore };
-  }).sort((a, b) => b.totalScoreAchieved - a.totalScoreAchieved);
+    return { idx: i, m, done, bySubj, totalScoreAchieved, maxPossibleScore, currentSubjGrade };
+  });
+  
+  if (currentSubjs.length > 0) {
+    data.sort((a, b) => b.currentSubjGrade - a.currentSubjGrade);
+  } else {
+    data.sort((a, b) => b.totalScoreAchieved - a.totalScoreAchieved);
+  }
 
   const ranks = ['🥇','🥈','🥉'];
   const rClasses = ['r1','r2','r3'];
   const c = document.getElementById('lbCards');
   
   c.innerHTML = data.map((d, ri) => {
-    const pct = Math.round((d.done / LECTURES.length) * 100); 
-    const scorePct = d.maxPossibleScore ? Math.round((d.totalScoreAchieved / d.maxPossibleScore) * 100) : 0; 
-    const lv = getLevel(pct);
-    const lvEmoji = EMOJIS[lv][d.done % EMOJIS[lv].length] || '🌟';
-    const lvPhrase = PHRASES[lv][d.done % PHRASES[lv].length] || 'عظيم';
+    var pct = Math.round((d.done / LECTURES.length) * 100); 
+    var scorePct = d.maxPossibleScore ? Math.round((d.totalScoreAchieved / d.maxPossibleScore) * 100) : 0; 
+    var lv = getLevel(pct);
+    var lvEmoji = EMOJIS[lv][d.done % EMOJIS[lv].length] || '🌟';
+    var lvPhrase = PHRASES[lv][d.done % PHRASES[lv].length] || 'عظيم';
     
-    return `<div class="lb-card ${rClasses[ri]}">
-      <div class="lb-top">
-        <div class="lb-rank">${ranks[ri] || '🎖️'}</div>
-        <div class="lb-av" style="background:${d.m.color}20">${d.m.emoji}</div>
-        <div class="lb-nm" style="color:${d.m.color}">${d.m.name}</div>
-        <div class="lb-total">
-          <div class="n" style="font-size:18px">${d.totalScoreAchieved.toFixed(1)} <span style="font-size:10px;color:var(--txt3)">درجة</span></div>
-          <div class="d">${d.done}/${LECTURES.length} محاضرة</div>
-        </div>
-      </div>
-      <div style="text-align:center;font-size:12px;font-weight:700;margin-bottom:6px;color:${d.m.color};opacity:0.8">${lvEmoji} ${lvPhrase}</div>
-      <div style="text-align:center;font-size:9px;color:var(--txt3);margin-bottom:8px;font-family:Inter,sans-serif">الكفاءة الإجمالية: ${scorePct}%</div>
-      <div class="lb-bar-wrap"><div class="lb-bar-fill" style="width:${scorePct}%;background:linear-gradient(90deg,${d.m.color2},${d.m.color})"></div></div>
-      <div class="lb-subjects">
-        ${SUBJECTS.map((s, si) => {
-          const sd = d.bySubj[s];
-          return `<div class="lb-subj"><span>${SUBJ_SHORT[s] || s}</span><span style="color:${SUBJ_COLORS[si]}">${sd.grade.toFixed(1)}</span></div>`;
-        }).join('')}
-      </div>
-    </div>`;
+    var heroHtml = '';
+    currentSubjs.forEach(function(s) {
+      var sd = d.bySubj[s];
+      if (!sd) return;
+      var subjIdx = SUBJECTS.indexOf(s);
+      var color = SUBJ_COLORS[subjIdx] || '#888';
+      var subjPct = sd.total ? Math.round((sd.done / sd.total) * 100) : 0;
+      heroHtml += '<div class="lb-current-subj" style="border-color:' + color + '44;--cs-color:' + color + '">' +
+        '<div class="lb-cs-top">' +
+          '<span class="lb-cs-badge" style="background:' + color + '20;color:' + color + '">🔥 المادة الحالية</span>' +
+          '<span class="lb-cs-name" style="color:' + color + '">' + (SUBJ_SHORT[s] || s) + '</span>' +
+        '</div>' +
+        '<div class="lb-cs-stats">' +
+          '<div class="lb-cs-grade">' + sd.grade.toFixed(1) + ' <span class="lb-cs-lbl">درجة</span></div>' +
+          '<div class="lb-cs-divider"></div>' +
+          '<div class="lb-cs-lecs">' + sd.done + '/' + sd.total + ' <span class="lb-cs-lbl">محاضرة</span></div>' +
+        '</div>' +
+        '<div class="lb-bar-wrap lb-cs-bar"><div class="lb-bar-fill" style="width:' + subjPct + '%;background:linear-gradient(90deg,' + color + '88,' + color + ')"></div></div>' +
+      '</div>';
+    });
+    
+    var otherHtml = '';
+    if (currentSubjs.length > 0) {
+      otherHtml = SUBJECTS.filter(function(s) { return currentSubjs.indexOf(s) === -1; }).map(function(s) {
+        var sd = d.bySubj[s];
+        if (!sd) return '';
+        var idx = SUBJECTS.indexOf(s);
+        var color = SUBJ_COLORS[idx] || '#888';
+        return '<span class="lb-other-subj"><span class="los-name" style="color:' + color + '">' + (SUBJ_SHORT[s] || s) + '</span><span class="los-stat">' + sd.done + '/' + sd.total + '</span></span>';
+      }).join('');
+    } else {
+      otherHtml = '<div class="lb-subjects">' + SUBJECTS.map(function(s, si) {
+        var sd = d.bySubj[s];
+        if (!sd) return '';
+        return '<div class="lb-subj"><span>' + (SUBJ_SHORT[s] || s) + '</span><span style="color:' + SUBJ_COLORS[si] + '">' + sd.grade.toFixed(1) + '</span></div>';
+      }).join('') + '</div>';
+    }
+    
+    return '<div class="lb-card ' + rClasses[ri] + '">' +
+      '<div class="lb-top">' +
+        '<div class="lb-rank">' + (ranks[ri] || '🎖️') + '</div>' +
+        '<div class="lb-av" style="background:' + d.m.color + '20">' + d.m.emoji + '</div>' +
+        '<div class="lb-nm" style="color:' + d.m.color + '">' + d.m.name + '</div>' +
+        '<div class="lb-total">' +
+          '<div class="n" style="font-size:18px">' + d.totalScoreAchieved.toFixed(1) + ' <span style="font-size:10px;color:var(--txt3)">درجة</span></div>' +
+          '<div class="d">' + d.done + '/' + LECTURES.length + ' محاضرة</div>' +
+        '</div>' +
+      '</div>' +
+      '<div style="text-align:center;font-size:12px;font-weight:700;margin-bottom:6px;color:' + d.m.color + ';opacity:0.8">' + lvEmoji + ' ' + lvPhrase + '</div>' +
+      '<div style="text-align:center;font-size:9px;color:var(--txt3);margin-bottom:8px;font-family:Inter,sans-serif">الكفاءة الإجمالية: ' + scorePct + '%</div>' +
+      '<div class="lb-bar-wrap"><div class="lb-bar-fill" style="width:' + scorePct + '%;background:linear-gradient(90deg,' + d.m.color2 + ',' + d.m.color + ')"></div></div>' +
+      
+      (heroHtml ? '<div class="lb-hero-section">' + heroHtml + '</div>' : '') +
+      
+      (currentSubjs.length > 0 && otherHtml ? '<div class="lb-others-wrap"><div class="lb-others-title">مواد أخرى</div><div class="lb-others">' + otherHtml + '</div></div>' : '') +
+      (currentSubjs.length === 0 ? otherHtml : '') +
+    '</div>';
   }).join('');
 }
 
