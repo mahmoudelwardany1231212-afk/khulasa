@@ -114,8 +114,8 @@ const LECTURES = [
 {"s":"Surgery","t":"Orthognathic surgery, management of dentofacial deformities & distraction osteogenesis (4 hrs.) part 1","q":"بعد كويز 2","g":120,"id":202,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_u0t-cl/IQDQHM2lvb9dQaWEE6sCHVbYAV4-QRhB6eCmBP_MOENhB_U","online":true},
 {"s":"Surgery","t":"Orthognathic surgery, management of dentofacial deformities & distraction osteogenesis (4 hrs.) part 2","q":"بعد كويز 2","g":120,"id":203,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_u0t-cl/IQCDT1m0DDLHSpAoXfAR-H8FAcOND_Jo677JCJNLLW8sUqc","online":true},
 {"s":"Surgery","t":"Orthognathic surgery, management of dentofacial deformities & distraction osteogenesis (4 hrs.) part 3","q":"بعد كويز 2","g":120,"id":204,"u":""},
-{"s":"Surgery","t":"Diagnosis and management of Orofacial pain (3 hrs.) part 1","q":"بعد كويز 2","g":120,"id":205,"u":"https://t.me/talagah/737","u2":"https://t.me/talagah/724"},
-{"s":"Surgery","t":"Diagnosis and management of Orofacial pain (3 hrs.) part 2","q":"بعد كويز 2","g":120,"id":206,"u":"https://t.me/talagah/737","u2":"https://t.me/talagah/724"},
+{"s":"Surgery","t":"Diagnosis and management of Orofacial pain (3 hrs.) part 1","q":"بعد كويز 2","g":120,"id":205,"u":"https://t.me/talagah/737","u2":"https://t.me/talagah/724","online":true},
+{"s":"Surgery","t":"Diagnosis and management of Orofacial pain (3 hrs.) part 2","q":"بعد كويز 2","g":120,"id":206,"u":"https://t.me/talagah/737","u2":"https://t.me/talagah/724","online":true},
 
 // ════════════════════════════════════════════════════════
 // PROSTHESIS — كويز 1 (Term 1)
