@@ -125,64 +125,64 @@ const LECTURES = [
 {"s":"Prosthesis","t":"Mouth preparation","q":"كويز 1","g":120,"id":69,"u":"https://t.me/c/2006385993/343"},
 {"s":"Prosthesis","t":"Principle of partial denture design","q":"كويز 1","g":120,"id":70,"u":"https://t.me/c/2006385993/350"},
 {"s":"Prosthesis","t":"Impression techniques for R.P.D.","q":"كويز 1","g":120,"id":71,"u":"https://t.me/c/2006385993/359","u2":"https://t.me/talagah/205"},
-{"s":"Prosthesis","t":"Occlusal relationships for R.P.D.","q":"كويز 1","g":120,"id":72,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_s-lzcl/EZ4-Idl2_x9FpxhGLN8nLFcBLFYyJ62la73yG0W9Z0Y6dA"},
+{"s":"Prosthesis","t":"Occlusal relationships for R.P.D.","q":"كويز 1","g":120,"id":72,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_s-lzcl/EZ4-Idl2_x9FpxhGLN8nLFcBLFYyJ62la73yG0W9Z0Y6dA","online":true},
 {"s":"Prosthesis","t":"Class I","q":"كويز 1","g":120,"id":73,"u":"https://t.me/c/2006385993/374"},
 {"s":"Prosthesis","t":"Class II, Class III","q":"كويز 1","g":120,"id":74,"u":"https://t.me/c/2006385993/383"},
-{"s":"Prosthesis","t":"Class IV","q":"كويز 1","g":120,"id":75,"u":"https://t.me/talagah/199","u2":"https://t.me/tagmiaat1/3272"},
+{"s":"Prosthesis","t":"Class IV","q":"كويز 1","g":120,"id":75,"u":"https://t.me/talagah/199","u2":"https://t.me/tagmiaat1/3272","online":true},
 {"s":"Prosthesis","t":"Try-in & insertion for R.P.D.","q":"كويز 1","g":120,"id":76,"u":"https://t.me/talagah/198"},
 
 // PROSTHESIS — بين كويز 1 و 2
-{"s":"Prosthesis","t":"Support &Tissue damage for R.P.D.","q":"بين كويز 1 و 2","g":120,"id":77,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_s-lzcl/EelNElSnKTdCv33g8JB0TkwB5urVR6Usejnczli4wm-GoA"},
+{"s":"Prosthesis","t":"Support & Tissue damage for R.P.D.","q":"بين كويز 1 و 2","g":120,"id":77,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_s-lzcl/EelNElSnKTdCv33g8JB0TkwB5urVR6Usejnczli4wm-GoA","online":true},
 
 // PROSTHESIS — كويز 2 (Term 1 & 2)
-{"s":"Prosthesis","t":"Neutral zone","q":"كويز 2","g":120,"id":81,"u":"","u2":"https://t.me/talagah/441"},
-{"s":"Prosthesis","t":"Ethetic in RPD","q":"كويز 2","g":120,"id":82,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_s-lzcl/IQB9L5ATS6n9TbP3IdOfeSCnASiZ5QnG8YMBYecOiQm3fSM"},
-{"s":"Prosthesis","t":"Geriatric patients","q":"كويز 2","g":120,"id":83,"u":"https://t.me/c/2006385993/429","u2":"https://t.me/talagah/451"},
-{"s":"Prosthesis","t":"Immediate denture","q":"كويز 2","g":120,"id":84,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_s-lzcl/IQA2WhAl8ehtTYjQbAKz4WmyAZeIEEDVBC6-PGyhskg_ZD4"},
-{"s":"Prosthesis","t":"Single Denture","q":"كويز 2","g":120,"id":85,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_s-lzcl/IQAAkbCS90RmTI2s6LrSY7mGASY8Bo-dywj-rr37En-tt6c","u2":"https://t.me/bitinjan/161"},
+{"s":"Prosthesis","t":"Neutral zone","q":"كويز 2","g":120,"id":81,"u":"","u2":"https://t.me/talagah/441","online":true},
+{"s":"Prosthesis","t":"Ethetic in RPD","q":"كويز 2","g":120,"id":82,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_s-lzcl/IQB9L5ATS6n9TbP3IdOfeSCnASiZ5QnG8YMBYecOiQm3fSM","online":true},
+{"s":"Prosthesis","t":"Geriatric patients","q":"كويز 2","g":120,"id":83,"u":"https://t.me/c/2006385993/429","u2":"https://t.me/talagah/451","online":true},
+{"s":"Prosthesis","t":"Immediate denture","q":"كويز 2","g":120,"id":84,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_s-lzcl/IQA2WhAl8ehtTYjQbAKz4WmyAZeIEEDVBC6-PGyhskg_ZD4","online":true},
+{"s":"Prosthesis","t":"Single Denture","q":"كويز 2","g":120,"id":85,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_s-lzcl/IQAAkbCS90RmTI2s6LrSY7mGASY8Bo-dywj-rr37En-tt6c","u2":"https://t.me/bitinjan/161","online":true},
 
 // PROSTHESIS — بعد كويز 2
-{"s":"Prosthesis","t":"Occlusion for complete denture","q":"بين كويز 1 و 2","g":120,"id":78,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_s-lzcl/IQBP60pIciT8RbqpsVTty7kKARlxtrSrlFNi8L3yfBqn3hc"},
-{"s":"Prosthesis","t":"Complaints of R.P.D.","q":"بين كويز 1 و 2","g":120,"id":79,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_s-lzcl/IQAJw1m8RfoET57w81tyg0KNAUA0btMyHQIomiexg4uvnPM"},
-{"s":"Prosthesis","t":"Repair& relining","q":"بين كويز 1 و 2","g":120,"id":80,"u":"https://t.me/talagah/439"},
-{"s":"Prosthesis","t":"Over denture & Submerged root","q":"بعد كويز 2","g":120,"id":86,"u":""},
-{"s":"Prosthesis","t":"Implant prosthesis","q":"بعد كويز 2","g":120,"id":87,"u":""},
-{"s":"Prosthesis","t":"Digital workflow for R.P.D., Advanced denture bases used for R.P.D . (part 1)","q":"بعد كويز 2","g":120,"id":88,"u":""},
+{"s":"Prosthesis","t":"Occlusion for complete denture","q":"بين كويز 1 و 2","g":120,"id":78,"u":"https://t.me/c/2006385993/398","u2":"https://t.me/talagah/437","u3":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_s-lzcl/IQBP60pIciT8RbqpsVTty7kKARlxtrSrlFNi8L3yfBqn3hc","online":true},
+{"s":"Prosthesis","t":"Complaints of R.P.D.","q":"بين كويز 1 و 2","g":120,"id":79,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_s-lzcl/IQAJw1m8RfoET57w81tyg0KNAUA0btMyHQIomiexg4uvnPM","online":true},
+{"s":"Prosthesis","t":"Repair& relining","q":"بين كويز 1 و 2","g":120,"id":80,"u":"https://t.me/talagah/439","online":true},
+{"s":"Prosthesis","t":"Over denture & Submerged root","q":"بعد كويز 2","g":120,"id":86,"u":"https://t.me/c/2006385993/437","u2":"https://t.me/talagah/594"},
+{"s":"Prosthesis","t":"Implant prosthesis","q":"بعد كويز 2","g":120,"id":87,"u":"https://t.me/c/2006385993/443"},
+{"s":"Prosthesis","t":"Digital workflow for R.P.D., Advanced denture bases used for R.P.D . (part 1)","q":"بعد كويز 2","g":120,"id":88,"u":"https://t.me/talagah/751","u2":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_s-lzcl/IQBi3HavEWUMTIftUsWc0KQPAVa4eVvz-KDhBIetbb6EPbo","online":true},
 {"s":"Prosthesis","t":"Digital workflow for R.P.D. and Advanced denture bases used for R.P.D (part 2)","q":"بعد كويز 2","g":120,"id":89,"u":""},
 
 // ════════════════════════════════════════════════════════
 // OPERATIVE — كويز 1 (Term 1)
 // ════════════════════════════════════════════════════════
-{"s":"Operative","t":"Adhesion and Adhesive Materials (Part 1)","q":"كويز 1","g":80,"id":90,"u":"https://t.me/c/2006385993/323","u2":"https://t.me/talagah/212"},
-{"s":"Operative","t":"Adhesion and Adhesive Materials (Part 2)","q":"كويز 1","g":80,"id":91,"u":"https://t.me/c/2006385993/328","u2":"https://t.me/talagah/212"},
-{"s":"Operative","t":"Adhesion and Adhesive Materials (Part 3)","q":"كويز 1","g":80,"id":92,"u":"https://t.me/c/2006385993/336","u2":"https://t.me/talagah/212"},
-{"s":"Operative","t":"Cariology and caries management (Part 1)","q":"كويز 1","g":80,"id":93,"u":"https://t.me/c/2006385993/347","u2":"https://t.me/talagah/214"},
-{"s":"Operative","t":"Cariology and caries management (Part 2)","q":"كويز 1","g":80,"id":94,"u":"https://t.me/c/2006385993/356","u2":"https://t.me/talagah/214"},
-{"s":"Operative","t":"Esthetic consideration (Part 1)","q":"كويز 1","g":80,"id":95,"u":"https://t.me/c/2006385993/371","u2":"https://t.me/talagah/217"},
-{"s":"Operative","t":"Esthetic consideration (Part 2)","q":"كويز 1","g":80,"id":96,"u":"https://t.me/talagah/219","u2":"https://t.me/talagah/217"},
+{"s":"Operative","t":"Adhesion and Adhesive Materials (Part 1)","q":"كويز 1","g":80,"id":90,"u":"https://t.me/c/2006385993/323","u2":"https://t.me/talagah/212","online":true},
+{"s":"Operative","t":"Adhesion and Adhesive Materials (Part 2)","q":"كويز 1","g":80,"id":91,"u":"https://t.me/c/2006385993/328","u2":"https://t.me/talagah/212","online":true},
+{"s":"Operative","t":"Adhesion and Adhesive Materials (Part 3)","q":"كويز 1","g":80,"id":92,"u":"https://t.me/c/2006385993/336","u2":"https://t.me/talagah/212","online":true},
+{"s":"Operative","t":"Cariology and caries management (Part 1)","q":"كويز 1","g":80,"id":93,"u":"https://t.me/c/2006385993/347","u2":"https://t.me/talagah/214","online":true},
+{"s":"Operative","t":"Cariology and caries management (Part 2)","q":"كويز 1","g":80,"id":94,"u":"https://t.me/c/2006385993/356","u2":"https://t.me/talagah/214","online":true},
+{"s":"Operative","t":"Esthetic consideration (Part 1)","q":"كويز 1","g":80,"id":95,"u":"https://t.me/c/2006385993/371","u2":"https://t.me/talagah/217","online":true},
+{"s":"Operative","t":"Esthetic consideration (Part 2)","q":"كويز 1","g":80,"id":96,"u":"https://t.me/talagah/219","u2":"https://t.me/talagah/217","online":true},
 
 // OPERATIVE — بين كويز 1 و 2
-{"s":"Operative","t":"Shade selection for direct restorations (Part 1)","q":"بين كويز 1 و 2","g":80,"id":97,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_dlpdb7/IQDCd-7lOt7tSrnKkT6c_VSOARxEpyRCMHI202fgzTWK-mo"},
+{"s":"Operative","t":"Shade selection for direct restorations (Part 1)","q":"بين كويز 1 و 2","g":80,"id":97,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_dlpdb7/IQDCd-7lOt7tSrnKkT6c_VSOARxEpyRCMHI202fgzTWK-mo","online":true},
 {"s":"Operative","t":"Shade selection for direct restorations (Part 2)","q":"بين كويز 1 و 2","g":80,"id":98,"u":"https://t.me/c/2006385993/380"},
-{"s":"Operative","t":"Management of discolored teeth (Part 1)","q":"بين كويز 1 و 2","g":80,"id":101,"u":"https://t.me/c/2006385993/404","u2":"https://t.me/talagah/430"},
-{"s":"Operative","t":"Management of discolored teeth (Part 2)","q":"بين كويز 1 و 2","g":80,"id":102,"u":"https://t.me/c/2006385993/412","u2":"https://t.me/talagah/430"},
-{"s":"Operative","t":"Management of badly destructed teeth (Part 1)","q":"بين كويز 1 و 2","g":80,"id":103,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_dlpdb7/IQB6wOpaLFeNR5VBzfHCx0UDATY8IRPQ9dreqlbr8AqCsSI"},
+{"s":"Operative","t":"Management of discolored teeth (Part 1)","q":"بين كويز 1 و 2","g":80,"id":101,"u":"https://t.me/c/2006385993/404","u2":"https://t.me/talagah/430","online":true},
+{"s":"Operative","t":"Management of discolored teeth (Part 2)","q":"بين كويز 1 و 2","g":80,"id":102,"u":"https://t.me/c/2006385993/412","u2":"https://t.me/talagah/430","online":true},
+{"s":"Operative","t":"Management of badly destructed teeth (Part 1)","q":"بين كويز 1 و 2","g":80,"id":103,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_dlpdb7/IQB6wOpaLFeNR5VBzfHCx0UDATY8IRPQ9dreqlbr8AqCsSI","online":true},
 {"s":"Operative","t":"Management of badly destructed teeth (Part 2)","q":"بين كويز 1 و 2","g":80,"id":104,"u":""},
 
 // OPERATIVE — كويز 2 (Term 1)
-{"s":"Operative","t":"Laser in restorative dentistry (Part 1)","q":"كويز 2","g":80,"id":99,"u":"https://t.me/c/2006385993/389","u2":"https://t.me/puma49/1659"},
-{"s":"Operative","t":"Laser in restorative dentistry (Part 2)","q":"كويز 2","g":80,"id":100,"u":"https://t.me/c/2006385993/399","u2":"https://t.me/puma49/1659"},
+{"s":"Operative","t":"Laser in restorative dentistry (Part 1)","q":"كويز 2","g":80,"id":99,"u":"https://t.me/c/2006385993/389","u2":"https://t.me/puma49/1659","online":true},
+{"s":"Operative","t":"Laser in restorative dentistry (Part 2)","q":"كويز 2","g":80,"id":100,"u":"https://t.me/c/2006385993/399","u2":"https://t.me/puma49/1659","online":true},
 
 // OPERATIVE — كويز 2 (Term 2)
-{"s":"Operative","t":"Etiology, diagnosis and management of non-carious lesion (Part 1)","q":"كويز 2","g":80,"id":105,"u":"https://t.me/c/2006385993/421","u2":"https://t.me/talagah/450"},
-{"s":"Operative","t":"Etiology, diagnosis and management of non-carious lesion (Part 2)","q":"كويز 2","g":80,"id":106,"u":"https://t.me/c/2006385993/430","u2":"https://t.me/talagah/450"},
+{"s":"Operative","t":"Etiology, diagnosis and management of non-carious lesion (Part 1)","q":"كويز 2","g":80,"id":105,"u":"https://t.me/c/2006385993/421","u2":"https://t.me/talagah/450","online":true},
+{"s":"Operative","t":"Etiology, diagnosis and management of non-carious lesion (Part 2)","q":"كويز 2","g":80,"id":106,"u":"https://t.me/c/2006385993/430","u2":"https://t.me/talagah/450","online":true},
 
 // OPERATIVE — بعد كويز 2
-{"s":"Operative","t":"Advanced restorative materials 1","q":"بعد كويز 2","g":80,"id":107,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_dlpdb7/IQDvduTITWjjRqaQJyy5JI5tATj6vC8cSRnKkSkXV3-QNGc"},
-{"s":"Operative","t":"Advanced restorative materials 2","q":"بعد كويز 2","g":80,"id":108,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_dlpdb7/IQAagn3A3GrYR4eCPgwgveEOAfQ7G9mtkfK3xmsnYFC1u_0"},
-{"s":"Operative","t":"Micro and nanoleakage of dental restorations (Part 1)","q":"بعد كويز 2","g":80,"id":109,"u":""},
+{"s":"Operative","t":"Advanced restorative materials 1","q":"بعد كويز 2","g":80,"id":107,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_dlpdb7/IQDvduTITWjjRqaQJyy5JI5tATj6vC8cSRnKkSkXV3-QNGc","online":true},
+{"s":"Operative","t":"Advanced restorative materials 2","q":"بعد كويز 2","g":80,"id":108,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_dlpdb7/IQAagn3A3GrYR4eCPgwgveEOAfQ7G9mtkfK3xmsnYFC1u_0","online":true},
+{"s":"Operative","t":"Micro and nanoleakage of dental restorations (Part 1)","q":"بعد كويز 2","g":80,"id":109,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_dlpdb7/IQCY8zs3Tzm3Sbehkp3zgXL3AQSwv1rmspI5IQSmgjTBwY4","online":true},
 {"s":"Operative","t":"Micro and nanoleakage of dental restorations (Part 2)","q":"بعد كويز 2","g":80,"id":110,"u":""},
-{"s":"Operative","t":"Failure of dental restorations (Part 1)","q":"بعد كويز 2","g":80,"id":111,"u":""},
+{"s":"Operative","t":"Failure of dental restorations (Part 1)","q":"بعد كويز 2","g":80,"id":111,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_dlpdb7/IQCzebBB0UiET5zr8QYWkCdlASTZEzGPq2XGxidM1sGn_vo","online":true},
 {"s":"Operative","t":"Failure of dental restorations (Part 2)","q":"بعد كويز 2","g":80,"id":112,"u":""},
 
 // ════════════════════════════════════════════════════════
@@ -194,9 +194,9 @@ const LECTURES = [
 {"s":"Fixed Prosth.","t":"Mouth Preparation","q":"كويز 1","g":60,"id":116,"u":"https://t.me/c/2006385993/344"},
 {"s":"Fixed Prosth.","t":"Periodontal Considerations in Fixed Prosthodontics","q":"كويز 1","g":60,"id":117,"u":"https://t.me/c/2006385993/352"},
 {"s":"Fixed Prosth.","t":"Soft Tissue Management","q":"كويز 1","g":60,"id":118,"u":"https://t.me/c/2006385993/360"},
-{"s":"Fixed Prosth.","t":"Impression Materials & Techniques","q":"كويز 1","g":60,"id":119,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_cs6jd7/ETtnpA0gaipEtzXMFt_RA1oBf8mqeygAMg3UpfcFIe0PNw"},
+{"s":"Fixed Prosth.","t":"Impression Materials & Techniques","q":"كويز 1","g":60,"id":119,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_cs6jd7/ETtnpA0gaipEtzXMFt_RA1oBf8mqeygAMg3UpfcFIe0PNw","online":true},
 {"s":"Fixed Prosth.","t":"Bite Registration","q":"كويز 1","g":60,"id":120,"u":"https://t.me/c/2006385993/375"},
-{"s":"Fixed Prosth.","t":"Communication with Dental Laboratory","q":"كويز 1","g":60,"id":121,"u":"https://t.me/talagah/218"},
+{"s":"Fixed Prosth.","t":"Communication with Dental Laboratory","q":"كويز 1","g":60,"id":121,"u":"https://t.me/talagah/218","online":true},
 {"s":"Fixed Prosth.","t":"Try-in","q":"كويز 1","g":60,"id":122,"u":"https://t.me/c/2006385993/377"},
 {"s":"Fixed Prosth.","t":"Cements and Cementation","q":"كويز 1","g":60,"id":123,"u":"https://t.me/c/2006385993/385"},
 
@@ -204,19 +204,19 @@ const LECTURES = [
 {"s":"Fixed Prosth.","t":"Postoperative Care and Follow-up","q":"بين كويز 1 و 2","g":60,"id":124,"u":"https://t.me/c/2006385993/392"},
 {"s":"Fixed Prosth.","t":"Postinsertion Problems & Failures","q":"بين كويز 1 و 2","g":60,"id":125,"u":"https://t.me/c/2006385993/400"},
 {"s":"Fixed Prosth.","t":"Removal & Repair of Failed Fixed Dental Prostheses (Flipped Classroom)","q":"بين كويز 1 و 2","g":60,"id":126,"u":"https://t.me/talagah/423"},
-{"s":"Fixed Prosth.","t":"Biomimetic Posterior Restorations","q":"بين كويز 1 و 2","g":60,"id":127,"u":""},
+{"s":"Fixed Prosth.","t":"Biomimetic Posterior Restorations","q":"بين كويز 1 و 2","g":60,"id":127,"u":"https://t.me/c/1674571996/1288"},
 
 // FIXED — كويز 2 (Term 1)
 {"s":"Fixed Prosth.","t":"All-ceramic Restorations","q":"كويز 2","g":60,"id":128,"u":"https://t.me/c/2006385993/415"},
 {"s":"Fixed Prosth.","t":"Resin-bonded Fixed Dental Prostheses","q":"كويز 2","g":60,"id":129,"u":"https://t.me/c/2006385993/424"},
-{"s":"Fixed Prosth.","t":"Esthetic Considerations in Fixed Prosthodontics (Online Ramadan)","q":"كويز 2","g":60,"id":130,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_cs6jd7/IQCK-kDRGClmSY0iyMUo7iMcAVxHBf25OjusjOW5iDj9bfg"},
-{"s":"Fixed Prosth.","t":"Ceramic Labial Veneers (Online Ramadan)","q":"كويز 2","g":60,"id":131,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_cs6jd7/IQCS8X7-vl-BTroNiCUd8sZUAc0-PPIc7xu4qdtz10PNT9U"},
+{"s":"Fixed Prosth.","t":"Esthetic Considerations in Fixed Prosthodontics (Online Ramadan)","q":"كويز 2","g":60,"id":130,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_cs6jd7/IQCK-kDRGClmSY0iyMUo7iMcAVxHBf25OjusjOW5iDj9bfg","online":true},
+{"s":"Fixed Prosth.","t":"Ceramic Labial Veneers (Online Ramadan)","q":"كويز 2","g":60,"id":131,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_cs6jd7/IQCS8X7-vl-BTroNiCUd8sZUAc0-PPIc7xu4qdtz10PNT9U","online":true},
 
 // FIXED — بعد كويز 2
-{"s":"Fixed Prosth.","t":"Implant-supported Fixed Dental Prostheses (Part I)","q":"بعد كويز 2","g":60,"id":132,"u":""},
-{"s":"Fixed Prosth.","t":"Implant-supported Fixed Dental Prostheses (Part II)","q":"بعد كويز 2","g":60,"id":133,"u":""},
-{"s":"Fixed Prosth.","t":"Laser in Fixed Prosthodontics","q":"بعد كويز 2","g":60,"id":134,"u":""},
-{"s":"Fixed Prosth.","t":"Digital Workflow in Fixed Prosthodontics","q":"بعد كويز 2","g":60,"id":135,"u":""},
+{"s":"Fixed Prosth.","t":"Implant-supported Fixed Dental Prostheses (Part I)","q":"بعد كويز 2","g":60,"id":132,"u":"https://t.me/c/2006385993/431"},
+{"s":"Fixed Prosth.","t":"Implant-supported Fixed Dental Prostheses (Part II)","q":"بعد كويز 2","g":60,"id":133,"u":"https://t.me/c/2006385993/442"},
+{"s":"Fixed Prosth.","t":"Laser in Fixed Prosthodontics","q":"بعد كويز 2","g":60,"id":134,"u":"https://t.me/c/2006385993/446"},
+{"s":"Fixed Prosth.","t":"Digital Workflow in Fixed Prosthodontics","q":"بعد كويز 2","g":60,"id":135,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_cs6jd7/IQC64kSowgTwQYwcUyE_-tSOAV3rPeMV4GvKmcJZKRHO0IY","online":true},
 
 // ════════════════════════════════════════════════════════
 // ENDO — كويز 1 (Term 1)
@@ -228,28 +228,28 @@ const LECTURES = [
 {"s":"Endo","t":"Recent advances in root canal Disinfection (part1)","q":"كويز 1","g":60,"id":140,"u":"https://t.me/c/2006385993/354"},
 {"s":"Endo","t":"Recent advances in root canal Disinfection (part2)","q":"كويز 1","g":60,"id":141,"u":"https://t.me/c/2006385993/363"},
 {"s":"Endo","t":"Etiology of pulp inflammation","q":"كويز 1","g":60,"id":142,"u":"https://t.me/c/2006385993/367"},
-{"s":"Endo","t":"Pulp and periapical pathosis (part 1)","q":"كويز 1","g":60,"id":143,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_pf5-cl/EQIVeheIitREnKH0593lWawBiyXzgyON0tqysneJvpqiCg"},
-{"s":"Endo","t":"Pulp and periapical pathosis (part 2)","q":"كويز 1","g":60,"id":144,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_pf5-cl/ER7vsfia5jBAh4C7RfMpuhwBepIhrAD2kRLv7wKoruG5NA"},
+{"s":"Endo","t":"Pulp and periapical pathosis (part 1)","q":"كويز 1","g":60,"id":143,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_pf5-cl/EQIVeheIitREnKH0593lWawBiyXzgyON0tqysneJvpqiCg","online":true},
+{"s":"Endo","t":"Pulp and periapical pathosis (part 2)","q":"كويز 1","g":60,"id":144,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_pf5-cl/ER7vsfia5jBAh4C7RfMpuhwBepIhrAD2kRLv7wKoruG5NA","online":true},
 {"s":"Endo","t":"Endodontic Emergency","q":"كويز 1","g":60,"id":145,"u":"https://t.me/c/2006385993/379"},
 
 // ENDO — بين كويز 1 و 2
 {"s":"Endo","t":"Endo-perio lesions","q":"بين كويز 1 و 2","g":60,"id":146,"u":"https://t.me/c/2006385993/387"},
 {"s":"Endo","t":"Combined Endo-Perio therapy","q":"بين كويز 1 و 2","g":60,"id":147,"u":"https://t.me/c/2006385993/394"},
 {"s":"Endo","t":"New materials and techniques for vital pulp therapy","q":"بين كويز 1 و 2","g":60,"id":148,"u":"https://t.me/c/2006385993/403"},
-{"s":"Endo","t":"Treatment of immature teeth","q":"بين كويز 1 و 2","g":60,"id":149,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_pf5-cl/IQCBmOTtt8i1Q44hVbaunLV4AZLc4XCN50zY_JZp1fUXdog"},
-{"s":"Endo","t":"Endo surgical procedures","q":"بين كويز 1 و 2","g":60,"id":150,"u":"https://t.me/talagah/433"},
-{"s":"Endo","t":"Non-vital tooth bleaching","q":"بين كويز 1 و 2","g":60,"id":151,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_pf5-cl/IQBqXkSKPN_9QqY6FeZ9OCFXAabRBAzf1nf8zOdnIrVNQvY"},
+{"s":"Endo","t":"Treatment of immature teeth","q":"بين كويز 1 و 2","g":60,"id":149,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_pf5-cl/IQCBmOTtt8i1Q44hVbaunLV4AZLc4XCN50zY_JZp1fUXdog","online":true},
+{"s":"Endo","t":"Endo surgical procedures","q":"بين كويز 1 و 2","g":60,"id":150,"u":"https://t.me/talagah/433","online":true},
+{"s":"Endo","t":"Non-vital tooth bleaching","q":"بين كويز 1 و 2","g":60,"id":151,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_pf5-cl/IQBqXkSKPN_9QqY6FeZ9OCFXAabRBAzf1nf8zOdnIrVNQvY","online":true},
 
 // ENDO — كويز 2 (Term 2)
 {"s":"Endo","t":"Traumatic injuries (Part 1)","q":"كويز 2","g":60,"id":152,"u":"https://t.me/c/2006385993/420"},
 {"s":"Endo","t":"Traumatic injuries (Part 2)","q":"كويز 2","g":60,"id":153,"u":"https://t.me/c/2006385993/426"},
-{"s":"Endo","t":"Traumatic injuries (Part 3) (on line)","q":"كويز 2","g":60,"id":154,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_pf5-cl/IQDzCvthpKRoQoEk6aa-85rPAdXCRMx3KErkynf2SX19iG0"},
-{"s":"Endo","t":"Traumatic injuries (Part 4) (on line)","q":"كويز 2","g":60,"id":155,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_pf5-cl/IQBIRAhg8AqURrwpgwY7cUJHAa3AKmRqTLqE3ujhVlMHD9A"},
+{"s":"Endo","t":"Traumatic injuries (Part 3) (on line)","q":"كويز 2","g":60,"id":154,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_pf5-cl/IQDzCvthpKRoQoEk6aa-85rPAdXCRMx3KErkynf2SX19iG0","online":true},
+{"s":"Endo","t":"Traumatic injuries (Part 4) (on line)","q":"كويز 2","g":60,"id":155,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_pf5-cl/IQBIRAhg8AqURrwpgwY7cUJHAa3AKmRqTLqE3ujhVlMHD9A","online":true},
 
 // ENDO — بعد كويز 2
-{"s":"Endo","t":"Outcomes of root canal treatment","q":"بعد كويز 2","g":60,"id":156,"u":""},
-{"s":"Endo","t":"Endodontic retreatment (Part 1)","q":"بعد كويز 2","g":60,"id":157,"u":""},
-{"s":"Endo","t":"Endodontic retreatment (Part 2)","q":"بعد كويز 2","g":60,"id":158,"u":""}
+{"s":"Endo","t":"Outcomes of root canal treatment","q":"بعد كويز 2","g":60,"id":156,"u":"https://t.me/c/2006385993/433"},
+{"s":"Endo","t":"Endodontic retreatment (Part 1)","q":"بعد كويز 2","g":60,"id":157,"u":"https://t.me/c/2006385993/438"},
+{"s":"Endo","t":"Endodontic retreatment (Part 2)","q":"بعد كويز 2","g":60,"id":158,"u":"https://t.me/c/2006385993/441"}
 ];
 
 const MEMBERS = [
