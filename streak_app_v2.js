@@ -687,6 +687,11 @@ function toggleLecture(lecId) {
     });
     // Cloud write — onValue will broadcast to every device
     store._removeFromCloud(uid, lecId);
+
+    // Remove the associated notification
+    if (typeof NotificationsSystem !== 'undefined') {
+      NotificationsSystem.removeUserEvent('progress', lecId);
+    }
   } else {
     pendingLecId = lecId;
     document.getElementById('pctModal').classList.add('show');
@@ -1362,6 +1367,11 @@ window.markAsBought = function(userId, lecId) {
   showConfirmModal('تأكيد الشراء 🏗️', 'هل تأكدت من شراء هذه المحاضرة؟ سيتم إزالتها من قائمة النواقص تلقائياً.', () => {
     // 1. Update Cloud (Remove the 0% mark)
     store._removeFromCloud(uid, lid);
+
+    // Remove the associated notification
+    if (typeof NotificationsSystem !== 'undefined') {
+      NotificationsSystem.removeUserEvent('progress', lid);
+    }
     
     // 2. Update Local State (Reactive UI will handle the rest)
     store.set(st => {

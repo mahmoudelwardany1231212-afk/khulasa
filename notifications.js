@@ -135,9 +135,9 @@ const NotificationsSystem = (() => {
   }
 
   // ── PUSH EVENT ──
-  // Uses a deterministic key: uid_type_targetId
-  // → same action always overwrites the previous notification
-  // → value of 0 or null means the action was reversed, so delete the notification
+  // Uses a timestamp-prefixed key: ts_uid_type_targetId
+  // → events sort chronologically in Firebase, so limitToLast always gets recent events
+  // → no userId bias in key ordering
   function pushEvent(type, targetId, value) {
     if (!window._fbReady || !window._fbDb || !window.firebase_database) return;
     if (typeof window.store === 'undefined') return;
@@ -147,10 +147,11 @@ const NotificationsSystem = (() => {
       const { ref, set, remove } = window.firebase_database;
       const db = window._fbDb;
       const safeTarget = (targetId !== null && targetId !== undefined) ? targetId : 'x';
-      const key = `${s.currentUser}_${type}_${safeTarget}`;
+      const ts = Date.now();
+      const key = `${ts}_${s.currentUser}_${type}_${safeTarget}`;
       const eventRef = ref(db, `events/${key}`);
 
-      // Action reversed → delete the notification
+      // Action reversed → delete the notification (no-op if key doesn't exist yet)
       if (value === 0 || value === null) {
         remove(eventRef);
         return;
@@ -161,11 +162,36 @@ const NotificationsSystem = (() => {
         type: type,
         targetId: targetId || null,
         value: value,
-        timestamp: Date.now(),
+        timestamp: ts,
         reactions: {}
       });
     } catch (e) {
       console.error('[Notifications] Failed to push event:', e);
+    }
+  }
+
+  // ── REMOVE EVENT BY TYPE/TARGET ──
+  // Finds and deletes the matching event from Firebase (used when progress is removed)
+  function removeUserEvent(type, targetId) {
+    if (!window._fbReady || !window._fbDb || !window.firebase_database) return;
+    if (typeof window.store === 'undefined') return;
+    const s = window.store.get();
+    if (s.currentUser === null || s.currentUser === undefined) return;
+    try {
+      const { ref, get, remove } = window.firebase_database;
+      const db = window._fbDb;
+      const safeTarget = (targetId !== null && targetId !== undefined) ? targetId : 'x';
+      get(ref(db, 'events')).then(snap => {
+        if (!snap.exists()) return;
+        snap.forEach(child => {
+          const data = child.val();
+          if (data.userId === s.currentUser && data.type === type && data.targetId == targetId) {
+            remove(child.ref);
+          }
+        });
+      });
+    } catch (e) {
+      console.error('[Notifications] Failed to remove event:', e);
     }
   }
 
@@ -453,5 +479,5 @@ const NotificationsSystem = (() => {
     c.innerHTML = html;
   }
 
-  return { init, pushEvent, renderPage, markAllAsRead };
+  return { init, pushEvent, removeUserEvent, renderPage, markAllAsRead };
 })();

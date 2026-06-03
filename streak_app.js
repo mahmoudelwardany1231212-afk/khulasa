@@ -140,7 +140,8 @@ function checkPin() {
   const input = document.getElementById('pinInput');
   const val = input.value;
   if (val.length === 4) {
-    if (val === MEMBERS[pendingUser].pin) {
+    const fallbackPin = window._localPins ? window._localPins[pendingUser] : null;
+    if (val === (MEMBERS[pendingUser].pin || fallbackPin)) {
       // Success
       closePinModal();
       currentUser = pendingUser;
