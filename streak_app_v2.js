@@ -749,7 +749,7 @@ function selectPct(pctVal) {
   // ── GAMIFICATION XP HOOK ──
   if (typeof Gamification !== 'undefined' && pctVal > 0) {
     const xpKey = pctVal >= 100 ? 'lecture_100' : pctVal >= 75 ? 'lecture_75' : pctVal >= 50 ? 'lecture_50' : 'lecture_25';
-    Gamification.addXP(Gamification.XP_TABLE[xpKey] || 10, xpKey);
+    Gamification.addXP(Gamification.XP_PER_LECTURE[pctVal] || 10, xpKey);
   }
 
   setTimeout(() => {
