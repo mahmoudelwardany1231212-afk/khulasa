@@ -121,9 +121,9 @@ const LECTURES = [
 // PROSTHESIS — كويز 1 (Term 1)
 // ════════════════════════════════════════════════════════
 {"s":"Prosthesis","t":"Orientation","q":"كويز 1","g":120,"id":67,"u":""},
-{"s":"Prosthesis","t":"Diagnosis, and treatment planning for partial denture","q":"كويز 1","g":120,"id":68,"u":"https://t.me/c/2006385993/334"},
-{"s":"Prosthesis","t":"Mouth preparation","q":"كويز 1","g":120,"id":69,"u":"https://t.me/c/2006385993/343"},
-{"s":"Prosthesis","t":"Principle of partial denture design","q":"كويز 1","g":120,"id":70,"u":"https://t.me/c/2006385993/350"},
+{"s":"Prosthesis","t":"Diagnosis, and treatment planning for partial denture","q":"كويز 1","g":120,"id":68,"u":"https://t.me/c/2006385993/334","m":true},
+{"s":"Prosthesis","t":"Mouth preparation","q":"كويز 1","g":120,"id":69,"u":"https://t.me/c/2006385993/343","m":true},
+{"s":"Prosthesis","t":"Principle of partial denture design","q":"كويز 1","g":120,"id":70,"u":"https://t.me/c/2006385993/350","m":true},
 {"s":"Prosthesis","t":"Impression techniques for R.P.D.","q":"كويز 1","g":120,"id":71,"u":"https://t.me/c/2006385993/359","u2":"https://t.me/talagah/205"},
 {"s":"Prosthesis","t":"Occlusal relationships for R.P.D.","q":"كويز 1","g":120,"id":72,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_s-lzcl/EZ4-Idl2_x9FpxhGLN8nLFcBLFYyJ62la73yG0W9Z0Y6dA","online":true},
 {"s":"Prosthesis","t":"Class I","q":"كويز 1","g":120,"id":73,"u":"https://t.me/c/2006385993/374"},
@@ -136,19 +136,19 @@ const LECTURES = [
 
 // PROSTHESIS — كويز 2 (Term 1 & 2)
 {"s":"Prosthesis","t":"Neutral zone","q":"كويز 2","g":120,"id":81,"u":"","u2":"https://t.me/talagah/441","online":true},
-{"s":"Prosthesis","t":"Ethetic in RPD","q":"كويز 2","g":120,"id":82,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_s-lzcl/IQB9L5ATS6n9TbP3IdOfeSCnASiZ5QnG8YMBYecOiQm3fSM","online":true},
+{"s":"Prosthesis","t":"Ethetic in RPD","q":"كويز 2","g":120,"id":82,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_s-lzcl/IQB9L5ATS6n9TbP3IdOfeSCnASiZ5QnG8YMBYecOiQm3fSM","online":true,"m":true},
 {"s":"Prosthesis","t":"Geriatric patients","q":"كويز 2","g":120,"id":83,"u":"https://t.me/c/2006385993/429","u2":"https://t.me/talagah/451","online":true},
-{"s":"Prosthesis","t":"Immediate denture","q":"كويز 2","g":120,"id":84,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_s-lzcl/IQA2WhAl8ehtTYjQbAKz4WmyAZeIEEDVBC6-PGyhskg_ZD4","online":true},
+{"s":"Prosthesis","t":"Immediate denture","q":"كويز 2","g":120,"id":84,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_s-lzcl/IQA2WhAl8ehtTYjQbAKz4WmyAZeIEEDVBC6-PGyhskg_ZD4","online":true,"m":true},
 {"s":"Prosthesis","t":"Single Denture","q":"كويز 2","g":120,"id":85,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_s-lzcl/IQAAkbCS90RmTI2s6LrSY7mGASY8Bo-dywj-rr37En-tt6c","u2":"https://t.me/bitinjan/161","online":true},
 
 // PROSTHESIS — بعد كويز 2
-{"s":"Prosthesis","t":"Occlusion for complete denture","q":"بين كويز 1 و 2","g":120,"id":78,"u":"https://t.me/c/2006385993/398","u2":"https://t.me/talagah/437","u3":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_s-lzcl/IQBP60pIciT8RbqpsVTty7kKARlxtrSrlFNi8L3yfBqn3hc","online":true},
+{"s":"Prosthesis","t":"Occlusion for complete denture","q":"بين كويز 1 و 2","g":120,"id":78,"u":"https://t.me/c/2006385993/398","u2":"https://t.me/talagah/437","u3":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_s-lzcl/IQBP60pIciT8RbqpsVTty7kKARlxtrSrlFNi8L3yfBqn3hc","online":true,"m":true},
 {"s":"Prosthesis","t":"Complaints of R.P.D.","q":"بين كويز 1 و 2","g":120,"id":79,"u":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_s-lzcl/IQAJw1m8RfoET57w81tyg0KNAUA0btMyHQIomiexg4uvnPM","online":true},
 {"s":"Prosthesis","t":"Repair& relining","q":"بين كويز 1 و 2","g":120,"id":80,"u":"https://t.me/talagah/439","online":true},
-{"s":"Prosthesis","t":"Over denture & Submerged root","q":"بعد كويز 2","g":120,"id":86,"u":"https://t.me/c/2006385993/437","u2":"https://t.me/talagah/594"},
+{"s":"Prosthesis","t":"Over denture & Submerged root","q":"بعد كويز 2","g":120,"id":86,"u":"https://t.me/c/2006385993/437","u2":"https://t.me/talagah/594","m":true},
 {"s":"Prosthesis","t":"Implant prosthesis","q":"بعد كويز 2","g":120,"id":87,"u":"https://t.me/c/2006385993/443"},
-{"s":"Prosthesis","t":"Digital workflow for R.P.D., Advanced denture bases used for R.P.D . (part 1)","q":"بعد كويز 2","g":120,"id":88,"u":"https://t.me/talagah/751","u2":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_s-lzcl/IQBi3HavEWUMTIftUsWc0KQPAVa4eVvz-KDhBIetbb6EPbo","online":true},
-{"s":"Prosthesis","t":"Digital workflow for R.P.D. and Advanced denture bases used for R.P.D (part 2)","q":"بعد كويز 2","g":120,"id":89,"u":""},
+{"s":"Prosthesis","t":"Digital workflow for R.P.D., Advanced denture bases used for R.P.D . (part 1)","q":"بعد كويز 2","g":120,"id":88,"u":"https://t.me/talagah/751","u2":"https://denttantaedu.sharepoint.com/:v:/s/a___2026_s-lzcl/IQBi3HavEWUMTIftUsWc0KQPAVa4eVvz-KDhBIetbb6EPbo","online":true,"m":true},
+{"s":"Prosthesis","t":"Digital workflow for R.P.D. and Advanced denture bases used for R.P.D (part 2)","q":"بعد كويز 2","g":120,"id":89,"u":"","m":true},
 
 // ════════════════════════════════════════════════════════
 // OPERATIVE — كويز 1 (Term 1)
