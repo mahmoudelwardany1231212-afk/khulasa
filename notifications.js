@@ -135,9 +135,9 @@ const NotificationsSystem = (() => {
   }
 
   // ── PUSH EVENT ──
-  // Uses a timestamp-prefixed key: ts_uid_type_targetId
-  // → events sort chronologically in Firebase, so limitToLast always gets recent events
-  // → no userId bias in key ordering
+  // Uses an inverted-timestamp key: revts_uid_type_targetId
+  // → newer events have HIGHER keys (reverse chronological sort)
+  // → limitToLast always returns the most recent events regardless of userId
   function pushEvent(type, targetId, value) {
     if (!window._fbReady || !window._fbDb || !window.firebase_database) return;
     if (typeof window.store === 'undefined') return;
@@ -147,7 +147,7 @@ const NotificationsSystem = (() => {
       const { ref, set, remove } = window.firebase_database;
       const db = window._fbDb;
       const safeTarget = (targetId !== null && targetId !== undefined) ? targetId : 'x';
-      const ts = Date.now();
+      const ts = (9999999999999 - Date.now()).toString(); // higher = newer
       const key = `${ts}_${s.currentUser}_${type}_${safeTarget}`;
       const eventRef = ref(db, `events/${key}`);
 
